@@ -7,25 +7,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-:root{
-  --brand:#C8440A;--brand-light:#FAECE7;
-  --bg:#F4F3F0;--bg2:#ECEAE5;--surface:#FFFFFF;
-  --border:#E0DDD8;--border2:#CCCAC4;
-  --text:#1A1A18;--text2:#6B6A66;--text3:#9E9C98;
-  --green-bg:#EAF3DE;--green-txt:#27500A;
-  --amber-bg:#FAEEDA;--amber-txt:#633806;
-  --blue-bg:#E6F1FB;--blue-txt:#0C447C;
-  --red-bg:#FCEBEB;--red-txt:#791F1F;
-}
-@media(prefers-color-scheme:dark){:root{
-  --bg:#1A1A18;--bg2:#222220;--surface:#2A2A28;
-  --border:#3A3A38;--border2:#4A4A48;
-  --text:#F0EEE8;--text2:#9E9C98;--text3:#6B6A66;
-  --green-bg:#173404;--green-txt:#C0DD97;
-  --amber-bg:#412402;--amber-txt:#FAC775;
-  --blue-bg:#042C53;--blue-txt:#B5D4F4;
-  --red-bg:#501313;--red-txt:#F7C1C1;
-}}
+:root{--brand:#C8440A;--brand-light:#FAECE7;--bg:#F4F3F0;--bg2:#ECEAE5;--surface:#FFFFFF;--border:#E0DDD8;--border2:#CCCAC4;--text:#1A1A18;--text2:#6B6A66;--text3:#9E9C98;--green-bg:#EAF3DE;--green-txt:#27500A;--amber-bg:#FAEEDA;--amber-txt:#633806;--blue-bg:#E6F1FB;--blue-txt:#0C447C;--red-bg:#FCEBEB;--red-txt:#791F1F;}
+@media(prefers-color-scheme:dark){:root{--bg:#1A1A18;--bg2:#222220;--surface:#2A2A28;--border:#3A3A38;--border2:#4A4A48;--text:#F0EEE8;--text2:#9E9C98;--text3:#6B6A66;--green-bg:#173404;--green-txt:#C0DD97;--amber-bg:#412402;--amber-txt:#FAC775;--blue-bg:#042C53;--blue-txt:#B5D4F4;--red-bg:#501313;--red-txt:#F7C1C1;}}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:50;}
 .logo{font-size:16px;font-weight:600;display:flex;align-items:center;gap:9px;}
@@ -39,7 +22,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tab-btn:hover{color:var(--text);background:var(--bg2);}
 .tab-btn.active{color:var(--brand);font-weight:600;border-bottom:2px solid var(--brand);}
 .subtabbar{background:var(--bg2);border-bottom:1px solid var(--border);display:flex;padding:0 1.5rem;gap:4px;}
-.subtab-btn{padding:8px 14px;border:none;background:transparent;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color 0.15s;white-space:nowrap;}
+.subtab-btn{padding:8px 14px;border:none;background:transparent;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;}
 .subtab-btn:hover{color:var(--text);}
 .subtab-btn.active{color:var(--brand);font-weight:600;border-bottom:2px solid var(--brand);}
 .content{padding:1.5rem;max-width:1400px;margin:0 auto;}
@@ -47,14 +30,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .hub-sub{font-size:13px;color:var(--text2);margin-top:3px;}
 .hub-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;margin-top:1.5rem;}
-.section-title{font-size:14px;font-weight:600;color:var(--text);}
+.section-title{font-size:14px;font-weight:600;}
 .section-sub{font-size:12px;color:var(--text3);margin-top:2px;}
 .btn-primary{background:var(--brand);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:600;}
 .btn-primary:hover{opacity:0.88;}
 .btn-sm{background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:7px;padding:5px 11px;font-size:12px;cursor:pointer;font-family:inherit;}
 .btn-sm:hover{background:var(--bg2);}
-.btn-danger{background:var(--red-bg);color:var(--red-txt);border:1px solid var(--red-txt);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}
-.btn-danger:hover{opacity:0.85;}
+.btn-danger{background:var(--red-bg);color:var(--red-txt);border:1px solid var(--red-txt);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}
+.btn-notes{background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--blue-txt);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}
+.btn-notes.has-notes{background:var(--amber-bg);color:var(--amber-txt);border-color:var(--amber-txt);}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
 .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
@@ -91,7 +75,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .lcard-val{font-size:12px;color:var(--brand);font-weight:600;margin-top:6px;}
 .tbl{width:100%;border-collapse:collapse;}
 .tbl th{text-align:left;font-size:11px;font-weight:600;color:var(--text3);padding:9px 13px;border-bottom:1px solid var(--border);background:var(--bg2);}
-.tbl td{padding:10px 13px;font-size:13px;border-bottom:1px solid var(--border);}
+.tbl td{padding:10px 13px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;}
 .tbl tr:last-child td{border-bottom:none;}
 .tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
 .prog-bar{width:72px;height:5px;background:var(--bg2);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:5px;}
@@ -134,7 +118,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .doc-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px;gap:10px;padding:2rem;}
 .cid-badge{font-size:11px;font-weight:700;background:var(--bg2);color:var(--text2);padding:3px 8px;border-radius:6px;font-family:monospace;letter-spacing:0.5px;white-space:nowrap;}
 .inline-select{font-size:11px;border:1px solid var(--border);border-radius:5px;padding:2px 5px;background:var(--bg2);color:var(--text2);cursor:pointer;font-family:inherit;}
-/* Confirm modal */
+.notes-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;}
+.notes-name{font-size:16px;font-weight:600;}
+.notes-meta{font-size:12px;color:var(--text2);margin-top:3px;}
+.notes-entry{background:var(--bg2);border-radius:8px;padding:12px;margin-bottom:10px;}
+.notes-entry-date{font-size:11px;color:var(--text3);margin-bottom:5px;}
+.notes-entry-text{font-size:13px;line-height:1.6;white-space:pre-wrap;}
+.notes-input-area{display:flex;flex-direction:column;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;}
+.notes-textarea{width:100%;font-size:13px;border:1px solid var(--border2);border-radius:8px;padding:10px;background:var(--bg2);color:var(--text);font-family:inherit;line-height:1.6;resize:vertical;min-height:90px;}
+.notes-textarea:focus{outline:none;border-color:var(--brand);}
 .confirm-modal{background:var(--surface);border-radius:14px;border:1px solid var(--border2);padding:1.75rem;width:360px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,0.2);}
 .confirm-modal h3{font-size:16px;font-weight:600;margin-bottom:.5rem;}
 .confirm-modal p{font-size:13px;color:var(--text2);margin-bottom:1.25rem;line-height:1.5;}
@@ -151,18 +143,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </style>
 </head>
 <body>
-
 <div class="topbar">
-  <div class="logo">
-    <div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M2 12h12v2H2zm1-5h10l1 5H2l1-5zm2-4h6l1 2H4L5 3z"/></svg></div>
-    JM Built
-  </div>
-  <div class="sync-status">
-    <div class="sync-dot" id="sync-dot"></div>
-    <span id="sync-label">Connecting...</span>
-  </div>
+  <div class="logo"><div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M2 12h12v2H2zm1-5h10l1 5H2l1-5zm2-4h6l1 2H4L5 3z"/></svg></div>JM Built</div>
+  <div class="sync-status"><div class="sync-dot" id="sync-dot"></div><span id="sync-label">Connecting...</span></div>
 </div>
-
 <div class="tabbar">
   <button class="tab-btn active" onclick="showTab('dash')">Dashboard</button>
   <button class="tab-btn" onclick="showTab('sales')">Sales</button>
@@ -173,17 +157,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <button class="tab-btn" onclick="showTab('marketing')">Marketing</button>
   <button class="tab-btn" onclick="showTab('ceo')" style="color:var(--brand);font-weight:600;">CEO</button>
 </div>
-
 <div class="subtabbar" id="sales-subtabbar" style="display:none;">
   <button class="subtab-btn active" onclick="showSalesSubtab('pipeline')">Pipeline</button>
   <button class="subtab-btn" onclick="showSalesSubtab('database')">Customer Database</button>
   <button class="subtab-btn" onclick="showSalesSubtab('sop')">SOP</button>
   <button class="subtab-btn" onclick="showSalesSubtab('scripts')">Scripts</button>
 </div>
-
 <div class="content">
-
-<!-- DASHBOARD -->
 <div id="tab-dash">
   <div class="hub-header"><div><div class="hub-title">Dashboard</div><div class="hub-sub">Good morning — here's where JM Built stands today.</div></div></div>
   <div class="grid4" style="margin-bottom:1.25rem;" id="dash-stats"></div>
@@ -196,143 +176,69 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="card"><div class="card-header"><span class="card-title">Today's tasks</span><button class="btn-sm" onclick="showTab('field')">Field hub</button></div><div id="dash-tasks"></div></div>
   </div>
 </div>
-
-<!-- SALES -->
 <div id="tab-sales" style="display:none;">
-
-  <!-- PIPELINE -->
   <div id="sales-pipeline">
-    <div class="hub-header">
-      <div><div class="hub-title">Sales Pipeline</div><div class="hub-sub">Active leads only — completed and lost move to inactive automatically.</div></div>
-      <button class="btn-primary" onclick="openModal('lead-modal')">+ Add lead</button>
-    </div>
+    <div class="hub-header"><div><div class="hub-title">Sales Pipeline</div><div class="hub-sub">Active leads — completed and lost move to inactive automatically.</div></div><button class="btn-primary" onclick="openModal('lead-modal')">+ Add lead</button></div>
     <div class="grid4" style="margin-bottom:1.25rem;" id="pipeline-stats"></div>
     <div class="pipeline" id="sales-board"></div>
-
-    <!-- Active leads table -->
     <div class="card" style="margin-bottom:1.5rem;">
       <div class="card-header"><span class="card-title">Active leads</span><span class="badge b-blue" id="active-count">0</span></div>
-      <table class="tbl">
-        <thead><tr><th>Customer ID</th><th>Name</th><th>Stage</th><th>Value</th><th>Job Type</th><th>Source</th><th></th></tr></thead>
-        <tbody id="leads-tbl"></tbody>
-      </table>
+      <table class="tbl"><thead><tr><th>Customer ID</th><th>Name</th><th>Stage</th><th>Value</th><th>Job Type</th><th>Source</th><th>Notes</th><th></th></tr></thead><tbody id="leads-tbl"></tbody></table>
     </div>
-
-    <!-- Inactive leads table -->
     <div class="section-header">
-      <div>
-        <div class="section-title">Inactive leads</div>
-        <div class="section-sub">Completed and lost — searchable</div>
-      </div>
+      <div><div class="section-title">Inactive leads</div><div class="section-sub">Completed and lost — use Qualifier to track re-contact potential</div></div>
       <span class="badge b-gray" id="inactive-count">0</span>
     </div>
-    <div class="search-bar">
-      <input id="inactive-search" placeholder="Search inactive leads..." oninput="renderSalesPipeline()"/>
-    </div>
+    <div class="search-bar"><input id="inactive-search" placeholder="Search inactive leads by name, ID, job type, qualifier..." oninput="renderSalesPipeline()"/></div>
     <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>Customer ID</th><th>Name</th><th>Stage</th><th>Value</th><th>Job Type</th><th>Source</th><th></th></tr></thead>
-        <tbody id="inactive-tbl"></tbody>
-      </table>
+      <table class="tbl"><thead><tr><th>Customer ID</th><th>Name</th><th>Stage</th><th>Value</th><th>Job Type</th><th>Source</th><th>Qualifier</th><th>Notes</th><th></th></tr></thead><tbody id="inactive-tbl"></tbody></table>
     </div>
   </div>
-
-  <!-- CUSTOMER DATABASE -->
   <div id="sales-database" style="display:none;">
-    <div class="hub-header">
-      <div><div class="hub-title">Customer Database</div><div class="hub-sub">All leads — active, completed, and lost. Search by name, ID, phone, email, or address.</div></div>
-    </div>
-    <div class="search-bar">
-      <input id="db-search" placeholder="Search by customer ID, name, phone, email, address..." oninput="renderDatabase()"/>
-    </div>
+    <div class="hub-header"><div><div class="hub-title">Customer Database</div><div class="hub-sub">All leads — active, completed, and lost. Search by name, ID, phone, email, or address.</div></div></div>
+    <div class="search-bar"><input id="db-search" placeholder="Search by customer ID, name, phone, email, address..." oninput="renderDatabase()"/></div>
     <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>Customer ID</th><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Last Stage Change</th><th>Stage</th><th>Qualifier</th><th></th></tr></thead>
-        <tbody id="db-tbl"></tbody>
-      </table>
+      <table class="tbl"><thead><tr><th>Customer ID</th><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Last Stage Change</th><th>Stage</th><th>Qualifier</th><th>Notes</th><th></th></tr></thead><tbody id="db-tbl"></tbody></table>
     </div>
   </div>
-
-  <!-- SOP -->
   <div id="sales-sop" style="display:none;">
-    <div class="hub-header">
-      <div><div class="hub-title">Sales SOPs</div><div class="hub-sub">Create and manage multiple standard operating procedures.</div></div>
-      <button class="btn-primary" onclick="currentDocType='sop';openModal('new-doc-modal')">+ New SOP</button>
-    </div>
+    <div class="hub-header"><div><div class="hub-title">Sales SOPs</div><div class="hub-sub">Create and manage multiple standard operating procedures.</div></div><button class="btn-primary" onclick="currentDocType='sop';openModal('new-doc-modal')">+ New SOP</button></div>
     <div class="doc-layout">
-      <div class="doc-list">
-        <div class="doc-list-header"><span class="doc-list-title">Documents</span></div>
-        <div id="sop-list"></div>
-      </div>
+      <div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="sop-list"></div></div>
       <div class="doc-editor-wrap">
         <div class="doc-empty" id="sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div>
-        <div id="sop-editor-area" style="display:none;flex-direction:column;height:100%;">
-          <div class="doc-editor-header">
-            <input id="sop-title-input" placeholder="Document title..." oninput="autoSaveCurrentDoc('sop')"/>
-            <span class="doc-editor-status" id="sop-status"></span>
-            <button class="btn-danger" onclick="deleteCurrentDoc('sop')">Delete</button>
-          </div>
-          <textarea class="doc-textarea" id="sop-content-input" placeholder="Paste or type your SOP here. You can paste directly from Word documents." oninput="autoSaveCurrentDoc('sop')"></textarea>
-        </div>
+        <div id="sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="sop-title-input" placeholder="Document title..." oninput="autoSaveCurrentDoc('sop')"/><span class="doc-editor-status" id="sop-status"></span><button class="btn-danger" onclick="deleteCurrentDoc('sop')">Delete</button></div><textarea class="doc-textarea" id="sop-content-input" placeholder="Paste or type your SOP here." oninput="autoSaveCurrentDoc('sop')"></textarea></div>
       </div>
     </div>
   </div>
-
-  <!-- SCRIPTS -->
   <div id="sales-scripts" style="display:none;">
-    <div class="hub-header">
-      <div><div class="hub-title">Sales Scripts</div><div class="hub-sub">Create and manage multiple call and follow-up scripts.</div></div>
-      <button class="btn-primary" onclick="currentDocType='scripts';openModal('new-doc-modal')">+ New Script</button>
-    </div>
+    <div class="hub-header"><div><div class="hub-title">Sales Scripts</div><div class="hub-sub">Create and manage multiple call and follow-up scripts.</div></div><button class="btn-primary" onclick="currentDocType='scripts';openModal('new-doc-modal')">+ New Script</button></div>
     <div class="doc-layout">
-      <div class="doc-list">
-        <div class="doc-list-header"><span class="doc-list-title">Scripts</span></div>
-        <div id="scripts-list"></div>
-      </div>
+      <div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Scripts</span></div><div id="scripts-list"></div></div>
       <div class="doc-editor-wrap">
         <div class="doc-empty" id="scripts-empty"><span style="font-size:32px;">📞</span><span>Select a script or create a new one</span></div>
-        <div id="scripts-editor-area" style="display:none;flex-direction:column;height:100%;">
-          <div class="doc-editor-header">
-            <input id="scripts-title-input" placeholder="Script title..." oninput="autoSaveCurrentDoc('scripts')"/>
-            <span class="doc-editor-status" id="scripts-status"></span>
-            <button class="btn-danger" onclick="deleteCurrentDoc('scripts')">Delete</button>
-          </div>
-          <textarea class="doc-textarea" id="scripts-content-input" placeholder="Paste or type your script here. You can paste directly from Word documents." oninput="autoSaveCurrentDoc('scripts')"></textarea>
-        </div>
+        <div id="scripts-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="scripts-title-input" placeholder="Script title..." oninput="autoSaveCurrentDoc('scripts')"/><span class="doc-editor-status" id="scripts-status"></span><button class="btn-danger" onclick="deleteCurrentDoc('scripts')">Delete</button></div><textarea class="doc-textarea" id="scripts-content-input" placeholder="Paste or type your script here." oninput="autoSaveCurrentDoc('scripts')"></textarea></div>
       </div>
     </div>
   </div>
-
 </div>
-
-<!-- ESTIMATING -->
 <div id="tab-estimating" style="display:none;">
   <div class="hub-header"><div><div class="hub-title">Estimating & Proposals</div><div class="hub-sub">Build estimates, track proposal status, win jobs.</div></div><button class="btn-primary" onclick="openModal('est-modal')">+ New estimate</button></div>
   <div class="grid3" style="margin-bottom:1.25rem;" id="est-stats"></div>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Client</th><th>Job description</th><th>Amount</th><th>Status</th><th>Sent</th><th>Follow-up</th></tr></thead><tbody id="est-tbl"></tbody></table></div>
 </div>
-
-<!-- PROJECTS -->
 <div id="tab-projects" style="display:none;">
   <div class="hub-header"><div><div class="hub-title">Project Management</div><div class="hub-sub">Every active job — progress, timeline, budget.</div></div><button class="btn-primary" onclick="openModal('proj-modal')">+ New project</button></div>
   <div class="grid4" style="margin-bottom:1.25rem;" id="proj-stats"></div>
   <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th>Client</th><th>Value</th><th>Status</th><th>Progress</th><th>Start</th><th>Due</th></tr></thead><tbody id="proj-tbl"></tbody></table></div>
 </div>
-
-<!-- FIELD -->
 <div id="tab-field" style="display:none;">
   <div class="hub-header"><div><div class="hub-title">Field Management</div><div class="hub-sub">Daily tasks, job site schedule, crew assignments.</div></div><button class="btn-primary" onclick="openModal('task-modal')">+ Add task</button></div>
   <div class="grid2">
-    <div class="card">
-      <div class="card-header"><span class="card-title">Today's tasks</span><span class="badge b-brand" id="field-count">0</span></div>
-      <div id="field-today"></div>
-      <div class="add-row"><input id="task-inp" placeholder="Quick add task..." onkeydown="if(event.key==='Enter')quickTask()"/><button class="btn-primary" style="padding:7px 13px;" onclick="quickTask()">Add</button></div>
-    </div>
+    <div class="card"><div class="card-header"><span class="card-title">Today's tasks</span><span class="badge b-brand" id="field-count">0</span></div><div id="field-today"></div><div class="add-row"><input id="task-inp" placeholder="Quick add task..." onkeydown="if(event.key==='Enter')quickTask()"/><button class="btn-primary" style="padding:7px 13px;" onclick="quickTask()">Add</button></div></div>
     <div class="card"><div class="card-header"><span class="card-title">Active jobs on schedule</span></div><div id="field-sched"></div></div>
   </div>
 </div>
-
-<!-- OFFICE -->
 <div id="tab-office" style="display:none;">
   <div class="hub-header"><div><div class="hub-title">Office Management</div><div class="hub-sub">Invoices, expenses, documents, and admin.</div></div><button class="btn-primary" onclick="openModal('invoice-modal')">+ New invoice</button></div>
   <div class="grid4" style="margin-bottom:1.25rem;" id="office-stats"></div>
@@ -341,21 +247,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="card"><div class="card-header"><span class="card-title">Recent expenses</span></div><table class="tbl"><thead><tr><th>Description</th><th>Project</th><th>Amount</th><th>Date</th></tr></thead><tbody id="exp-tbl"></tbody></table></div>
   </div>
 </div>
-
-<!-- MARKETING -->
 <div id="tab-marketing" style="display:none;">
   <div class="hub-header"><div><div class="hub-title">Marketing</div><div class="hub-sub">Track where your leads come from and grow your pipeline.</div></div></div>
   <div class="grid4" style="margin-bottom:1.25rem;" id="mkt-stats"></div>
   <div class="grid2">
     <div class="card"><div class="card-header"><span class="card-title">Lead sources</span></div><div id="mkt-sources"></div></div>
-    <div class="card"><div class="card-header"><span class="card-title">Marketing to-do</span></div><div id="mkt-todos"></div>
-    <div class="add-row"><input id="mkt-inp" placeholder="Add marketing task..." onkeydown="if(event.key==='Enter')addMktTask()"/><button class="btn-primary" style="padding:7px 13px;" onclick="addMktTask()">Add</button></div></div>
+    <div class="card"><div class="card-header"><span class="card-title">Marketing to-do</span></div><div id="mkt-todos"></div><div class="add-row"><input id="mkt-inp" placeholder="Add marketing task..." onkeydown="if(event.key==='Enter')addMktTask()"/><button class="btn-primary" style="padding:7px 13px;" onclick="addMktTask()">Add</button></div></div>
   </div>
 </div>
-
-<!-- CEO -->
 <div id="tab-ceo" style="display:none;">
-  <div class="hub-header"><div><div class="hub-title">CEO View</div><div class="hub-sub">Your business at a glance — revenue, goals, and what needs your attention.</div></div></div>
+  <div class="hub-header"><div><div class="hub-title">CEO View</div><div class="hub-sub">Your business at a glance.</div></div></div>
   <div class="grid3" style="margin-bottom:1.25rem;">
     <div class="big-stat-card"><div class="big-stat-label">Revenue collected</div><div class="big-stat-value" id="ceo-rev">—</div><div class="big-stat-sub">From paid invoices</div></div>
     <div class="big-stat-card"><div class="big-stat-label">Pipeline value</div><div class="big-stat-value" id="ceo-pipe">—</div><div class="big-stat-sub">Potential revenue</div></div>
@@ -366,30 +267,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="card"><div class="card-header"><span class="card-title">Needs your attention</span></div><div id="ceo-attention"></div></div>
   </div>
   <div class="grid2">
-    <div class="card">
-      <div class="card-header"><span class="card-title">CEO priorities</span><span class="badge b-brand" id="ceo-pri-count">0</span></div>
-      <div id="ceo-priorities"></div>
-      <div class="add-row"><input id="ceo-inp" placeholder="Add a priority or goal..." onkeydown="if(event.key==='Enter')addCeoPri()"/><button class="btn-primary" style="padding:7px 13px;" onclick="addCeoPri()">Add</button></div>
-    </div>
+    <div class="card"><div class="card-header"><span class="card-title">CEO priorities</span><span class="badge b-brand" id="ceo-pri-count">0</span></div><div id="ceo-priorities"></div><div class="add-row"><input id="ceo-inp" placeholder="Add a priority or goal..." onkeydown="if(event.key==='Enter')addCeoPri()"/><button class="btn-primary" style="padding:7px 13px;" onclick="addCeoPri()">Add</button></div></div>
     <div class="card"><div class="card-header"><span class="card-title">Business health</span></div><div id="ceo-health"></div></div>
   </div>
 </div>
-
 </div>
 
-<!-- CONFIRM DELETE MODAL -->
 <div class="modal-overlay" id="confirm-modal">
-  <div class="confirm-modal">
-    <h3>Delete this lead?</h3>
-    <p id="confirm-msg">This will permanently delete the lead and cannot be undone.</p>
-    <div class="confirm-footer">
-      <button class="btn-sm" onclick="closeModals()">Cancel</button>
-      <button class="btn-primary" style="background:var(--red-txt);" onclick="confirmDelete()">Yes, delete</button>
-    </div>
+  <div class="confirm-modal"><h3>Delete this lead?</h3><p id="confirm-msg"></p><div class="confirm-footer"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" style="background:var(--red-txt);" onclick="confirmDelete()">Yes, delete</button></div></div>
+</div>
+<div class="modal-overlay" id="notes-modal">
+  <div class="modal" style="width:520px;">
+    <div class="notes-header"><div><div class="notes-name" id="notes-lead-name"></div><div class="notes-meta" id="notes-lead-meta"></div></div><button class="btn-sm" onclick="closeModals()">Close</button></div>
+    <div id="notes-list"></div>
+    <div class="notes-input-area"><textarea class="notes-textarea" id="notes-input" placeholder="Add a note — call summary, follow-up info, anything relevant..."></textarea><div style="display:flex;justify-content:flex-end;"><button class="btn-primary" onclick="saveNote()">Add note</button></div></div>
   </div>
 </div>
-
-<!-- LEAD MODAL -->
+<div class="modal-overlay" id="qualifier-modal"><div class="modal"><h3>Update qualifier</h3><input type="hidden" id="q-lead-id"/><div class="fg"><label>Qualifier</label><select id="q-qualifier"><option>Good</option><option>Neutral</option><option>Do Not Contact</option></select></div><div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveQualifier()">Save</button></div></div></div>
 <div class="modal-overlay" id="lead-modal"><div class="modal"><h3>Add new lead</h3>
   <div class="fg"><label>Customer name</label><input id="l-name" placeholder="e.g. John Smith"/></div>
   <div class="fg"><label>Phone number</label><input id="l-phone" placeholder="e.g. 513-555-0100"/></div>
@@ -401,27 +295,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="fg"><label>Qualifier</label><select id="l-qualifier"><option>Good</option><option>Neutral</option><option>Do Not Contact</option></select></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveLead()">Save lead</button></div>
 </div></div>
-
-<div class="modal-overlay" id="new-doc-modal"><div class="modal"><h3>New Document</h3>
-  <div class="fg"><label>Title</label><input id="new-doc-name" placeholder="e.g. Initial Call SOP"/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="createDoc()">Create</button></div>
-</div></div>
-
-<div class="modal-overlay" id="qualifier-modal"><div class="modal"><h3>Update qualifier</h3>
-  <input type="hidden" id="q-lead-id"/>
-  <div class="fg"><label>Qualifier</label><select id="q-qualifier"><option>Good</option><option>Neutral</option><option>Do Not Contact</option></select></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveQualifier()">Save</button></div>
-</div></div>
-
+<div class="modal-overlay" id="new-doc-modal"><div class="modal"><h3>New Document</h3><div class="fg"><label>Title</label><input id="new-doc-name" placeholder="e.g. Initial Call SOP"/></div><div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="createDoc()">Create</button></div></div></div>
 <div class="modal-overlay" id="est-modal"><div class="modal"><h3>New estimate</h3>
   <div class="fg"><label>Client name</label><input id="e-client"/></div>
   <div class="fg"><label>Job description</label><input id="e-desc"/></div>
-  <div class="fg"><label>Estimate amount</label><input id="e-amt" placeholder="e.g. $28,000"/></div>
+  <div class="fg"><label>Amount</label><input id="e-amt" placeholder="e.g. $28,000"/></div>
   <div class="fg"><label>Status</label><select id="e-status"><option>Draft</option><option>Sent</option><option>Approved</option><option>Declined</option></select></div>
   <div class="fg"><label>Follow-up date</label><input id="e-follow" type="date"/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEst()">Save</button></div>
 </div></div>
-
 <div class="modal-overlay" id="proj-modal"><div class="modal"><h3>New project</h3>
   <div class="fg"><label>Project name</label><input id="p-name"/></div>
   <div class="fg"><label>Client</label><input id="p-client"/></div>
@@ -431,7 +313,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="fg"><label>Due date</label><input id="p-due" type="date"/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveProj()">Save</button></div>
 </div></div>
-
 <div class="modal-overlay" id="task-modal"><div class="modal"><h3>Add field task</h3>
   <div class="fg"><label>Task</label><input id="t-text"/></div>
   <div class="fg"><label>Project</label><input id="t-proj"/></div>
@@ -439,7 +320,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="fg"><label>Priority</label><select id="t-pri"><option>Normal</option><option>High</option><option>Low</option></select></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveTask()">Save</button></div>
 </div></div>
-
 <div class="modal-overlay" id="invoice-modal"><div class="modal"><h3>New invoice</h3>
   <div class="fg"><label>Client</label><input id="i-client"/></div>
   <div class="fg"><label>Project</label><input id="i-proj"/></div>
@@ -447,35 +327,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="fg"><label>Due date</label><input id="i-due" type="date"/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveInvoice()">Save</button></div>
 </div></div>
-
 <div class="modal-overlay" id="goal-modal"><div class="modal"><h3>Set annual revenue goal</h3>
-  <div class="fg"><label>Revenue goal (numbers only)</label><input id="goal-inp" type="number" placeholder="e.g. 500000"/></div>
-  <div class="fg"><label>Revenue earned so far this year</label><input id="earned-inp" type="number" placeholder="e.g. 87000"/></div>
+  <div class="fg"><label>Revenue goal</label><input id="goal-inp" type="number" placeholder="e.g. 500000"/></div>
+  <div class="fg"><label>Revenue earned so far</label><input id="earned-inp" type="number" placeholder="e.g. 87000"/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveGoal()">Save</button></div>
 </div></div>
 
 <script>
-const sb = supabase.createClient(
-  'https://vzaedlvhsduirqonixus.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6YWVkbHZoc2R1aXJxb25peHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzODkzMDgsImV4cCI6MjA4OTk2NTMwOH0.CmfK7FqF4HA0Ixhizum6bafnGMfX53d15i8Hi7eiI7c'
-);
-
+const sb=supabase.createClient('https://vzaedlvhsduirqonixus.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6YWVkbHZoc2R1aXJxb25peHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzODkzMDgsImV4cCI6MjA4OTk2NTMwOH0.CmfK7FqF4HA0Ixhizum6bafnGMfX53d15i8Hi7eiI7c');
 const ACTIVE_STAGES=['New Lead','Contacted','Quoted','Negotiating'];
 const INACTIVE_STAGES=['Completed','Lost'];
 const ALL_STAGES=[...ACTIVE_STAGES,...INACTIVE_STAGES];
 const STARTING_ID=1012;
 let leads=[],estimates=[],projects=[],tasks=[],invoices=[],expenses=[],mktTasks=[],ceoPriorities=[],annualGoal={goal:500000,earned:0};
-let sopDocs=[],scriptsDocs=[],currentDocType='sop',currentDocId=null;
-let docSaveTimers={};
-let pendingDeleteId=null,pendingDeleteName='';
-
+let sopDocs=[],scriptsDocs=[],currentDocType='sop',currentDocId=null,docSaveTimers={};
+let pendingDeleteId=null,currentNotesLeadId=null,leadNotes={};
 const SB={'New Lead':'b-blue','Contacted':'b-amber','Quoted':'b-brand','Negotiating':'b-amber','Completed':'b-green','Lost':'b-red','Draft':'b-gray','Sent':'b-blue','Approved':'b-green','Declined':'b-red','Not started':'b-blue','In progress':'b-amber','On hold':'b-gray','Complete':'b-green','Paid':'b-green','Overdue':'b-red','Good':'b-green','Neutral':'b-amber','Do Not Contact':'b-red'};
-function badge(t){return `<span class="badge ${SB[t]||'b-gray'}">${t}</span>`;}
+function badge(t){return '<span class="badge '+(SB[t]||'b-gray')+'">'+t+'</span>';}
 function toNum(s){const n=parseInt((s||'0').replace(/[^0-9]/g,''));return isNaN(n)?0:n;}
 function fmt(n){return n>=1000?'$'+Math.round(n/1000)+'k':'$'+n;}
 function setSync(ok){document.getElementById('sync-dot').className='sync-dot'+(ok?' ok':'');document.getElementById('sync-label').textContent=ok?'Connected':'Offline';}
-function fmtDate(d){if(!d)return '—';const dt=new Date(d);return dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
-
+function fmtDate(d){if(!d)return '—';return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+function fmtDateTime(d){if(!d)return '';return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});}
 async function getNextCustomerId(){
   const res=await sb.from('settings').select('*').eq('key','last_customer_id').single();
   let next=STARTING_ID;
@@ -483,10 +356,9 @@ async function getNextCustomerId(){
   else{await sb.from('settings').insert({key:'last_customer_id',value:String(next)});}
   return String(next).padStart(5,'0');
 }
-
 async function loadAll(){
   try{
-    const [l,e,p,t,i,ex,m,c,s,docs]=await Promise.all([
+    const [l,e,p,t,i,ex,m,c,s,docs,notes]=await Promise.all([
       sb.from('leads').select('*').order('created_at',{ascending:false}),
       sb.from('estimates').select('*').order('created_at',{ascending:false}),
       sb.from('projects').select('*').order('created_at',{ascending:false}),
@@ -497,19 +369,16 @@ async function loadAll(){
       sb.from('ceo_priorities').select('*').order('created_at',{ascending:false}),
       sb.from('settings').select('*'),
       sb.from('documents').select('*').order('created_at',{ascending:false}),
+      sb.from('lead_notes').select('*').order('created_at',{ascending:true}),
     ]);
-    leads=l.data||[];estimates=e.data||[];projects=p.data||[];
-    tasks=t.data||[];invoices=i.data||[];expenses=ex.data||[];
-    mktTasks=m.data||[];ceoPriorities=c.data||[];
+    leads=l.data||[];estimates=e.data||[];projects=p.data||[];tasks=t.data||[];invoices=i.data||[];expenses=ex.data||[];mktTasks=m.data||[];ceoPriorities=c.data||[];
     const settings=s.data||[];
     const g=settings.find(x=>x.key==='annual_goal');if(g)annualGoal=JSON.parse(g.value);
-    const allDocs=docs.data||[];
-    sopDocs=allDocs.filter(d=>d.doc_type==='sop');
-    scriptsDocs=allDocs.filter(d=>d.doc_type==='scripts');
+    const allDocs=docs.data||[];sopDocs=allDocs.filter(d=>d.doc_type==='sop');scriptsDocs=allDocs.filter(d=>d.doc_type==='scripts');
+    leadNotes={};(notes.data||[]).forEach(n=>{if(!leadNotes[n.lead_id])leadNotes[n.lead_id]=[];leadNotes[n.lead_id].push(n);});
     setSync(true);renderDash();
   }catch(err){setSync(false);console.error(err);}
 }
-
 const MAIN_TABS=['dash','sales','estimating','projects','field','office','marketing','ceo'];
 function showTab(t){
   MAIN_TABS.forEach(id=>document.getElementById('tab-'+id).style.display=id===t?'block':'none');
@@ -517,7 +386,6 @@ function showTab(t){
   document.getElementById('sales-subtabbar').style.display=t==='sales'?'flex':'none';
   ({dash:renderDash,sales:renderSalesPipeline,estimating:renderEst,projects:renderProj,field:renderField,office:renderOffice,marketing:renderMkt,ceo:renderCeo})[t]?.();
 }
-
 const SALES_SUBTABS=['pipeline','database','sop','scripts'];
 function showSalesSubtab(t){
   SALES_SUBTABS.forEach(id=>document.getElementById('sales-'+id).style.display=id===t?'block':'none');
@@ -527,350 +395,215 @@ function showSalesSubtab(t){
   if(t==='sop')renderDocList('sop');
   if(t==='scripts')renderDocList('scripts');
 }
-
-function statCards(el,items){document.getElementById(el).innerHTML=items.map(s=>`<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value">${s.value}</div><div class="stat-sub">${s.sub||''}</div></div>`).join('');}
-
+function statCards(el,items){document.getElementById(el).innerHTML=items.map(s=>'<div class="stat-card"><div class="stat-label">'+s.label+'</div><div class="stat-value">'+s.value+'</div><div class="stat-sub">'+(s.sub||'')+'</div></div>').join('');}
+function notesBtn(leadId){
+  const count=(leadNotes[leadId]||[]).length;
+  return '<button class="btn-notes'+(count?' has-notes':'')+'" onclick="openNotesModal(\''+leadId+'\')">'+(count?'Notes ('+count+')':'+ Notes')+'</button>';
+}
+function qualBadge(l){
+  const qc={'Good':'b-green','Neutral':'b-amber','Do Not Contact':'b-red'};
+  return '<span class="badge '+(qc[l.qualifier]||'b-gray')+'" style="cursor:pointer;" onclick="openQualifierModal(\''+l.id+'\',\''+(l.qualifier||'Good')+'\')">'+(l.qualifier||'Good')+'</span>';
+}
+function activeRow(l){return '<tr><td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td><td style="font-weight:600;">'+l.name+'</td><td>'+badge(l.stage)+'</td><td style="color:var(--brand);font-weight:600;">'+(l.val||'TBD')+'</td><td style="color:var(--text2);">'+(l.job||'—')+'</td><td style="color:var(--text2);">'+(l.source||'—')+'</td><td>'+notesBtn(l.id)+'</td><td><button class="btn-danger" onclick="promptDelete(\''+l.id+'\',\''+l.name.replace(/'/g,"\\'")+'\')" >Delete</button></td></tr>';}
+function inactiveRow(l){return '<tr><td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td><td style="font-weight:600;">'+l.name+'</td><td>'+badge(l.stage)+'</td><td style="color:var(--brand);font-weight:600;">'+(l.val||'TBD')+'</td><td style="color:var(--text2);">'+(l.job||'—')+'</td><td style="color:var(--text2);">'+(l.source||'—')+'</td><td>'+qualBadge(l)+'</td><td>'+notesBtn(l.id)+'</td><td><button class="btn-danger" onclick="promptDelete(\''+l.id+'\',\''+l.name.replace(/'/g,"\\'")+'\')" >Delete</button></td></tr>';}
 function renderDash(){
   const active=leads.filter(l=>ACTIVE_STAGES.includes(l.stage));
-  statCards('dash-stats',[
-    {label:'Active leads',value:active.length,sub:'In pipeline'},
-    {label:'Pipeline value',value:fmt(active.reduce((s,l)=>s+toNum(l.val),0)),sub:'Potential revenue'},
-    {label:'Active projects',value:projects.filter(p=>p.status==='In progress').length,sub:'In progress'},
-    {label:'Open estimates',value:estimates.filter(e=>e.status==='Sent'||e.status==='Draft').length,sub:'Awaiting decision'},
-  ]);
-  document.getElementById('dash-pipe').innerHTML=active.slice(0,4).map(l=>`<div class="list-row"><div style="flex:1"><div class="row-name">${l.name}</div><div class="row-sub">${l.job||'—'}</div></div>${badge(l.stage)}<span style="font-size:12px;color:var(--brand);font-weight:600;min-width:52px;text-align:right;">${l.val||'TBD'}</span></div>`).join('')||'<div class="empty">No active leads</div>';
-  document.getElementById('dash-proj').innerHTML=projects.filter(p=>p.status==='In progress').map(p=>`<div class="list-row"><div style="flex:1"><div class="row-name">${p.name}</div><div class="row-sub">${p.client}</div></div><div class="prog-bar"><div class="prog-fill" style="width:${p.progress}%"></div></div><span style="font-size:12px;color:var(--text2);">${p.progress}%</span></div>`).join('')||'<div class="empty">No active projects</div>';
-  document.getElementById('dash-est').innerHTML=estimates.filter(e=>e.status==='Sent').map(e=>`<div class="list-row"><div style="flex:1"><div class="row-name">${e.client}</div><div class="row-sub">${e.description}</div></div>${badge(e.status)}<span style="font-size:12px;color:var(--brand);font-weight:600;">${e.amt}</span></div>`).join('')||'<div class="empty">No open estimates</div>';
-  document.getElementById('dash-tasks').innerHTML=tasks.filter(t=>!t.done).slice(0,4).map(t=>`<div class="list-row"><div style="flex:1"><div class="row-name">${t.text}</div><div class="row-sub">${t.project}</div></div><span class="badge ${t.priority==='High'?'b-red':'b-blue'}">${t.priority}</span></div>`).join('')||'<div class="empty">No pending tasks</div>';
+  statCards('dash-stats',[{label:'Active leads',value:active.length,sub:'In pipeline'},{label:'Pipeline value',value:fmt(active.reduce((s,l)=>s+toNum(l.val),0)),sub:'Potential revenue'},{label:'Active projects',value:projects.filter(p=>p.status==='In progress').length,sub:'In progress'},{label:'Open estimates',value:estimates.filter(e=>e.status==='Sent'||e.status==='Draft').length,sub:'Awaiting decision'}]);
+  document.getElementById('dash-pipe').innerHTML=active.slice(0,4).map(l=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+l.name+'</div><div class="row-sub">'+(l.job||'—')+'</div></div>'+badge(l.stage)+'<span style="font-size:12px;color:var(--brand);font-weight:600;min-width:52px;text-align:right;">'+(l.val||'TBD')+'</span></div>').join('')||'<div class="empty">No active leads</div>';
+  document.getElementById('dash-proj').innerHTML=projects.filter(p=>p.status==='In progress').map(p=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+p.name+'</div><div class="row-sub">'+p.client+'</div></div><div class="prog-bar"><div class="prog-fill" style="width:'+p.progress+'%"></div></div><span style="font-size:12px;color:var(--text2);">'+p.progress+'%</span></div>').join('')||'<div class="empty">No active projects</div>';
+  document.getElementById('dash-est').innerHTML=estimates.filter(e=>e.status==='Sent').map(e=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+e.client+'</div><div class="row-sub">'+e.description+'</div></div>'+badge(e.status)+'<span style="font-size:12px;color:var(--brand);font-weight:600;">'+e.amt+'</span></div>').join('')||'<div class="empty">No open estimates</div>';
+  document.getElementById('dash-tasks').innerHTML=tasks.filter(t=>!t.done).slice(0,4).map(t=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+t.text+'</div><div class="row-sub">'+t.project+'</div></div><span class="badge '+(t.priority==='High'?'b-red':'b-blue')+'">'+t.priority+'</span></div>').join('')||'<div class="empty">No pending tasks</div>';
 }
-
-function leadRow(l){
-  return `<tr>
-    <td><span class="cid-badge">${l.customer_id||'—'}</span></td>
-    <td style="font-weight:600;">${l.name}</td>
-    <td>${badge(l.stage)}</td>
-    <td style="color:var(--brand);font-weight:600;">${l.val||'TBD'}</td>
-    <td style="color:var(--text2);">${l.job||'—'}</td>
-    <td style="color:var(--text2);">${l.source||'—'}</td>
-    <td><button class="btn-danger" onclick="promptDelete('${l.id}','${l.name.replace(/'/g,"\\'")}')">Delete</button></td>
-  </tr>`;
-}
-
 function renderSalesPipeline(){
   const active=leads.filter(l=>ACTIVE_STAGES.includes(l.stage));
   const q=(document.getElementById('inactive-search')?.value||'').toLowerCase();
-  const inactive=leads.filter(l=>INACTIVE_STAGES.includes(l.stage)).filter(l=>{
-    if(!q)return true;
-    return [l.name,l.customer_id,l.job,l.source,l.stage].some(v=>(v||'').toLowerCase().includes(q));
-  });
-
-  statCards('pipeline-stats',[
-    {label:'Active leads',value:active.length,sub:'In pipeline'},
-    {label:'Pipeline value',value:fmt(active.reduce((s,l)=>s+toNum(l.val),0)),sub:'Potential'},
-    {label:'Completed',value:leads.filter(l=>l.stage==='Completed').length,sub:'Won jobs'},
-    {label:'Lost',value:leads.filter(l=>l.stage==='Lost').length,sub:'Lost leads'},
-  ]);
-
-  document.getElementById('sales-board').innerHTML=ACTIVE_STAGES.map(stage=>{
-    const cards=leads.filter(l=>l.stage===stage);
-    return `<div class="pcol"><div class="pcol-header"><span>${stage}</span><span class="pcount">${cards.length}</span></div>${cards.map(l=>`<div class="lcard"><div class="lcard-name">${l.name}</div><div class="lcard-sub">${l.job||'—'}</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:7px;"><span class="lcard-val">${l.val||'TBD'}</span><select onchange="moveLeadStage('${l.id}',this.value)" class="inline-select">${ALL_STAGES.map(s=>`<option ${s===stage?'selected':''}>${s}</option>`).join('')}</select></div></div>`).join('')}</div>`;
-  }).join('');
-
+  const inactive=leads.filter(l=>INACTIVE_STAGES.includes(l.stage)).filter(l=>!q||[l.name,l.customer_id,l.job,l.source,l.stage,l.qualifier].some(v=>(v||'').toLowerCase().includes(q)));
+  statCards('pipeline-stats',[{label:'Active leads',value:active.length,sub:'In pipeline'},{label:'Pipeline value',value:fmt(active.reduce((s,l)=>s+toNum(l.val),0)),sub:'Potential'},{label:'Completed',value:leads.filter(l=>l.stage==='Completed').length,sub:'Won jobs'},{label:'Lost',value:leads.filter(l=>l.stage==='Lost').length,sub:'Lost leads'}]);
+  document.getElementById('sales-board').innerHTML=ACTIVE_STAGES.map(stage=>{const cards=leads.filter(l=>l.stage===stage);return '<div class="pcol"><div class="pcol-header"><span>'+stage+'</span><span class="pcount">'+cards.length+'</span></div>'+cards.map(l=>'<div class="lcard"><div class="lcard-name">'+l.name+'</div><div class="lcard-sub">'+(l.job||'—')+'</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:7px;"><span class="lcard-val">'+(l.val||'TBD')+'</span><select onchange="moveLeadStage(\''+l.id+'\',this.value)" class="inline-select">'+ALL_STAGES.map(s=>'<option'+(s===stage?' selected':'')+'>'+s+'</option>').join('')+'</select></div></div>').join('')+'</div>';}).join('');
   document.getElementById('active-count').textContent=active.length;
-  document.getElementById('leads-tbl').innerHTML=active.map(leadRow).join('')||'<tr><td colspan="7" class="empty">No active leads</td></tr>';
-
+  document.getElementById('leads-tbl').innerHTML=active.map(activeRow).join('')||'<tr><td colspan="8" class="empty">No active leads</td></tr>';
   document.getElementById('inactive-count').textContent=inactive.length;
-  document.getElementById('inactive-tbl').innerHTML=inactive.map(leadRow).join('')||'<tr><td colspan="7" class="empty">No inactive leads</td></tr>';
+  document.getElementById('inactive-tbl').innerHTML=inactive.map(inactiveRow).join('')||'<tr><td colspan="9" class="empty">No inactive leads</td></tr>';
 }
-
 async function moveLeadStage(id,stage){
   const now=new Date().toISOString();
   await sb.from('leads').update({stage,stage_updated_at:now}).eq('id',id);
   const l=leads.find(x=>x.id===id);if(l){l.stage=stage;l.stage_updated_at=now;}
   renderSalesPipeline();renderDash();
 }
-
-// Delete with confirmation
 function promptDelete(id,name){
-  pendingDeleteId=id;pendingDeleteName=name;
-  document.getElementById('confirm-msg').textContent=`Are you sure you want to permanently delete "${name}"? This cannot be undone.`;
+  pendingDeleteId=id;
+  document.getElementById('confirm-msg').textContent='Are you sure you want to permanently delete "'+name+'"? This cannot be undone.';
   openModal('confirm-modal');
 }
-
 async function confirmDelete(){
   if(!pendingDeleteId)return;
   await sb.from('leads').delete().eq('id',pendingDeleteId);
-  leads=leads.filter(l=>l.id!==pendingDeleteId);
-  pendingDeleteId=null;pendingDeleteName='';
-  closeModals();
-  renderSalesPipeline();renderDatabase();renderDash();
+  await sb.from('lead_notes').delete().eq('lead_id',pendingDeleteId);
+  leads=leads.filter(l=>l.id!==pendingDeleteId);delete leadNotes[pendingDeleteId];pendingDeleteId=null;
+  closeModals();renderSalesPipeline();renderDatabase();renderDash();
 }
-
+function openNotesModal(leadId){
+  currentNotesLeadId=leadId;
+  const lead=leads.find(l=>l.id===leadId);if(!lead)return;
+  document.getElementById('notes-lead-name').textContent=lead.name;
+  document.getElementById('notes-lead-meta').textContent=(lead.customer_id||'—')+' · '+(lead.job||'—')+' · '+lead.stage;
+  document.getElementById('notes-input').value='';
+  renderNotesList();openModal('notes-modal');
+}
+function renderNotesList(){
+  const notes=leadNotes[currentNotesLeadId]||[];
+  document.getElementById('notes-list').innerHTML=notes.length?notes.map(n=>'<div class="notes-entry"><div class="notes-entry-date">'+fmtDateTime(n.created_at)+'</div><div class="notes-entry-text">'+n.note_text+'</div></div>').join(''):'<div style="padding:1rem 0;font-size:13px;color:var(--text3);">No notes yet — add the first one below.</div>';
+}
+async function saveNote(){
+  const text=document.getElementById('notes-input').value.trim();if(!text||!currentNotesLeadId)return;
+  const now=new Date().toISOString();
+  const {data}=await sb.from('lead_notes').insert({lead_id:currentNotesLeadId,note_text:text,created_at:now}).select();
+  if(data){if(!leadNotes[currentNotesLeadId])leadNotes[currentNotesLeadId]=[];leadNotes[currentNotesLeadId].push(data[0]);}
+  document.getElementById('notes-input').value='';renderNotesList();renderSalesPipeline();
+}
 function renderDatabase(){
   const q=(document.getElementById('db-search')?.value||'').toLowerCase();
-  const filtered=leads.filter(l=>{
-    if(!q)return true;
-    return [l.name,l.phone,l.email,l.address,l.job,l.customer_id].some(v=>(v||'').toLowerCase().includes(q));
-  });
-  const qualClass={'Good':'b-green','Neutral':'b-amber','Do Not Contact':'b-red'};
-  document.getElementById('db-tbl').innerHTML=filtered.map(l=>`<tr>
-    <td><span class="cid-badge">${l.customer_id||'—'}</span></td>
-    <td style="font-weight:600;">${l.name}</td>
-    <td style="color:var(--text2);">${l.phone||'—'}</td>
-    <td style="color:var(--text2);">${l.email||'—'}</td>
-    <td style="color:var(--text2);">${l.address||'—'}</td>
-    <td style="color:var(--text2);font-size:12px;">${fmtDate(l.stage_updated_at||l.created_at)}</td>
-    <td>${badge(l.stage)}</td>
-    <td><span class="badge ${qualClass[l.qualifier]||'b-gray'}" style="cursor:pointer;" onclick="openQualifierModal('${l.id}','${l.qualifier||'Good'}')">${l.qualifier||'Good'}</span></td>
-    <td><button class="btn-danger" onclick="promptDelete('${l.id}','${l.name.replace(/'/g,"\\'")}')">Delete</button></td>
-  </tr>`).join('')||'<tr><td colspan="9" class="empty">No results found</td></tr>';
+  const filtered=leads.filter(l=>!q||[l.name,l.phone,l.email,l.address,l.job,l.customer_id].some(v=>(v||'').toLowerCase().includes(q)));
+  const qc={'Good':'b-green','Neutral':'b-amber','Do Not Contact':'b-red'};
+  document.getElementById('db-tbl').innerHTML=filtered.map(l=>'<tr><td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td><td style="font-weight:600;">'+l.name+'</td><td style="color:var(--text2);">'+(l.phone||'—')+'</td><td style="color:var(--text2);">'+(l.email||'—')+'</td><td style="color:var(--text2);">'+(l.address||'—')+'</td><td style="color:var(--text2);font-size:12px;">'+fmtDate(l.stage_updated_at||l.created_at)+'</td><td>'+badge(l.stage)+'</td><td><span class="badge '+(qc[l.qualifier]||'b-gray')+'" style="cursor:pointer;" onclick="openQualifierModal(\''+l.id+'\',\''+(l.qualifier||'Good')+'\')">'+(l.qualifier||'Good')+'</span></td><td>'+notesBtn(l.id)+'</td><td><button class="btn-danger" onclick="promptDelete(\''+l.id+'\',\''+l.name.replace(/'/g,"\\'")+'\')">Delete</button></td></tr>').join('')||'<tr><td colspan="10" class="empty">No results found</td></tr>';
 }
-
-function openQualifierModal(id,current){
-  document.getElementById('q-lead-id').value=id;
-  document.getElementById('q-qualifier').value=current;
-  openModal('qualifier-modal');
-}
-
+function openQualifierModal(id,current){document.getElementById('q-lead-id').value=id;document.getElementById('q-qualifier').value=current;openModal('qualifier-modal');}
 async function saveQualifier(){
-  const id=document.getElementById('q-lead-id').value;
-  const qualifier=document.getElementById('q-qualifier').value;
-  await sb.from('leads').update({qualifier}).eq('id',id);
-  const l=leads.find(x=>x.id===id);if(l)l.qualifier=qualifier;
-  closeModals();renderDatabase();
+  const id=document.getElementById('q-lead-id').value;const qualifier=document.getElementById('q-qualifier').value;
+  await sb.from('leads').update({qualifier}).eq('id',id);const l=leads.find(x=>x.id===id);if(l)l.qualifier=qualifier;
+  closeModals();renderSalesPipeline();renderDatabase();
 }
-
 function renderDocList(type){
   const docs=type==='sop'?sopDocs:scriptsDocs;
-  document.getElementById(type+'-list').innerHTML=docs.map(d=>`<div class="doc-item ${d.id===currentDocId&&currentDocType===type?'active':''}" onclick="openDoc('${type}','${d.id}')">
-    <div class="doc-item-name">${d.title||'Untitled'}</div>
-    <div class="doc-item-date">${fmtDate(d.updated_at||d.created_at)}</div>
-  </div>`).join('')||'<div class="empty" style="padding:1rem;font-size:12px;">No documents yet</div>';
+  document.getElementById(type+'-list').innerHTML=docs.map(d=>'<div class="doc-item'+(d.id===currentDocId&&currentDocType===type?' active':'')+'" onclick="openDoc(\''+type+'\',\''+d.id+'\')"><div class="doc-item-name">'+(d.title||'Untitled')+'</div><div class="doc-item-date">'+fmtDate(d.updated_at||d.created_at)+'</div></div>').join('')||'<div class="empty" style="padding:1rem;font-size:12px;">No documents yet</div>';
 }
-
 function openDoc(type,id){
-  const docs=type==='sop'?sopDocs:scriptsDocs;
-  const doc=docs.find(d=>d.id===id);if(!doc)return;
+  const docs=type==='sop'?sopDocs:scriptsDocs;const doc=docs.find(d=>d.id===id);if(!doc)return;
   currentDocType=type;currentDocId=id;
-  document.getElementById(type+'-empty').style.display='none';
-  document.getElementById(type+'-editor-area').style.display='flex';
-  document.getElementById(type+'-title-input').value=doc.title||'';
-  document.getElementById(type+'-content-input').value=doc.content||'';
-  document.getElementById(type+'-status').textContent='';
+  document.getElementById(type+'-empty').style.display='none';document.getElementById(type+'-editor-area').style.display='flex';
+  document.getElementById(type+'-title-input').value=doc.title||'';document.getElementById(type+'-content-input').value=doc.content||'';document.getElementById(type+'-status').textContent='';
   renderDocList(type);
 }
-
-function autoSaveCurrentDoc(type){
-  document.getElementById(type+'-status').textContent='Unsaved...';
-  clearTimeout(docSaveTimers[type]);
-  docSaveTimers[type]=setTimeout(()=>saveCurrentDoc(type),1500);
-}
-
+function autoSaveCurrentDoc(type){document.getElementById(type+'-status').textContent='Unsaved...';clearTimeout(docSaveTimers[type]);docSaveTimers[type]=setTimeout(()=>saveCurrentDoc(type),1500);}
 async function saveCurrentDoc(type){
   if(!currentDocId||currentDocType!==type)return;
-  const title=document.getElementById(type+'-title-input').value;
-  const content=document.getElementById(type+'-content-input').value;
-  const now=new Date().toISOString();
+  const title=document.getElementById(type+'-title-input').value;const content=document.getElementById(type+'-content-input').value;const now=new Date().toISOString();
   await sb.from('documents').update({title,content,updated_at:now}).eq('id',currentDocId);
-  const docs=type==='sop'?sopDocs:scriptsDocs;
-  const doc=docs.find(d=>d.id===currentDocId);
-  if(doc){doc.title=title;doc.content=content;doc.updated_at=now;}
-  document.getElementById(type+'-status').textContent='Saved ✓';
-  setTimeout(()=>document.getElementById(type+'-status').textContent='',2000);
-  renderDocList(type);
+  const docs=type==='sop'?sopDocs:scriptsDocs;const doc=docs.find(d=>d.id===currentDocId);if(doc){doc.title=title;doc.content=content;doc.updated_at=now;}
+  document.getElementById(type+'-status').textContent='Saved ✓';setTimeout(()=>document.getElementById(type+'-status').textContent='',2000);renderDocList(type);
 }
-
 async function createDoc(){
-  const title=document.getElementById('new-doc-name').value.trim()||'Untitled';
-  const type=currentDocType;
-  const now=new Date().toISOString();
+  const title=document.getElementById('new-doc-name').value.trim()||'Untitled';const type=currentDocType;const now=new Date().toISOString();
   const {data}=await sb.from('documents').insert({title,content:'',doc_type:type,created_at:now,updated_at:now}).select();
-  if(data){
-    if(type==='sop')sopDocs.unshift(data[0]);
-    else scriptsDocs.unshift(data[0]);
-    closeModals();document.getElementById('new-doc-name').value='';
-    renderDocList(type);openDoc(type,data[0].id);
-  }
+  if(data){if(type==='sop')sopDocs.unshift(data[0]);else scriptsDocs.unshift(data[0]);closeModals();document.getElementById('new-doc-name').value='';renderDocList(type);openDoc(type,data[0].id);}
 }
-
 async function deleteCurrentDoc(type){
-  if(!currentDocId||currentDocType!==type)return;
-  if(!confirm('Delete this document? This cannot be undone.'))return;
+  if(!currentDocId||currentDocType!==type)return;if(!confirm('Delete this document?'))return;
   await sb.from('documents').delete().eq('id',currentDocId);
-  if(type==='sop')sopDocs=sopDocs.filter(d=>d.id!==currentDocId);
-  else scriptsDocs=scriptsDocs.filter(d=>d.id!==currentDocId);
-  currentDocId=null;
-  document.getElementById(type+'-empty').style.display='flex';
-  document.getElementById(type+'-editor-area').style.display='none';
-  renderDocList(type);
+  if(type==='sop')sopDocs=sopDocs.filter(d=>d.id!==currentDocId);else scriptsDocs=scriptsDocs.filter(d=>d.id!==currentDocId);
+  currentDocId=null;document.getElementById(type+'-empty').style.display='flex';document.getElementById(type+'-editor-area').style.display='none';renderDocList(type);
 }
-
 function renderEst(){
-  statCards('est-stats',[
-    {label:'Total estimates',value:estimates.length},{label:'Pending value',value:fmt(estimates.filter(e=>e.status==='Sent'||e.status==='Draft').reduce((s,e)=>s+toNum(e.amt),0)),sub:'Awaiting'},
-    {label:'Approved',value:estimates.filter(e=>e.status==='Approved').length,sub:'Won'},
-  ]);
-  document.getElementById('est-tbl').innerHTML=estimates.map(e=>`<tr><td style="font-weight:600;">${e.client}</td><td style="color:var(--text2);">${e.description}</td><td style="color:var(--brand);font-weight:600;">${e.amt}</td><td>${badge(e.status)}</td><td style="color:var(--text2);">${e.sent||'—'}</td><td style="color:var(--text2);">${e.follow_up||'—'}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">No estimates yet</td></tr>';
+  statCards('est-stats',[{label:'Total estimates',value:estimates.length},{label:'Pending value',value:fmt(estimates.filter(e=>e.status==='Sent'||e.status==='Draft').reduce((s,e)=>s+toNum(e.amt),0)),sub:'Awaiting'},{label:'Approved',value:estimates.filter(e=>e.status==='Approved').length,sub:'Won'}]);
+  document.getElementById('est-tbl').innerHTML=estimates.map(e=>'<tr><td style="font-weight:600;">'+e.client+'</td><td style="color:var(--text2);">'+e.description+'</td><td style="color:var(--brand);font-weight:600;">'+e.amt+'</td><td>'+badge(e.status)+'</td><td style="color:var(--text2);">'+(e.sent||'—')+'</td><td style="color:var(--text2);">'+(e.follow_up||'—')+'</td></tr>').join('')||'<tr><td colspan="6" class="empty">No estimates yet</td></tr>';
 }
-
 function renderProj(){
-  statCards('proj-stats',[
-    {label:'Total',value:projects.length},{label:'In progress',value:projects.filter(p=>p.status==='In progress').length},
-    {label:'Not started',value:projects.filter(p=>p.status==='Not started').length},{label:'Complete',value:projects.filter(p=>p.status==='Complete').length},
-  ]);
-  document.getElementById('proj-tbl').innerHTML=projects.map(p=>`<tr><td style="font-weight:600;">${p.name}</td><td style="color:var(--text2);">${p.client}</td><td style="color:var(--brand);font-weight:600;">${p.val}</td><td>${badge(p.status)}</td><td><div class="prog-bar"><div class="prog-fill" style="width:${p.progress}%"></div></div><span style="font-size:12px;color:var(--text2);">${p.progress}%</span></td><td style="color:var(--text2);font-size:12px;">${p.start_date||'—'}</td><td style="color:var(--text2);font-size:12px;">${p.due_date||'—'}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">No projects yet</td></tr>';
+  statCards('proj-stats',[{label:'Total',value:projects.length},{label:'In progress',value:projects.filter(p=>p.status==='In progress').length},{label:'Not started',value:projects.filter(p=>p.status==='Not started').length},{label:'Complete',value:projects.filter(p=>p.status==='Complete').length}]);
+  document.getElementById('proj-tbl').innerHTML=projects.map(p=>'<tr><td style="font-weight:600;">'+p.name+'</td><td style="color:var(--text2);">'+p.client+'</td><td style="color:var(--brand);font-weight:600;">'+p.val+'</td><td>'+badge(p.status)+'</td><td><div class="prog-bar"><div class="prog-fill" style="width:'+p.progress+'%"></div></div><span style="font-size:12px;color:var(--text2);">'+p.progress+'%</span></td><td style="color:var(--text2);font-size:12px;">'+(p.start_date||'—')+'</td><td style="color:var(--text2);font-size:12px;">'+(p.due_date||'—')+'</td></tr>').join('')||'<tr><td colspan="7" class="empty">No projects yet</td></tr>';
 }
-
 function renderField(){
   document.getElementById('field-count').textContent=tasks.filter(t=>!t.done).length;
-  document.getElementById('field-today').innerHTML=tasks.map(t=>`<div class="todo-item"><div class="chk ${t.done?'done':''}" onclick="toggleTask('${t.id}',${!t.done})"></div><div style="flex:1"><div class="todo-label ${t.done?'striked':''}">${t.text}</div><div class="todo-meta">${t.project}${t.priority==='High'?' · <span style="color:var(--brand)">High priority</span>':''}</div></div></div>`).join('')||'<div class="empty">No tasks yet</div>';
-  document.getElementById('field-sched').innerHTML=projects.filter(p=>p.status==='In progress').map(p=>`<div class="list-row"><div style="flex:1"><div class="row-name">${p.name}</div><div class="row-sub">${p.client} · Due ${p.due_date||'TBD'}</div></div>${badge(p.status)}</div>`).join('')||'<div class="empty">No active jobs</div>';
+  document.getElementById('field-today').innerHTML=tasks.map(t=>'<div class="todo-item"><div class="chk'+(t.done?' done':'')+'" onclick="toggleTask(\''+t.id+'\','+!t.done+')"></div><div style="flex:1"><div class="todo-label'+(t.done?' striked':'')+'">'+t.text+'</div><div class="todo-meta">'+t.project+(t.priority==='High'?' · <span style="color:var(--brand)">High priority</span>':'')+'</div></div></div>').join('')||'<div class="empty">No tasks yet</div>';
+  document.getElementById('field-sched').innerHTML=projects.filter(p=>p.status==='In progress').map(p=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+p.name+'</div><div class="row-sub">'+p.client+' · Due '+(p.due_date||'TBD')+'</div></div>'+badge(p.status)+'</div>').join('')||'<div class="empty">No active jobs</div>';
 }
-
-async function toggleTask(id,done){
-  await sb.from('tasks').update({done}).eq('id',id);
-  const t=tasks.find(x=>x.id===id);if(t)t.done=done;renderField();renderDash();
-}
-
+async function toggleTask(id,done){await sb.from('tasks').update({done}).eq('id',id);const t=tasks.find(x=>x.id===id);if(t)t.done=done;renderField();renderDash();}
 function renderOffice(){
-  const paid=invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+toNum(i.amt),0);
-  const owed=invoices.filter(i=>i.status!=='Paid').reduce((s,i)=>s+toNum(i.amt),0);
-  statCards('office-stats',[
-    {label:'Invoices',value:invoices.length},{label:'Collected',value:fmt(paid),sub:'Paid'},
-    {label:'Outstanding',value:fmt(owed),sub:'Owed'},{label:'Overdue',value:invoices.filter(i=>i.status==='Overdue').length,sub:'Follow up'},
-  ]);
-  document.getElementById('inv-tbl').innerHTML=invoices.map(i=>`<tr><td style="font-weight:600;">${i.client}</td><td style="color:var(--brand);font-weight:600;">${i.amt}</td><td>${badge(i.status)}</td><td style="color:var(--text2);font-size:12px;">${i.due_date||'—'}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">No invoices yet</td></tr>';
-  document.getElementById('exp-tbl').innerHTML=expenses.map(e=>`<tr><td style="font-weight:600;">${e.description}</td><td style="color:var(--text2);">${e.project}</td><td style="color:var(--brand);font-weight:600;">${e.amt}</td><td style="color:var(--text2);font-size:12px;">${e.expense_date||'—'}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">No expenses yet</td></tr>';
+  const paid=invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+toNum(i.amt),0);const owed=invoices.filter(i=>i.status!=='Paid').reduce((s,i)=>s+toNum(i.amt),0);
+  statCards('office-stats',[{label:'Invoices',value:invoices.length},{label:'Collected',value:fmt(paid),sub:'Paid'},{label:'Outstanding',value:fmt(owed),sub:'Owed'},{label:'Overdue',value:invoices.filter(i=>i.status==='Overdue').length,sub:'Follow up'}]);
+  document.getElementById('inv-tbl').innerHTML=invoices.map(i=>'<tr><td style="font-weight:600;">'+i.client+'</td><td style="color:var(--brand);font-weight:600;">'+i.amt+'</td><td>'+badge(i.status)+'</td><td style="color:var(--text2);font-size:12px;">'+(i.due_date||'—')+'</td></tr>').join('')||'<tr><td colspan="4" class="empty">No invoices yet</td></tr>';
+  document.getElementById('exp-tbl').innerHTML=expenses.map(e=>'<tr><td style="font-weight:600;">'+e.description+'</td><td style="color:var(--text2);">'+e.project+'</td><td style="color:var(--brand);font-weight:600;">'+e.amt+'</td><td style="color:var(--text2);font-size:12px;">'+(e.expense_date||'—')+'</td></tr>').join('')||'<tr><td colspan="4" class="empty">No expenses yet</td></tr>';
 }
-
 function renderMkt(){
   const sources={};leads.forEach(l=>{if(l.source)sources[l.source]=(sources[l.source]||0)+1;});
-  statCards('mkt-stats',[
-    {label:'Total leads',value:leads.length},{label:'From referrals',value:leads.filter(l=>l.source==='Referral').length,sub:'Best source'},
-    {label:'From Google',value:leads.filter(l=>l.source==='Google').length,sub:'Online'},
-    {label:'Close rate',value:leads.length?Math.round(leads.filter(l=>l.stage==='Completed').length/leads.length*100)+'%':'0%',sub:'Leads → completed'},
-  ]);
-  document.getElementById('mkt-sources').innerHTML=Object.entries(sources).sort((a,b)=>b[1]-a[1]).map(([src,cnt])=>`<div class="list-row"><div class="row-name">${src}</div><div style="display:flex;align-items:center;gap:8px;"><div style="width:80px;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;"><div style="width:${leads.length?Math.round(cnt/leads.length*100):0}%;height:100%;background:var(--brand);border-radius:3px;"></div></div><span style="font-size:13px;font-weight:600;">${cnt}</span></div></div>`).join('')||'<div class="empty">Add leads to see sources</div>';
-  document.getElementById('mkt-todos').innerHTML=mktTasks.map(t=>`<div class="todo-item"><div class="chk ${t.done?'done':''}" onclick="toggleMktTask('${t.id}',${!t.done})"></div><div class="todo-label ${t.done?'striked':''}">${t.text}</div></div>`).join('')||'<div class="empty">No marketing tasks yet</div>';
+  statCards('mkt-stats',[{label:'Total leads',value:leads.length},{label:'From referrals',value:leads.filter(l=>l.source==='Referral').length,sub:'Best source'},{label:'From Google',value:leads.filter(l=>l.source==='Google').length,sub:'Online'},{label:'Close rate',value:leads.length?Math.round(leads.filter(l=>l.stage==='Completed').length/leads.length*100)+'%':'0%',sub:'Leads → completed'}]);
+  document.getElementById('mkt-sources').innerHTML=Object.entries(sources).sort((a,b)=>b[1]-a[1]).map(([src,cnt])=>'<div class="list-row"><div class="row-name">'+src+'</div><div style="display:flex;align-items:center;gap:8px;"><div style="width:80px;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;"><div style="width:'+Math.round(cnt/leads.length*100)+'%;height:100%;background:var(--brand);border-radius:3px;"></div></div><span style="font-size:13px;font-weight:600;">'+cnt+'</span></div></div>').join('')||'<div class="empty">Add leads to see sources</div>';
+  document.getElementById('mkt-todos').innerHTML=mktTasks.map(t=>'<div class="todo-item"><div class="chk'+(t.done?' done':'')+'" onclick="toggleMktTask(\''+t.id+'\','+!t.done+')"></div><div class="todo-label'+(t.done?' striked':'')+'">'+t.text+'</div></div>').join('')||'<div class="empty">No marketing tasks yet</div>';
 }
-
-async function toggleMktTask(id,done){
-  await sb.from('mkt_tasks').update({done}).eq('id',id);
-  const t=mktTasks.find(x=>x.id===id);if(t)t.done=done;renderMkt();
-}
-
+async function toggleMktTask(id,done){await sb.from('mkt_tasks').update({done}).eq('id',id);const t=mktTasks.find(x=>x.id===id);if(t)t.done=done;renderMkt();}
 function renderCeo(){
   const paid=invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+toNum(i.amt),0);
   document.getElementById('ceo-rev').textContent=fmt(paid);
   document.getElementById('ceo-pipe').textContent=fmt(leads.filter(l=>ACTIVE_STAGES.includes(l.stage)).reduce((s,l)=>s+toNum(l.val),0));
   document.getElementById('ceo-jobs').textContent=projects.filter(p=>p.status==='In progress'||p.status==='Not started').length;
   const g=annualGoal,pct=g.goal>0?Math.min(100,Math.round(g.earned/g.goal*100)):0;
-  document.getElementById('ceo-goal-area').innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:7px;"><span style="font-size:13px;color:var(--text2);">Target: <strong>$${g.goal.toLocaleString()}</strong></span><span style="font-size:13px;font-weight:600;color:var(--brand);">${pct}% there</span></div><div class="goal-bar-track"><div class="goal-bar-fill" style="width:${pct}%"></div></div><div style="display:flex;justify-content:space-between;margin-top:9px;font-size:12px;color:var(--text3);"><span>Earned: <strong style="color:var(--text);">$${g.earned.toLocaleString()}</strong></span><span>Remaining: <strong style="color:var(--text);">$${(g.goal-g.earned).toLocaleString()}</strong></span></div>`;
+  document.getElementById('ceo-goal-area').innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:7px;"><span style="font-size:13px;color:var(--text2);">Target: <strong>$'+g.goal.toLocaleString()+'</strong></span><span style="font-size:13px;font-weight:600;color:var(--brand);">'+pct+'% there</span></div><div class="goal-bar-track"><div class="goal-bar-fill" style="width:'+pct+'%"></div></div><div style="display:flex;justify-content:space-between;margin-top:9px;font-size:12px;color:var(--text3);"><span>Earned: <strong style="color:var(--text);">$'+g.earned.toLocaleString()+'</strong></span><span>Remaining: <strong style="color:var(--text);">$'+(g.goal-g.earned).toLocaleString()+'</strong></span></div>';
   const attn=[];
   if(invoices.some(i=>i.status==='Overdue'))attn.push({text:'Overdue invoices',sub:'Collect payment ASAP',sev:'b-red'});
   if(estimates.some(e=>e.status==='Sent'))attn.push({text:'Estimates awaiting decisions',sub:'Follow up to close faster',sev:'b-amber'});
   if(leads.filter(l=>l.stage==='New Lead').length>2)attn.push({text:'New leads need contact',sub:"Don't let them go cold",sev:'b-amber'});
   if(tasks.filter(t=>!t.done&&t.priority==='High').length>0)attn.push({text:'High-priority tasks pending',sub:'Check field management',sev:'b-brand'});
   if(!attn.length)attn.push({text:'All clear',sub:'No urgent items right now',sev:'b-green'});
-  document.getElementById('ceo-attention').innerHTML=attn.map(a=>`<div class="list-row"><div style="flex:1"><div class="row-name">${a.text}</div><div class="row-sub">${a.sub}</div></div><span class="badge ${a.sev}">!</span></div>`).join('');
+  document.getElementById('ceo-attention').innerHTML=attn.map(a=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+a.text+'</div><div class="row-sub">'+a.sub+'</div></div><span class="badge '+a.sev+'">!</span></div>').join('');
   document.getElementById('ceo-pri-count').textContent=ceoPriorities.filter(p=>!p.done).length;
-  document.getElementById('ceo-priorities').innerHTML=ceoPriorities.map(p=>`<div class="todo-item"><div class="chk ${p.done?'done':''}" onclick="toggleCeoPri('${p.id}',${!p.done})"></div><div class="todo-label ${p.done?'striked':''}">${p.text}</div></div>`).join('')||'<div class="empty">Add your big-picture priorities</div>';
-  document.getElementById('ceo-health').innerHTML=[
-    {label:'Active leads',value:leads.filter(l=>ACTIVE_STAGES.includes(l.stage)).length},
-    {label:'Close rate',value:leads.length?Math.round(leads.filter(l=>l.stage==='Completed').length/leads.length*100)+'%':'0%'},
-    {label:'Active projects',value:projects.filter(p=>p.status==='In progress').length},
-    {label:'Overdue invoices',value:invoices.filter(i=>i.status==='Overdue').length},
-    {label:'Pending estimates',value:estimates.filter(e=>e.status==='Sent').length},
-    {label:'Total customers',value:leads.length},
-  ].map(h=>`<div class="list-row"><div class="row-name" style="font-weight:400;">${h.label}</div><span style="font-size:13px;font-weight:600;">${h.value}</span></div>`).join('');
+  document.getElementById('ceo-priorities').innerHTML=ceoPriorities.map(p=>'<div class="todo-item"><div class="chk'+(p.done?' done':'')+'" onclick="toggleCeoPri(\''+p.id+'\','+!p.done+')"></div><div class="todo-label'+(p.done?' striked':'')+'">'+p.text+'</div></div>').join('')||'<div class="empty">Add your big-picture priorities</div>';
+  document.getElementById('ceo-health').innerHTML=[{label:'Active leads',value:leads.filter(l=>ACTIVE_STAGES.includes(l.stage)).length},{label:'Close rate',value:leads.length?Math.round(leads.filter(l=>l.stage==='Completed').length/leads.length*100)+'%':'0%'},{label:'Active projects',value:projects.filter(p=>p.status==='In progress').length},{label:'Overdue invoices',value:invoices.filter(i=>i.status==='Overdue').length},{label:'Pending estimates',value:estimates.filter(e=>e.status==='Sent').length},{label:'Total customers',value:leads.length}].map(h=>'<div class="list-row"><div class="row-name" style="font-weight:400;">'+h.label+'</div><span style="font-size:13px;font-weight:600;">'+h.value+'</span></div>').join('');
 }
-
-async function toggleCeoPri(id,done){
-  await sb.from('ceo_priorities').update({done}).eq('id',id);
-  const p=ceoPriorities.find(x=>x.id===id);if(p)p.done=done;renderCeo();
-}
-
+async function toggleCeoPri(id,done){await sb.from('ceo_priorities').update({done}).eq('id',id);const p=ceoPriorities.find(x=>x.id===id);if(p)p.done=done;renderCeo();}
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModals(){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));}
-
 async function saveLead(){
   const name=document.getElementById('l-name').value.trim();if(!name)return;
-  const now=new Date().toISOString();
-  const customer_id=await getNextCustomerId();
-  const {data}=await sb.from('leads').insert({
-    name,customer_id,
-    phone:document.getElementById('l-phone').value||'',
-    email:document.getElementById('l-email').value||'',
-    address:document.getElementById('l-address').value||'',
-    job:document.getElementById('l-job').value||'',
-    val:document.getElementById('l-val').value||'TBD',
-    source:document.getElementById('l-source').value,
-    qualifier:document.getElementById('l-qualifier').value,
-    stage:'New Lead',stage_updated_at:now
-  }).select();
-  if(data)leads.unshift(data[0]);
-  closeModals();renderSalesPipeline();renderDash();
+  const now=new Date().toISOString();const customer_id=await getNextCustomerId();
+  const {data}=await sb.from('leads').insert({name,customer_id,phone:document.getElementById('l-phone').value||'',email:document.getElementById('l-email').value||'',address:document.getElementById('l-address').value||'',job:document.getElementById('l-job').value||'',val:document.getElementById('l-val').value||'TBD',source:document.getElementById('l-source').value,qualifier:document.getElementById('l-qualifier').value,stage:'New Lead',stage_updated_at:now}).select();
+  if(data)leads.unshift(data[0]);closeModals();renderSalesPipeline();renderDash();
   ['l-name','l-phone','l-email','l-address','l-job','l-val'].forEach(id=>document.getElementById(id).value='');
 }
-
 async function saveEst(){
   const client=document.getElementById('e-client').value.trim();if(!client)return;
   const today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
   const {data}=await sb.from('estimates').insert({client,description:document.getElementById('e-desc').value||'',amt:document.getElementById('e-amt').value||'TBD',status:document.getElementById('e-status').value,sent:today,follow_up:document.getElementById('e-follow').value||''}).select();
-  if(data)estimates.unshift(data[0]);
-  closeModals();renderEst();renderDash();
+  if(data)estimates.unshift(data[0]);closeModals();renderEst();renderDash();
   ['e-client','e-desc','e-amt','e-follow'].forEach(id=>document.getElementById(id).value='');
 }
-
 async function saveProj(){
   const name=document.getElementById('p-name').value.trim();if(!name)return;
   const {data}=await sb.from('projects').insert({name,client:document.getElementById('p-client').value||'',val:document.getElementById('p-val').value||'TBD',status:document.getElementById('p-status').value,progress:0,start_date:document.getElementById('p-start').value||'',due_date:document.getElementById('p-due').value||''}).select();
-  if(data)projects.unshift(data[0]);
-  closeModals();renderProj();renderDash();
+  if(data)projects.unshift(data[0]);closeModals();renderProj();renderDash();
   ['p-name','p-client','p-val','p-start','p-due'].forEach(id=>document.getElementById(id).value='');
 }
-
 async function saveTask(){
   const text=document.getElementById('t-text').value.trim();if(!text)return;
   const {data}=await sb.from('tasks').insert({text,project:document.getElementById('t-proj').value||'General',assigned_to:document.getElementById('t-assign').value||'Yourself',priority:document.getElementById('t-pri').value,done:false}).select();
-  if(data)tasks.unshift(data[0]);
-  closeModals();renderField();renderDash();
+  if(data)tasks.unshift(data[0]);closeModals();renderField();renderDash();
   ['t-text','t-proj','t-assign'].forEach(id=>document.getElementById(id).value='');
 }
-
 async function saveInvoice(){
   const client=document.getElementById('i-client').value.trim();if(!client)return;
   const {data}=await sb.from('invoices').insert({client,project:document.getElementById('i-proj').value||'',amt:document.getElementById('i-amt').value||'TBD',status:'Sent',due_date:document.getElementById('i-due').value||''}).select();
-  if(data)invoices.unshift(data[0]);
-  closeModals();renderOffice();
+  if(data)invoices.unshift(data[0]);closeModals();renderOffice();
   ['i-client','i-proj','i-amt','i-due'].forEach(id=>document.getElementById(id).value='');
 }
-
 async function saveGoal(){
   const goal={goal:parseInt(document.getElementById('goal-inp').value)||0,earned:parseInt(document.getElementById('earned-inp').value)||0};
   await sb.from('settings').upsert({key:'annual_goal',value:JSON.stringify(goal)},{onConflict:'key'});
-  annualGoal=goal;closeModals();renderCeo();
-  ['goal-inp','earned-inp'].forEach(id=>document.getElementById(id).value='');
+  annualGoal=goal;closeModals();renderCeo();['goal-inp','earned-inp'].forEach(id=>document.getElementById(id).value='');
 }
-
 async function quickTask(){
   const inp=document.getElementById('task-inp');const text=inp.value.trim();if(!text)return;
   const {data}=await sb.from('tasks').insert({text,project:'General',assigned_to:'Yourself',priority:'Normal',done:false}).select();
   if(data)tasks.unshift(data[0]);inp.value='';renderField();renderDash();
 }
-
 async function addMktTask(){
   const inp=document.getElementById('mkt-inp');const text=inp.value.trim();if(!text)return;
   const {data}=await sb.from('mkt_tasks').insert({text,done:false}).select();
   if(data)mktTasks.unshift(data[0]);inp.value='';renderMkt();
 }
-
 async function addCeoPri(){
   const inp=document.getElementById('ceo-inp');const text=inp.value.trim();if(!text)return;
   const {data}=await sb.from('ceo_priorities').insert({text,done:false}).select();
   if(data)ceoPriorities.unshift(data[0]);inp.value='';renderCeo();
 }
-
 loadAll();
 </script>
 </body>
