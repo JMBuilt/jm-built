@@ -46,11 +46,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .hub-title{font-size:18px;font-weight:600;}
 .hub-sub{font-size:13px;color:var(--text2);margin-top:3px;}
 .hub-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;margin-top:1.5rem;}
+.section-title{font-size:14px;font-weight:600;color:var(--text);}
+.section-sub{font-size:12px;color:var(--text3);margin-top:2px;}
 .btn-primary{background:var(--brand);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:600;}
 .btn-primary:hover{opacity:0.88;}
 .btn-sm{background:var(--surface);color:var(--text);border:1px solid var(--border2);border-radius:7px;padding:5px 11px;font-size:12px;cursor:pointer;font-family:inherit;}
 .btn-sm:hover{background:var(--bg2);}
-.btn-danger{background:var(--red-bg);color:var(--red-txt);border:1px solid var(--red-txt);border-radius:7px;padding:5px 11px;font-size:12px;cursor:pointer;font-family:inherit;}
+.btn-danger{background:var(--red-bg);color:var(--red-txt);border:1px solid var(--red-txt);border-radius:7px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}
+.btn-danger:hover{opacity:0.85;}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
 .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
@@ -87,7 +91,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .lcard-val{font-size:12px;color:var(--brand);font-weight:600;margin-top:6px;}
 .tbl{width:100%;border-collapse:collapse;}
 .tbl th{text-align:left;font-size:11px;font-weight:600;color:var(--text3);padding:9px 13px;border-bottom:1px solid var(--border);background:var(--bg2);}
-.tbl td{padding:11px 13px;font-size:13px;border-bottom:1px solid var(--border);}
+.tbl td{padding:10px 13px;font-size:13px;border-bottom:1px solid var(--border);}
 .tbl tr:last-child td{border-bottom:none;}
 .tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
 .prog-bar{width:72px;height:5px;background:var(--bg2);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:5px;}
@@ -106,8 +110,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .goal-bar-track{height:9px;background:var(--bg2);border-radius:5px;overflow:hidden;margin-top:5px;}
 .goal-bar-fill{height:100%;background:var(--brand);border-radius:5px;transition:width 0.4s;}
 .empty{padding:2rem;text-align:center;color:var(--text3);font-size:13px;}
-.search-bar{display:flex;gap:10px;margin-bottom:1rem;}
-.search-bar input{flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:8px 12px;background:var(--surface);color:var(--text);font-family:inherit;}
+.search-bar{display:flex;gap:10px;margin-bottom:.75rem;}
+.search-bar input{flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;}
 .search-bar input:focus{outline:none;border-color:var(--brand);}
 .doc-layout{display:grid;grid-template-columns:240px 1fr;gap:12px;min-height:500px;}
 .doc-list{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
@@ -117,7 +121,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .doc-item:last-child{border-bottom:none;}
 .doc-item:hover{background:var(--bg2);}
 .doc-item.active{background:var(--brand-light);}
-.doc-item-name{font-size:13px;font-weight:500;color:var(--text);}
+.doc-item-name{font-size:13px;font-weight:500;}
 .doc-item.active .doc-item-name{color:var(--brand);}
 .doc-item-date{font-size:11px;color:var(--text3);margin-top:2px;}
 .doc-editor-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
@@ -130,6 +134,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .doc-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px;gap:10px;padding:2rem;}
 .cid-badge{font-size:11px;font-weight:700;background:var(--bg2);color:var(--text2);padding:3px 8px;border-radius:6px;font-family:monospace;letter-spacing:0.5px;white-space:nowrap;}
 .inline-select{font-size:11px;border:1px solid var(--border);border-radius:5px;padding:2px 5px;background:var(--bg2);color:var(--text2);cursor:pointer;font-family:inherit;}
+/* Confirm modal */
+.confirm-modal{background:var(--surface);border-radius:14px;border:1px solid var(--border2);padding:1.75rem;width:360px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,0.2);}
+.confirm-modal h3{font-size:16px;font-weight:600;margin-bottom:.5rem;}
+.confirm-modal p{font-size:13px;color:var(--text2);margin-bottom:1.25rem;line-height:1.5;}
+.confirm-footer{display:flex;gap:9px;justify-content:flex-end;}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;align-items:center;justify-content:center;}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--surface);border-radius:14px;border:1px solid var(--border2);padding:1.75rem;width:480px;max-width:94vw;box-shadow:0 8px 40px rgba(0,0,0,0.18);max-height:90vh;overflow-y:auto;}
@@ -191,22 +200,44 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <!-- SALES -->
 <div id="tab-sales" style="display:none;">
 
+  <!-- PIPELINE -->
   <div id="sales-pipeline">
     <div class="hub-header">
-      <div><div class="hub-title">Sales Pipeline</div><div class="hub-sub">Active leads only — completed and lost move to the database automatically.</div></div>
+      <div><div class="hub-title">Sales Pipeline</div><div class="hub-sub">Active leads only — completed and lost move to inactive automatically.</div></div>
       <button class="btn-primary" onclick="openModal('lead-modal')">+ Add lead</button>
     </div>
     <div class="grid4" style="margin-bottom:1.25rem;" id="pipeline-stats"></div>
     <div class="pipeline" id="sales-board"></div>
-    <div class="card">
-      <div class="card-header"><span class="card-title">Active leads</span></div>
+
+    <!-- Active leads table -->
+    <div class="card" style="margin-bottom:1.5rem;">
+      <div class="card-header"><span class="card-title">Active leads</span><span class="badge b-blue" id="active-count">0</span></div>
       <table class="tbl">
-        <thead><tr><th>Customer ID</th><th>Name</th><th>Stage</th><th>Value</th><th>Job Type</th><th>Source</th></tr></thead>
+        <thead><tr><th>Customer ID</th><th>Name</th><th>Stage</th><th>Value</th><th>Job Type</th><th>Source</th><th></th></tr></thead>
         <tbody id="leads-tbl"></tbody>
+      </table>
+    </div>
+
+    <!-- Inactive leads table -->
+    <div class="section-header">
+      <div>
+        <div class="section-title">Inactive leads</div>
+        <div class="section-sub">Completed and lost — searchable</div>
+      </div>
+      <span class="badge b-gray" id="inactive-count">0</span>
+    </div>
+    <div class="search-bar">
+      <input id="inactive-search" placeholder="Search inactive leads..." oninput="renderSalesPipeline()"/>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Customer ID</th><th>Name</th><th>Stage</th><th>Value</th><th>Job Type</th><th>Source</th><th></th></tr></thead>
+        <tbody id="inactive-tbl"></tbody>
       </table>
     </div>
   </div>
 
+  <!-- CUSTOMER DATABASE -->
   <div id="sales-database" style="display:none;">
     <div class="hub-header">
       <div><div class="hub-title">Customer Database</div><div class="hub-sub">All leads — active, completed, and lost. Search by name, ID, phone, email, or address.</div></div>
@@ -216,12 +247,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
     <div class="tbl-wrap">
       <table class="tbl">
-        <thead><tr><th>Customer ID</th><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Last Stage Change</th><th>Stage</th><th>Qualifier</th></tr></thead>
+        <thead><tr><th>Customer ID</th><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Last Stage Change</th><th>Stage</th><th>Qualifier</th><th></th></tr></thead>
         <tbody id="db-tbl"></tbody>
       </table>
     </div>
   </div>
 
+  <!-- SOP -->
   <div id="sales-sop" style="display:none;">
     <div class="hub-header">
       <div><div class="hub-title">Sales SOPs</div><div class="hub-sub">Create and manage multiple standard operating procedures.</div></div>
@@ -238,7 +270,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <div class="doc-editor-header">
             <input id="sop-title-input" placeholder="Document title..." oninput="autoSaveCurrentDoc('sop')"/>
             <span class="doc-editor-status" id="sop-status"></span>
-            <button class="btn-danger" onclick="deleteCurrentDoc('sop')" style="padding:4px 10px;font-size:11px;">Delete</button>
+            <button class="btn-danger" onclick="deleteCurrentDoc('sop')">Delete</button>
           </div>
           <textarea class="doc-textarea" id="sop-content-input" placeholder="Paste or type your SOP here. You can paste directly from Word documents." oninput="autoSaveCurrentDoc('sop')"></textarea>
         </div>
@@ -246,6 +278,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
   </div>
 
+  <!-- SCRIPTS -->
   <div id="sales-scripts" style="display:none;">
     <div class="hub-header">
       <div><div class="hub-title">Sales Scripts</div><div class="hub-sub">Create and manage multiple call and follow-up scripts.</div></div>
@@ -262,7 +295,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <div class="doc-editor-header">
             <input id="scripts-title-input" placeholder="Script title..." oninput="autoSaveCurrentDoc('scripts')"/>
             <span class="doc-editor-status" id="scripts-status"></span>
-            <button class="btn-danger" onclick="deleteCurrentDoc('scripts')" style="padding:4px 10px;font-size:11px;">Delete</button>
+            <button class="btn-danger" onclick="deleteCurrentDoc('scripts')">Delete</button>
           </div>
           <textarea class="doc-textarea" id="scripts-content-input" placeholder="Paste or type your script here. You can paste directly from Word documents." oninput="autoSaveCurrentDoc('scripts')"></textarea>
         </div>
@@ -344,7 +377,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 </div>
 
-<!-- MODALS -->
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="confirm-modal">
+    <h3>Delete this lead?</h3>
+    <p id="confirm-msg">This will permanently delete the lead and cannot be undone.</p>
+    <div class="confirm-footer">
+      <button class="btn-sm" onclick="closeModals()">Cancel</button>
+      <button class="btn-primary" style="background:var(--red-txt);" onclick="confirmDelete()">Yes, delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEAD MODAL -->
 <div class="modal-overlay" id="lead-modal"><div class="modal"><h3>Add new lead</h3>
   <div class="fg"><label>Customer name</label><input id="l-name" placeholder="e.g. John Smith"/></div>
   <div class="fg"><label>Phone number</label><input id="l-phone" placeholder="e.g. 513-555-0100"/></div>
@@ -416,11 +461,13 @@ const sb = supabase.createClient(
 );
 
 const ACTIVE_STAGES=['New Lead','Contacted','Quoted','Negotiating'];
-const ALL_STAGES=['New Lead','Contacted','Quoted','Negotiating','Completed','Lost'];
+const INACTIVE_STAGES=['Completed','Lost'];
+const ALL_STAGES=[...ACTIVE_STAGES,...INACTIVE_STAGES];
 const STARTING_ID=1012;
 let leads=[],estimates=[],projects=[],tasks=[],invoices=[],expenses=[],mktTasks=[],ceoPriorities=[],annualGoal={goal:500000,earned:0};
 let sopDocs=[],scriptsDocs=[],currentDocType='sop',currentDocId=null;
 let docSaveTimers={};
+let pendingDeleteId=null,pendingDeleteName='';
 
 const SB={'New Lead':'b-blue','Contacted':'b-amber','Quoted':'b-brand','Negotiating':'b-amber','Completed':'b-green','Lost':'b-red','Draft':'b-gray','Sent':'b-blue','Approved':'b-green','Declined':'b-red','Not started':'b-blue','In progress':'b-amber','On hold':'b-gray','Complete':'b-green','Paid':'b-green','Overdue':'b-red','Good':'b-green','Neutral':'b-amber','Do Not Contact':'b-red'};
 function badge(t){return `<span class="badge ${SB[t]||'b-gray'}">${t}</span>`;}
@@ -429,16 +476,11 @@ function fmt(n){return n>=1000?'$'+Math.round(n/1000)+'k':'$'+n;}
 function setSync(ok){document.getElementById('sync-dot').className='sync-dot'+(ok?' ok':'');document.getElementById('sync-label').textContent=ok?'Connected':'Offline';}
 function fmtDate(d){if(!d)return '—';const dt=new Date(d);return dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
 
-// Generate next sequential customer ID
 async function getNextCustomerId(){
   const res=await sb.from('settings').select('*').eq('key','last_customer_id').single();
   let next=STARTING_ID;
-  if(res.data){
-    next=parseInt(res.data.value)+1;
-    await sb.from('settings').update({value:String(next)}).eq('key','last_customer_id');
-  } else {
-    await sb.from('settings').insert({key:'last_customer_id',value:String(next)});
-  }
+  if(res.data){next=parseInt(res.data.value)+1;await sb.from('settings').update({value:String(next)}).eq('key','last_customer_id');}
+  else{await sb.from('settings').insert({key:'last_customer_id',value:String(next)});}
   return String(next).padStart(5,'0');
 }
 
@@ -502,26 +544,43 @@ function renderDash(){
   document.getElementById('dash-tasks').innerHTML=tasks.filter(t=>!t.done).slice(0,4).map(t=>`<div class="list-row"><div style="flex:1"><div class="row-name">${t.text}</div><div class="row-sub">${t.project}</div></div><span class="badge ${t.priority==='High'?'b-red':'b-blue'}">${t.priority}</span></div>`).join('')||'<div class="empty">No pending tasks</div>';
 }
 
-function renderSalesPipeline(){
-  const active=leads.filter(l=>ACTIVE_STAGES.includes(l.stage));
-  statCards('pipeline-stats',[
-    {label:'Active leads',value:active.length,sub:'In pipeline'},
-    {label:'Pipeline value',value:fmt(active.reduce((s,l)=>s+toNum(l.val),0)),sub:'Potential'},
-    {label:'Completed',value:leads.filter(l=>l.stage==='Completed').length,sub:'Won jobs'},
-    {label:'Lost',value:leads.filter(l=>l.stage==='Lost').length,sub:'Lost leads'},
-  ]);
-  document.getElementById('sales-board').innerHTML=ACTIVE_STAGES.map(stage=>{
-    const cards=leads.filter(l=>l.stage===stage);
-    return `<div class="pcol"><div class="pcol-header"><span>${stage}</span><span class="pcount">${cards.length}</span></div>${cards.map(l=>`<div class="lcard"><div class="lcard-name">${l.name}</div><div class="lcard-sub">${l.job||'—'}</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:7px;"><span class="lcard-val">${l.val||'TBD'}</span><select onchange="moveLeadStage('${l.id}',this.value)" class="inline-select">${ALL_STAGES.map(s=>`<option ${s===stage?'selected':''}>${s}</option>`).join('')}</select></div></div>`).join('')}</div>`;
-  }).join('');
-  document.getElementById('leads-tbl').innerHTML=active.map(l=>`<tr>
+function leadRow(l){
+  return `<tr>
     <td><span class="cid-badge">${l.customer_id||'—'}</span></td>
     <td style="font-weight:600;">${l.name}</td>
     <td>${badge(l.stage)}</td>
     <td style="color:var(--brand);font-weight:600;">${l.val||'TBD'}</td>
     <td style="color:var(--text2);">${l.job||'—'}</td>
     <td style="color:var(--text2);">${l.source||'—'}</td>
-  </tr>`).join('')||'<tr><td colspan="6" class="empty">No active leads</td></tr>';
+    <td><button class="btn-danger" onclick="promptDelete('${l.id}','${l.name.replace(/'/g,"\\'")}')">Delete</button></td>
+  </tr>`;
+}
+
+function renderSalesPipeline(){
+  const active=leads.filter(l=>ACTIVE_STAGES.includes(l.stage));
+  const q=(document.getElementById('inactive-search')?.value||'').toLowerCase();
+  const inactive=leads.filter(l=>INACTIVE_STAGES.includes(l.stage)).filter(l=>{
+    if(!q)return true;
+    return [l.name,l.customer_id,l.job,l.source,l.stage].some(v=>(v||'').toLowerCase().includes(q));
+  });
+
+  statCards('pipeline-stats',[
+    {label:'Active leads',value:active.length,sub:'In pipeline'},
+    {label:'Pipeline value',value:fmt(active.reduce((s,l)=>s+toNum(l.val),0)),sub:'Potential'},
+    {label:'Completed',value:leads.filter(l=>l.stage==='Completed').length,sub:'Won jobs'},
+    {label:'Lost',value:leads.filter(l=>l.stage==='Lost').length,sub:'Lost leads'},
+  ]);
+
+  document.getElementById('sales-board').innerHTML=ACTIVE_STAGES.map(stage=>{
+    const cards=leads.filter(l=>l.stage===stage);
+    return `<div class="pcol"><div class="pcol-header"><span>${stage}</span><span class="pcount">${cards.length}</span></div>${cards.map(l=>`<div class="lcard"><div class="lcard-name">${l.name}</div><div class="lcard-sub">${l.job||'—'}</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:7px;"><span class="lcard-val">${l.val||'TBD'}</span><select onchange="moveLeadStage('${l.id}',this.value)" class="inline-select">${ALL_STAGES.map(s=>`<option ${s===stage?'selected':''}>${s}</option>`).join('')}</select></div></div>`).join('')}</div>`;
+  }).join('');
+
+  document.getElementById('active-count').textContent=active.length;
+  document.getElementById('leads-tbl').innerHTML=active.map(leadRow).join('')||'<tr><td colspan="7" class="empty">No active leads</td></tr>';
+
+  document.getElementById('inactive-count').textContent=inactive.length;
+  document.getElementById('inactive-tbl').innerHTML=inactive.map(leadRow).join('')||'<tr><td colspan="7" class="empty">No inactive leads</td></tr>';
 }
 
 async function moveLeadStage(id,stage){
@@ -529,6 +588,22 @@ async function moveLeadStage(id,stage){
   await sb.from('leads').update({stage,stage_updated_at:now}).eq('id',id);
   const l=leads.find(x=>x.id===id);if(l){l.stage=stage;l.stage_updated_at=now;}
   renderSalesPipeline();renderDash();
+}
+
+// Delete with confirmation
+function promptDelete(id,name){
+  pendingDeleteId=id;pendingDeleteName=name;
+  document.getElementById('confirm-msg').textContent=`Are you sure you want to permanently delete "${name}"? This cannot be undone.`;
+  openModal('confirm-modal');
+}
+
+async function confirmDelete(){
+  if(!pendingDeleteId)return;
+  await sb.from('leads').delete().eq('id',pendingDeleteId);
+  leads=leads.filter(l=>l.id!==pendingDeleteId);
+  pendingDeleteId=null;pendingDeleteName='';
+  closeModals();
+  renderSalesPipeline();renderDatabase();renderDash();
 }
 
 function renderDatabase(){
@@ -547,7 +622,8 @@ function renderDatabase(){
     <td style="color:var(--text2);font-size:12px;">${fmtDate(l.stage_updated_at||l.created_at)}</td>
     <td>${badge(l.stage)}</td>
     <td><span class="badge ${qualClass[l.qualifier]||'b-gray'}" style="cursor:pointer;" onclick="openQualifierModal('${l.id}','${l.qualifier||'Good'}')">${l.qualifier||'Good'}</span></td>
-  </tr>`).join('')||'<tr><td colspan="8" class="empty">No results found</td></tr>';
+    <td><button class="btn-danger" onclick="promptDelete('${l.id}','${l.name.replace(/'/g,"\\'")}')">Delete</button></td>
+  </tr>`).join('')||'<tr><td colspan="9" class="empty">No results found</td></tr>';
 }
 
 function openQualifierModal(id,current){
@@ -612,10 +688,8 @@ async function createDoc(){
   if(data){
     if(type==='sop')sopDocs.unshift(data[0]);
     else scriptsDocs.unshift(data[0]);
-    closeModals();
-    document.getElementById('new-doc-name').value='';
-    renderDocList(type);
-    openDoc(type,data[0].id);
+    closeModals();document.getElementById('new-doc-name').value='';
+    renderDocList(type);openDoc(type,data[0].id);
   }
 }
 
