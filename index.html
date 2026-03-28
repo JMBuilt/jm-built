@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>JM Built</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{--brand:#C8440A;--brand-light:#FAECE7;--bg:#F4F3F0;--bg2:#ECEAE5;--surface:#FFFFFF;--border:#E0DDD8;--border2:#CCCAC4;--text:#1A1A18;--text2:#6B6A66;--text3:#9E9C98;--green-bg:#EAF3DE;--green-txt:#27500A;--amber-bg:#FAEEDA;--amber-txt:#633806;--blue-bg:#E6F1FB;--blue-txt:#0C447C;--red-bg:#FCEBEB;--red-txt:#791F1F;}
@@ -100,6 +101,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .search-bar{display:flex;gap:10px;margin-bottom:.75rem;}
 .search-bar input{flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;}
 .search-bar input:focus{outline:none;border-color:var(--brand);}
+/* Doc editor with drag/drop */
 .doc-layout{display:grid;grid-template-columns:240px 1fr;gap:12px;min-height:500px;}
 .doc-list{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
 .doc-list-header{padding:12px 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
@@ -112,21 +114,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .doc-item.active .doc-item-name{color:var(--brand);}
 .doc-item-date{font-size:11px;color:var(--text3);margin-top:2px;}
 .doc-editor-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
-.doc-editor-header{padding:12px 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
-.doc-editor-header input{flex:1;font-size:14px;font-weight:600;border:none;background:transparent;color:var(--text);font-family:inherit;}
+.doc-editor-header{padding:12px 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.doc-editor-header input{flex:1;font-size:14px;font-weight:600;border:none;background:transparent;color:var(--text);font-family:inherit;min-width:150px;}
 .doc-editor-header input:focus{outline:none;}
 .doc-editor-status{font-size:11px;color:var(--text3);}
-.doc-textarea{flex:1;width:100%;min-height:460px;font-size:13px;border:none;padding:1rem;background:var(--surface);color:var(--text);font-family:inherit;line-height:1.7;resize:none;}
+.doc-textarea-wrap{position:relative;flex:1;display:flex;flex-direction:column;}
+.doc-textarea{flex:1;width:100%;min-height:420px;font-size:13px;border:none;padding:1rem;background:var(--surface);color:var(--text);font-family:inherit;line-height:1.7;resize:none;}
 .doc-textarea:focus{outline:none;}
+.doc-textarea.drag-over{background:var(--brand-light);border:2px dashed var(--brand);}
+.doc-drop-hint{position:absolute;bottom:12px;right:12px;font-size:11px;color:var(--text3);background:var(--bg2);padding:4px 10px;border-radius:6px;pointer-events:none;}
 .doc-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px;gap:10px;padding:2rem;}
 .cid-badge{font-size:11px;font-weight:700;background:var(--bg2);color:var(--text2);padding:3px 8px;border-radius:6px;font-family:monospace;letter-spacing:0.5px;white-space:nowrap;}
 .jid-badge{font-size:11px;font-weight:700;background:var(--brand-light);color:var(--brand);padding:3px 8px;border-radius:6px;font-family:monospace;letter-spacing:0.5px;white-space:nowrap;}
 .inline-select{font-size:11px;border:1px solid var(--border);border-radius:5px;padding:2px 5px;background:var(--bg2);color:var(--text2);cursor:pointer;font-family:inherit;}
+.status-select-full{font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;background:var(--bg2);color:var(--text);cursor:pointer;font-family:inherit;}
 .profit-select{font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 9px;cursor:pointer;font-family:inherit;font-weight:600;}
 .profit-profitable{background:var(--green-bg);color:var(--green-txt);border-color:var(--green-txt);}
 .profit-not{background:var(--red-bg);color:var(--red-txt);border-color:var(--red-txt);}
 .profit-none{background:var(--bg2);color:var(--text2);border-color:var(--border2);}
-/* Contact cards grid */
 .contact-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
 .contact-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;}
 .contact-card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;}
@@ -137,12 +142,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .contact-actions{display:flex;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);}
 .history-btn{background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--blue-txt);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}
 .history-btn.has-history{background:var(--amber-bg);color:var(--amber-txt);border-color:var(--amber-txt);}
-/* Coming soon */
 .coming-soon{padding:4rem 2rem;text-align:center;color:var(--text3);}
 .coming-soon .icon{font-size:40px;margin-bottom:12px;}
 .coming-soon h3{font-size:16px;font-weight:600;color:var(--text2);margin-bottom:8px;}
 .coming-soon p{font-size:13px;line-height:1.6;}
-/* Notes / history modal */
 .notes-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;}
 .notes-name{font-size:16px;font-weight:600;}
 .notes-meta{font-size:12px;color:var(--text2);margin-top:3px;}
@@ -182,16 +185,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <button class="tab-btn" onclick="showTab('marketing')">Marketing</button>
   <button class="tab-btn" onclick="showTab('ceo')" style="color:var(--brand);font-weight:600;">CEO</button>
 </div>
-
-<!-- SALES SUBTABS -->
 <div class="subtabbar" id="sales-subtabbar" style="display:none;">
   <button class="subtab-btn active" onclick="showSalesSubtab('pipeline')">Pipeline</button>
   <button class="subtab-btn" onclick="showSalesSubtab('database')">Customer Database</button>
   <button class="subtab-btn" onclick="showSalesSubtab('sop')">SOP</button>
   <button class="subtab-btn" onclick="showSalesSubtab('scripts')">Scripts</button>
 </div>
-
-<!-- PROJECT SUBTABS -->
 <div class="subtabbar" id="proj-subtabbar" style="display:none;">
   <button class="subtab-btn active" onclick="showProjSubtab('dashboard')">Dashboard</button>
   <button class="subtab-btn" onclick="showProjSubtab('ordering')">Ordering System</button>
@@ -240,12 +239,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Customer ID</th><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Last Stage Change</th><th>Stage</th><th>Qualifier</th><th>Notes</th><th></th></tr></thead><tbody id="db-tbl"></tbody></table></div>
   </div>
   <div id="sales-sop" style="display:none;">
-    <div class="hub-header"><div><div class="hub-title">Sales SOPs</div><div class="hub-sub">Standard operating procedures for your sales process.</div></div><button class="btn-primary" onclick="openDocModal('sales_sop')">+ New SOP</button></div>
-    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="sales_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="sales_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="sales_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="sales_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('sales_sop')"/><span class="doc-editor-status" id="sales_sop-status"></span><button class="btn-danger" onclick="deleteDoc('sales_sop')">Delete</button></div><textarea class="doc-textarea" id="sales_sop-content-input" placeholder="Paste or type your SOP here." oninput="autoSaveDoc('sales_sop')"></textarea></div></div></div>
+    <div class="hub-header"><div><div class="hub-title">Sales SOPs</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('sales_sop')">+ New SOP</button></div>
+    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="sales_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="sales_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="sales_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="sales_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('sales_sop')"/><span class="doc-editor-status" id="sales_sop-status"></span><button class="btn-danger" onclick="deleteDoc('sales_sop')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="sales_sop-content-input" placeholder="Paste, type, or drag a Word document here..." oninput="autoSaveDoc('sales_sop')"></textarea><span class="doc-drop-hint">Drop .docx to import</span></div></div></div></div>
   </div>
   <div id="sales-scripts" style="display:none;">
-    <div class="hub-header"><div><div class="hub-title">Sales Scripts</div><div class="hub-sub">Call and follow-up scripts.</div></div><button class="btn-primary" onclick="openDocModal('sales_scripts')">+ New Script</button></div>
-    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Scripts</span></div><div id="sales_scripts-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="sales_scripts-empty"><span style="font-size:32px;">📞</span><span>Select a script or create a new one</span></div><div id="sales_scripts-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="sales_scripts-title-input" placeholder="Script title..." oninput="autoSaveDoc('sales_scripts')"/><span class="doc-editor-status" id="sales_scripts-status"></span><button class="btn-danger" onclick="deleteDoc('sales_scripts')">Delete</button></div><textarea class="doc-textarea" id="sales_scripts-content-input" placeholder="Paste or type your script here." oninput="autoSaveDoc('sales_scripts')"></textarea></div></div></div>
+    <div class="hub-header"><div><div class="hub-title">Sales Scripts</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('sales_scripts')">+ New Script</button></div>
+    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Scripts</span></div><div id="sales_scripts-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="sales_scripts-empty"><span style="font-size:32px;">📞</span><span>Select a script or create a new one</span></div><div id="sales_scripts-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="sales_scripts-title-input" placeholder="Script title..." oninput="autoSaveDoc('sales_scripts')"/><span class="doc-editor-status" id="sales_scripts-status"></span><button class="btn-danger" onclick="deleteDoc('sales_scripts')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="sales_scripts-content-input" placeholder="Paste, type, or drag a Word document here..." oninput="autoSaveDoc('sales_scripts')"></textarea><span class="doc-drop-hint">Drop .docx to import</span></div></div></div></div>
   </div>
 </div>
 
@@ -258,8 +257,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <!-- PROJECTS -->
 <div id="tab-projects" style="display:none;">
-
-  <!-- PROJECT DASHBOARD subtab -->
   <div id="proj-dashboard">
     <div class="hub-header"><div><div class="hub-title">Project Management</div><div class="hub-sub">Every job from start to finish.</div></div><button class="btn-primary" onclick="openModal('proj-modal')">+ New project</button></div>
     <div class="grid5" style="margin-bottom:1.25rem;" id="proj-stats"></div>
@@ -268,48 +265,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <table class="tbl"><thead><tr><th>Project</th><th>Job ID</th><th>Customer</th><th>Customer ID</th><th>Value</th><th>Status</th><th>Progress</th><th>Start</th><th>Due</th><th></th></tr></thead><tbody id="active-proj-tbl"></tbody></table>
     </div>
     <div class="section-header">
-      <div><div class="section-title">Completed jobs</div><div class="section-sub">Searchable archive of all finished projects</div></div>
+      <div><div class="section-title">Completed jobs</div><div class="section-sub">Searchable — change status to move a job back to active</div></div>
       <span class="badge b-gray" id="complete-proj-count">0</span>
     </div>
     <div class="search-bar"><input id="proj-search" placeholder="Search completed jobs by name, job ID, customer..." oninput="renderProj()"/></div>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th>Job ID</th><th>Customer</th><th>Customer ID</th><th>Value</th><th>Status</th><th>Start</th><th>Completed</th><th>Profitable?</th></tr></thead><tbody id="complete-proj-tbl"></tbody></table></div>
   </div>
-
-  <!-- ORDERING SYSTEM subtab -->
   <div id="proj-ordering" style="display:none;">
-    <div class="coming-soon">
-      <div class="icon">📦</div>
-      <h3>Ordering System</h3>
-      <p>Track material orders, purchase orders, and delivery status per job.<br>This section is coming soon — we'll build it out together.</p>
-    </div>
+    <div class="coming-soon"><div class="icon">📦</div><h3>Ordering System</h3><p>Track material orders, purchase orders, and delivery status per job.<br>This section is coming soon.</p></div>
   </div>
-
-  <!-- SUPPLIERS subtab -->
   <div id="proj-suppliers" style="display:none;">
     <div class="hub-header"><div><div class="hub-title">Suppliers</div><div class="hub-sub">All your supplier contacts — what they supply, how to reach them.</div></div><button class="btn-primary" onclick="openModal('supplier-modal')">+ Add supplier</button></div>
     <div class="search-bar"><input id="supplier-search" placeholder="Search suppliers by name, trade, or description..." oninput="renderSuppliers()"/></div>
     <div class="contact-grid" id="supplier-grid"></div>
   </div>
-
-  <!-- SUBCONTRACTORS subtab -->
   <div id="proj-subs" style="display:none;">
     <div class="hub-header"><div><div class="hub-title">Subcontractors</div><div class="hub-sub">Your sub network — contacts, trade, rates, and work history.</div></div><button class="btn-primary" onclick="openModal('sub-modal')">+ Add subcontractor</button></div>
     <div class="search-bar"><input id="sub-search" placeholder="Search subcontractors by name or trade..." oninput="renderSubs()"/></div>
     <div class="contact-grid" id="sub-grid"></div>
   </div>
-
-  <!-- TEMPLATES subtab -->
   <div id="proj-templates" style="display:none;">
-    <div class="hub-header"><div><div class="hub-title">Project Templates</div><div class="hub-sub">Reusable templates for common job types. Paste from Word or type directly.</div></div><button class="btn-primary" onclick="openDocModal('proj_templates')">+ New template</button></div>
-    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Templates</span></div><div id="proj_templates-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="proj_templates-empty"><span style="font-size:32px;">📄</span><span>Select a template or create a new one</span></div><div id="proj_templates-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="proj_templates-title-input" placeholder="Template name..." oninput="autoSaveDoc('proj_templates')"/><span class="doc-editor-status" id="proj_templates-status"></span><button class="btn-danger" onclick="deleteDoc('proj_templates')">Delete</button></div><textarea class="doc-textarea" id="proj_templates-content-input" placeholder="Paste or type your project template here." oninput="autoSaveDoc('proj_templates')"></textarea></div></div></div>
+    <div class="hub-header"><div><div class="hub-title">Project Templates</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('proj_templates')">+ New template</button></div>
+    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Templates</span></div><div id="proj_templates-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="proj_templates-empty"><span style="font-size:32px;">📄</span><span>Select a template or create a new one</span></div><div id="proj_templates-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="proj_templates-title-input" placeholder="Template name..." oninput="autoSaveDoc('proj_templates')"/><span class="doc-editor-status" id="proj_templates-status"></span><button class="btn-danger" onclick="deleteDoc('proj_templates')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="proj_templates-content-input" placeholder="Paste, type, or drag a Word document here..." oninput="autoSaveDoc('proj_templates')"></textarea><span class="doc-drop-hint">Drop .docx to import</span></div></div></div></div>
   </div>
-
-  <!-- PROJ SOP subtab -->
   <div id="proj-proj-sop" style="display:none;">
-    <div class="hub-header"><div><div class="hub-title">Project SOPs</div><div class="hub-sub">Standard operating procedures for your project workflow.</div></div><button class="btn-primary" onclick="openDocModal('proj_sop')">+ New SOP</button></div>
-    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="proj_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="proj_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="proj_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="proj_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('proj_sop')"/><span class="doc-editor-status" id="proj_sop-status"></span><button class="btn-danger" onclick="deleteDoc('proj_sop')">Delete</button></div><textarea class="doc-textarea" id="proj_sop-content-input" placeholder="Paste or type your SOP here." oninput="autoSaveDoc('proj_sop')"></textarea></div></div></div>
+    <div class="hub-header"><div><div class="hub-title">Project SOPs</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('proj_sop')">+ New SOP</button></div>
+    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="proj_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="proj_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="proj_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="proj_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('proj_sop')"/><span class="doc-editor-status" id="proj_sop-status"></span><button class="btn-danger" onclick="deleteDoc('proj_sop')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="proj_sop-content-input" placeholder="Paste, type, or drag a Word document here..." oninput="autoSaveDoc('proj_sop')"></textarea><span class="doc-drop-hint">Drop .docx to import</span></div></div></div></div>
   </div>
-
 </div>
 
 <!-- FIELD -->
@@ -359,27 +341,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-</div><!-- end content -->
+</div>
 
-<!-- CONFIRM MODAL -->
+<!-- MODALS -->
 <div class="modal-overlay" id="confirm-modal">
   <div class="confirm-modal"><h3 id="confirm-title">Delete?</h3><p id="confirm-msg"></p><div class="confirm-footer"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" style="background:var(--red-txt);" id="confirm-btn">Yes, delete</button></div></div>
 </div>
-
-<!-- NOTES MODAL (leads) -->
 <div class="modal-overlay" id="notes-modal">
   <div class="modal"><div class="notes-header"><div><div class="notes-name" id="notes-lead-name"></div><div class="notes-meta" id="notes-lead-meta"></div></div><button class="btn-sm" onclick="closeModals()">Close</button></div><div id="notes-list"></div><div class="notes-input-area"><textarea class="notes-textarea" id="notes-input" placeholder="Add a note..."></textarea><div style="display:flex;justify-content:flex-end;"><button class="btn-primary" onclick="saveNote()">Add note</button></div></div></div>
 </div>
-
-<!-- HISTORY MODAL (subs) -->
 <div class="modal-overlay" id="history-modal">
   <div class="modal"><div class="notes-header"><div><div class="notes-name" id="history-name"></div><div class="notes-meta" id="history-meta"></div></div><button class="btn-sm" onclick="closeModals()">Close</button></div><div id="history-list"></div><div class="notes-input-area"><textarea class="notes-textarea" id="history-input" placeholder="e.g. Framed Johnson Master Bath — Mar 2025, $3,200"></textarea><div style="display:flex;justify-content:flex-end;"><button class="btn-primary" onclick="saveHistory()">Add entry</button></div></div></div>
 </div>
-
-<!-- QUALIFIER MODAL -->
 <div class="modal-overlay" id="qualifier-modal"><div class="modal"><h3>Update qualifier</h3><input type="hidden" id="q-lead-id"/><div class="fg"><label>Qualifier</label><select id="q-qualifier"><option>Good</option><option>Neutral</option><option>Do Not Contact</option></select></div><div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveQualifier()">Save</button></div></div></div>
-
-<!-- LEAD MODAL -->
 <div class="modal-overlay" id="lead-modal"><div class="modal"><h3>Add new lead</h3>
   <div class="fg"><label>Customer name</label><input id="l-name" placeholder="e.g. John Smith"/></div>
   <div class="fg"><label>Phone number</label><input id="l-phone" placeholder="e.g. 513-555-0100"/></div>
@@ -391,33 +365,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="fg"><label>Qualifier</label><select id="l-qualifier"><option>Good</option><option>Neutral</option><option>Do Not Contact</option></select></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveLead()">Save lead</button></div>
 </div></div>
-
-<!-- NEW DOC MODAL -->
 <div class="modal-overlay" id="new-doc-modal"><div class="modal"><h3 id="new-doc-title">New Document</h3><div class="fg"><label>Title</label><input id="new-doc-name" placeholder="e.g. Kitchen Remodel Template"/></div><div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="createDoc()">Create</button></div></div></div>
-
-<!-- SUPPLIER MODAL -->
 <div class="modal-overlay" id="supplier-modal"><div class="modal"><h3>Add supplier</h3>
   <div class="fg"><label>Company name</label><input id="sp-name" placeholder="e.g. ABC Lumber Co."/></div>
   <div class="fg"><label>Contact name</label><input id="sp-contact" placeholder="e.g. Mike Thompson"/></div>
   <div class="fg"><label>Phone</label><input id="sp-phone" placeholder="e.g. 513-555-0200"/></div>
   <div class="fg"><label>Email</label><input id="sp-email" placeholder="e.g. mike@abclumber.com"/></div>
   <div class="fg"><label>Address</label><input id="sp-address" placeholder="e.g. 456 Industrial Dr, Cincinnati OH"/></div>
-  <div class="fg"><label>What they supply</label><textarea id="sp-desc" rows="2" placeholder="e.g. Lumber, plywood, framing materials" style="resize:vertical;"></textarea></div>
+  <div class="fg"><label>What they supply</label><textarea id="sp-desc" rows="2" style="resize:vertical;" placeholder="e.g. Lumber, plywood, framing materials"></textarea></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveSupplier()">Save supplier</button></div>
 </div></div>
-
-<!-- SUBCONTRACTOR MODAL -->
 <div class="modal-overlay" id="sub-modal"><div class="modal"><h3>Add subcontractor</h3>
   <div class="fg"><label>Name</label><input id="sb-name" placeholder="e.g. Dave's Electric"/></div>
   <div class="fg"><label>Trade</label><input id="sb-trade" placeholder="e.g. Electrical, Plumbing, HVAC, Framing..."/></div>
   <div class="fg"><label>Phone</label><input id="sb-phone" placeholder="e.g. 513-555-0300"/></div>
   <div class="fg"><label>Email</label><input id="sb-email" placeholder="e.g. dave@daveselectric.com"/></div>
   <div class="fg"><label>Typical rate</label><input id="sb-rate" placeholder="e.g. $85/hr or $2,500 flat"/></div>
-  <div class="fg"><label>Notes</label><textarea id="sb-notes" rows="2" placeholder="e.g. Reliable, licensed, prefer 2 weeks notice" style="resize:vertical;"></textarea></div>
+  <div class="fg"><label>Notes</label><textarea id="sb-notes" rows="2" style="resize:vertical;" placeholder="e.g. Reliable, licensed, prefer 2 weeks notice"></textarea></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveSub()">Save subcontractor</button></div>
 </div></div>
-
-<!-- EST MODAL -->
 <div class="modal-overlay" id="est-modal"><div class="modal"><h3>New estimate</h3>
   <div class="fg"><label>Client name</label><input id="e-client"/></div>
   <div class="fg"><label>Job description</label><input id="e-desc"/></div>
@@ -426,8 +392,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="fg"><label>Follow-up date</label><input id="e-follow" type="date"/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEst()">Save</button></div>
 </div></div>
-
-<!-- PROJECT MODAL -->
 <div class="modal-overlay" id="proj-modal"><div class="modal"><h3>New project</h3>
   <div class="fg"><label>Project name</label><input id="p-name" placeholder="e.g. Johnson Master Bath Reno"/></div>
   <div class="fg"><label>Customer name</label><input id="p-client" placeholder="e.g. Mike Johnson"/></div>
@@ -438,8 +402,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="fg"><label>Due date</label><input id="p-due" type="date"/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveProj()">Save project</button></div>
 </div></div>
-
-<!-- EDIT PROJECT MODAL -->
 <div class="modal-overlay" id="edit-proj-modal"><div class="modal"><h3>Edit project</h3>
   <input type="hidden" id="ep-id"/>
   <div class="fg"><label>Project name</label><input id="ep-name"/></div>
@@ -451,7 +413,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="fg"><label>Due date</label><input id="ep-due" type="date"/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="updateProj()">Save changes</button></div>
 </div></div>
-
 <div class="modal-overlay" id="task-modal"><div class="modal"><h3>Add field task</h3>
   <div class="fg"><label>Task</label><input id="t-text"/></div>
   <div class="fg"><label>Project</label><input id="t-proj"/></div>
@@ -478,18 +439,13 @@ const ACTIVE_LEAD_STAGES=['New Lead','Contacted','Quoted','Negotiating'];
 const INACTIVE_LEAD_STAGES=['Completed','Lost'];
 const ALL_LEAD_STAGES=[...ACTIVE_LEAD_STAGES,...INACTIVE_LEAD_STAGES];
 const ACTIVE_PROJ=['Preconstruction','In progress','On hold','Punchout'];
+const ALL_PROJ_STATUSES=['Preconstruction','In progress','On hold','Punchout','Complete'];
 
 let leads=[],estimates=[],projects=[],tasks=[],invoices=[],expenses=[],mktTasks=[],ceoPriorities=[],annualGoal={goal:500000,earned:0};
-let suppliers=[],subs=[],subHistory={};
-let leadNotes={},currentNotesLeadId=null;
-let currentHistorySubId=null;
+let suppliers=[],subs=[],subHistory={},leadNotes={};
+let currentNotesLeadId=null,currentHistorySubId=null;
 let pendingDeleteId=null,pendingDeleteType=null;
-let progDebounce={};
-
-// Doc system - keyed by type string
-let docLibs={};  // {type: [{id,title,content,doc_type,created_at,updated_at}]}
-let currentDocType=null,currentDocId=null;
-const docSaveTimers={};
+let progDebounce={},docLibs={},currentDocType=null,currentDocId=null,docSaveTimers={},pendingDocType=null;
 
 const SB={'New Lead':'b-blue','Contacted':'b-amber','Quoted':'b-brand','Negotiating':'b-amber','Completed':'b-green','Lost':'b-red','Draft':'b-gray','Sent':'b-blue','Approved':'b-green','Declined':'b-red','Preconstruction':'b-purple','In progress':'b-amber','On hold':'b-gray','Punchout':'b-blue','Complete':'b-green','Paid':'b-green','Overdue':'b-red','Good':'b-green','Neutral':'b-amber','Do Not Contact':'b-red'};
 function badge(t){return '<span class="badge '+(SB[t]||'b-gray')+'">'+t+'</span>';}
@@ -529,46 +485,62 @@ async function loadAll(){
     invoices=i.data||[];expenses=ex.data||[];mktTasks=m.data||[];ceoPriorities=c.data||[];
     suppliers=sup.data||[];subs=sb2.data||[];
     const settings=s.data||[];const g=settings.find(x=>x.key==='annual_goal');if(g)annualGoal=JSON.parse(g.value);
-    // Organize docs by type
     docLibs={};(docs.data||[]).forEach(d=>{if(!docLibs[d.doc_type])docLibs[d.doc_type]=[];docLibs[d.doc_type].push(d);});
-    // Lead notes
     leadNotes={};(notes.data||[]).forEach(n=>{if(!leadNotes[n.lead_id])leadNotes[n.lead_id]=[];leadNotes[n.lead_id].push(n);});
-    // Sub history
     subHistory={};(hist.data||[]).forEach(h=>{if(!subHistory[h.sub_id])subHistory[h.sub_id]=[];subHistory[h.sub_id].push(h);});
     setSync(true);renderDash();
+    // Setup drag/drop on all doc textareas after load
+    setupDocDragDrop();
   }catch(err){setSync(false);console.error(err);}
 }
 
-// TAB NAVIGATION
+// DRAG & DROP WORD DOCS
+function setupDocDragDrop(){
+  const docTypes=['sales_sop','sales_scripts','proj_templates','proj_sop'];
+  docTypes.forEach(type=>{
+    const ta=document.getElementById(type+'-content-input');
+    if(!ta)return;
+    ta.addEventListener('dragover',e=>{e.preventDefault();ta.classList.add('drag-over');});
+    ta.addEventListener('dragleave',()=>ta.classList.remove('drag-over'));
+    ta.addEventListener('drop',e=>{
+      e.preventDefault();ta.classList.remove('drag-over');
+      const file=e.dataTransfer.files[0];
+      if(!file)return;
+      if(!file.name.endsWith('.docx')){alert('Please drop a .docx Word file.');return;}
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        mammoth.extractRawText({arrayBuffer:ev.target.result}).then(result=>{
+          ta.value=(ta.value?ta.value+'\n\n':'')+result.value;
+          autoSaveDoc(type);
+        }).catch(()=>alert('Could not read the Word file. Make sure it is a .docx file.'));
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  });
+}
+
 const MAIN_TABS=['dash','sales','estimating','projects','field','office','marketing','ceo'];
 function showTab(t){
   MAIN_TABS.forEach(id=>document.getElementById('tab-'+id).style.display=id===t?'block':'none');
   document.querySelectorAll('.tabbar .tab-btn').forEach((b,i)=>b.classList.toggle('active',MAIN_TABS[i]===t));
   document.getElementById('sales-subtabbar').style.display=t==='sales'?'flex':'none';
   document.getElementById('proj-subtabbar').style.display=t==='projects'?'flex':'none';
-  const renders={dash:renderDash,sales:renderSalesPipeline,estimating:renderEst,projects:renderProj,field:renderField,office:renderOffice,marketing:renderMkt,ceo:renderCeo};
-  renders[t]?.();
+  ({dash:renderDash,sales:renderSalesPipeline,estimating:renderEst,projects:renderProj,field:renderField,office:renderOffice,marketing:renderMkt,ceo:renderCeo})[t]?.();
 }
-
 const SALES_SUBTABS=['pipeline','database','sop','scripts'];
 function showSalesSubtab(t){
   SALES_SUBTABS.forEach(id=>document.getElementById('sales-'+id).style.display=id===t?'block':'none');
   document.querySelectorAll('#sales-subtabbar .subtab-btn').forEach((b,i)=>b.classList.toggle('active',SALES_SUBTABS[i]===t));
-  if(t==='pipeline')renderSalesPipeline();
-  if(t==='database')renderDatabase();
-  if(t==='sop')renderDocList('sales_sop');
-  if(t==='scripts')renderDocList('sales_scripts');
+  if(t==='pipeline')renderSalesPipeline();if(t==='database')renderDatabase();
+  if(t==='sop')renderDocList('sales_sop');if(t==='scripts')renderDocList('sales_scripts');
 }
-
 const PROJ_SUBTABS=['dashboard','ordering','suppliers','subs','templates','proj-sop'];
 function showProjSubtab(t){
   PROJ_SUBTABS.forEach(id=>document.getElementById('proj-'+id).style.display=id===t?'block':'none');
   document.querySelectorAll('#proj-subtabbar .subtab-btn').forEach((b,i)=>b.classList.toggle('active',PROJ_SUBTABS[i]===t));
-  if(t==='dashboard')renderProj();
-  if(t==='suppliers')renderSuppliers();
-  if(t==='subs')renderSubs();
-  if(t==='templates')renderDocList('proj_templates');
-  if(t==='proj-sop')renderDocList('proj_sop');
+  if(t==='dashboard')renderProj();if(t==='suppliers')renderSuppliers();if(t==='subs')renderSubs();
+  if(t==='templates'){renderDocList('proj_templates');setupDocDragDrop();}
+  if(t==='proj-sop'){renderDocList('proj_sop');setupDocDragDrop();}
 }
 
 function statCards(el,items){document.getElementById(el).innerHTML=items.map(s=>'<div class="stat-card"><div class="stat-label">'+s.label+'</div><div class="stat-value">'+s.value+'</div><div class="stat-sub">'+(s.sub||'')+'</div></div>').join('');}
@@ -576,9 +548,13 @@ function notesBtn(leadId){const count=(leadNotes[leadId]||[]).length;return '<bu
 function qualBadge(l){const qc={'Good':'b-green','Neutral':'b-amber','Do Not Contact':'b-red'};return '<span class="badge '+(qc[l.qualifier]||'b-gray')+'" style="cursor:pointer;" onclick="openQualifierModal(\''+l.id+'\',\''+(l.qualifier||'Good')+'\')">'+( l.qualifier||'Good')+'</span>';}
 function activeLeadRow(l){return '<tr><td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td><td style="font-weight:600;">'+l.name+'</td><td>'+badge(l.stage)+'</td><td style="color:var(--brand);font-weight:600;">'+(l.val||'TBD')+'</td><td style="color:var(--text2);">'+(l.job||'—')+'</td><td style="color:var(--text2);">'+(l.source||'—')+'</td><td>'+notesBtn(l.id)+'</td><td><button class="btn-danger" onclick="promptDelete(\'lead\',\''+l.id+'\',\''+l.name.replace(/'/g,"\\'")+'\')" >Delete</button></td></tr>';}
 function inactiveLeadRow(l){return '<tr><td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td><td style="font-weight:600;">'+l.name+'</td><td>'+badge(l.stage)+'</td><td style="color:var(--brand);font-weight:600;">'+(l.val||'TBD')+'</td><td style="color:var(--text2);">'+(l.job||'—')+'</td><td style="color:var(--text2);">'+(l.source||'—')+'</td><td>'+qualBadge(l)+'</td><td>'+notesBtn(l.id)+'</td><td><button class="btn-danger" onclick="promptDelete(\'lead\',\''+l.id+'\',\''+l.name.replace(/'/g,"\\'")+'\')" >Delete</button></td></tr>';}
-
 function progSlider(projId,pct){return '<div class="inline-prog"><input type="range" min="0" max="100" value="'+pct+'" step="5" onchange="updateProgress(\''+projId+'\',this.value)" oninput="this.nextElementSibling.textContent=this.value+\'%\'"/><span>'+pct+'%</span></div>';}
 function profitSelect(projId,val){const cls=val==='Profitable'?'profit-profitable':val==='Not profitable'?'profit-not':'profit-none';return '<select class="profit-select '+cls+'" onchange="updateProfitable(\''+projId+'\',this.value);this.className=\'profit-select \'+(this.value===\'Profitable\'?\'profit-profitable\':this.value===\'Not profitable\'?\'profit-not\':\'profit-none\')">'+'<option value="" '+(!val?' selected':'')+'>— Select —</option>'+'<option value="Profitable" '+(val==='Profitable'?'selected':'')+'>Profitable</option>'+'<option value="Not profitable" '+(val==='Not profitable'?'selected':'')+'>Not profitable</option>'+'</select>';}
+
+// Status dropdown for ANY project (active or complete)
+function projStatusSelect(projId,currentStatus){
+  return '<select class="status-select-full" onchange="updateProjStatus(\''+projId+'\',this.value)">'+ALL_PROJ_STATUSES.map(s=>'<option'+(s===currentStatus?' selected':'')+'>'+s+'</option>').join('')+'</select>';
+}
 
 function renderDash(){
   const active=leads.filter(l=>ACTIVE_LEAD_STAGES.includes(l.stage));
@@ -605,56 +581,23 @@ async function moveLeadStage(id,stage){
   const now=new Date().toISOString();await sb.from('leads').update({stage,stage_updated_at:now}).eq('id',id);
   const l=leads.find(x=>x.id===id);if(l){l.stage=stage;l.stage_updated_at=now;}renderSalesPipeline();renderDash();
 }
-
 function promptDelete(type,id,name){
   pendingDeleteId=id;pendingDeleteType=type;
   document.getElementById('confirm-title').textContent='Delete this '+(type==='lead'?'lead':type==='project'?'project':type==='supplier'?'supplier':'subcontractor')+'?';
   document.getElementById('confirm-msg').textContent='Are you sure you want to permanently delete "'+name+'"? This cannot be undone.';
-  document.getElementById('confirm-btn').onclick=confirmDelete;
-  openModal('confirm-modal');
+  document.getElementById('confirm-btn').onclick=confirmDelete;openModal('confirm-modal');
 }
 async function confirmDelete(){
   if(!pendingDeleteId)return;
-  if(pendingDeleteType==='lead'){
-    await sb.from('leads').delete().eq('id',pendingDeleteId);
-    await sb.from('lead_notes').delete().eq('lead_id',pendingDeleteId);
-    leads=leads.filter(l=>l.id!==pendingDeleteId);delete leadNotes[pendingDeleteId];
-    closeModals();renderSalesPipeline();renderDatabase();renderDash();
-  } else if(pendingDeleteType==='project'){
-    await sb.from('projects').delete().eq('id',pendingDeleteId);
-    projects=projects.filter(p=>p.id!==pendingDeleteId);
-    closeModals();renderProj();renderDash();
-  } else if(pendingDeleteType==='supplier'){
-    await sb.from('suppliers').delete().eq('id',pendingDeleteId);
-    suppliers=suppliers.filter(x=>x.id!==pendingDeleteId);
-    closeModals();renderSuppliers();
-  } else if(pendingDeleteType==='sub'){
-    await sb.from('subcontractors').delete().eq('id',pendingDeleteId);
-    await sb.from('sub_history').delete().eq('sub_id',pendingDeleteId);
-    subs=subs.filter(x=>x.id!==pendingDeleteId);delete subHistory[pendingDeleteId];
-    closeModals();renderSubs();
-  }
+  if(pendingDeleteType==='lead'){await sb.from('leads').delete().eq('id',pendingDeleteId);await sb.from('lead_notes').delete().eq('lead_id',pendingDeleteId);leads=leads.filter(l=>l.id!==pendingDeleteId);delete leadNotes[pendingDeleteId];closeModals();renderSalesPipeline();renderDatabase();renderDash();}
+  else if(pendingDeleteType==='project'){await sb.from('projects').delete().eq('id',pendingDeleteId);projects=projects.filter(p=>p.id!==pendingDeleteId);closeModals();renderProj();renderDash();}
+  else if(pendingDeleteType==='supplier'){await sb.from('suppliers').delete().eq('id',pendingDeleteId);suppliers=suppliers.filter(x=>x.id!==pendingDeleteId);closeModals();renderSuppliers();}
+  else if(pendingDeleteType==='sub'){await sb.from('subcontractors').delete().eq('id',pendingDeleteId);await sb.from('sub_history').delete().eq('sub_id',pendingDeleteId);subs=subs.filter(x=>x.id!==pendingDeleteId);delete subHistory[pendingDeleteId];closeModals();renderSubs();}
   pendingDeleteId=null;pendingDeleteType=null;
 }
-
-// LEAD NOTES
-function openNotesModal(leadId){
-  currentNotesLeadId=leadId;const lead=leads.find(l=>l.id===leadId);if(!lead)return;
-  document.getElementById('notes-lead-name').textContent=lead.name;
-  document.getElementById('notes-lead-meta').textContent=(lead.customer_id||'—')+' · '+(lead.job||'—')+' · '+lead.stage;
-  document.getElementById('notes-input').value='';renderNotesList();openModal('notes-modal');
-}
-function renderNotesList(){
-  const notes=leadNotes[currentNotesLeadId]||[];
-  document.getElementById('notes-list').innerHTML=notes.length?notes.map(n=>'<div class="notes-entry"><div class="notes-entry-date">'+fmtDateTime(n.created_at)+'</div><div class="notes-entry-text">'+n.note_text+'</div></div>').join(''):'<div style="padding:1rem 0;font-size:13px;color:var(--text3);">No notes yet.</div>';
-}
-async function saveNote(){
-  const text=document.getElementById('notes-input').value.trim();if(!text||!currentNotesLeadId)return;
-  const now=new Date().toISOString();const {data}=await sb.from('lead_notes').insert({lead_id:currentNotesLeadId,note_text:text,created_at:now}).select();
-  if(data){if(!leadNotes[currentNotesLeadId])leadNotes[currentNotesLeadId]=[];leadNotes[currentNotesLeadId].push(data[0]);}
-  document.getElementById('notes-input').value='';renderNotesList();renderSalesPipeline();
-}
-
+function openNotesModal(leadId){currentNotesLeadId=leadId;const lead=leads.find(l=>l.id===leadId);if(!lead)return;document.getElementById('notes-lead-name').textContent=lead.name;document.getElementById('notes-lead-meta').textContent=(lead.customer_id||'—')+' · '+(lead.job||'—')+' · '+lead.stage;document.getElementById('notes-input').value='';renderNotesList();openModal('notes-modal');}
+function renderNotesList(){const notes=leadNotes[currentNotesLeadId]||[];document.getElementById('notes-list').innerHTML=notes.length?notes.map(n=>'<div class="notes-entry"><div class="notes-entry-date">'+fmtDateTime(n.created_at)+'</div><div class="notes-entry-text">'+n.note_text+'</div></div>').join(''):'<div style="padding:1rem 0;font-size:13px;color:var(--text3);">No notes yet.</div>';}
+async function saveNote(){const text=document.getElementById('notes-input').value.trim();if(!text||!currentNotesLeadId)return;const now=new Date().toISOString();const {data}=await sb.from('lead_notes').insert({lead_id:currentNotesLeadId,note_text:text,created_at:now}).select();if(data){if(!leadNotes[currentNotesLeadId])leadNotes[currentNotesLeadId]=[];leadNotes[currentNotesLeadId].push(data[0]);}document.getElementById('notes-input').value='';renderNotesList();renderSalesPipeline();}
 function renderDatabase(){
   const q=(document.getElementById('db-search')?.value||'').toLowerCase();
   const filtered=leads.filter(l=>!q||[l.name,l.phone,l.email,l.address,l.job,l.customer_id].some(v=>(v||'').toLowerCase().includes(q)));
@@ -662,83 +605,28 @@ function renderDatabase(){
   document.getElementById('db-tbl').innerHTML=filtered.map(l=>'<tr><td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td><td style="font-weight:600;">'+l.name+'</td><td style="color:var(--text2);">'+(l.phone||'—')+'</td><td style="color:var(--text2);">'+(l.email||'—')+'</td><td style="color:var(--text2);">'+(l.address||'—')+'</td><td style="color:var(--text2);font-size:12px;">'+fmtDate(l.stage_updated_at||l.created_at)+'</td><td>'+badge(l.stage)+'</td><td><span class="badge '+(qc[l.qualifier]||'b-gray')+'" style="cursor:pointer;" onclick="openQualifierModal(\''+l.id+'\',\''+(l.qualifier||'Good')+'\')">'+(l.qualifier||'Good')+'</span></td><td>'+notesBtn(l.id)+'</td><td><button class="btn-danger" onclick="promptDelete(\'lead\',\''+l.id+'\',\''+l.name.replace(/'/g,"\\'")+'\')">Delete</button></td></tr>').join('')||'<tr><td colspan="10" class="empty">No results found</td></tr>';
 }
 function openQualifierModal(id,current){document.getElementById('q-lead-id').value=id;document.getElementById('q-qualifier').value=current;openModal('qualifier-modal');}
-async function saveQualifier(){
-  const id=document.getElementById('q-lead-id').value;const qualifier=document.getElementById('q-qualifier').value;
-  await sb.from('leads').update({qualifier}).eq('id',id);const l=leads.find(x=>x.id===id);if(l)l.qualifier=qualifier;
-  closeModals();renderSalesPipeline();renderDatabase();
-}
+async function saveQualifier(){const id=document.getElementById('q-lead-id').value;const qualifier=document.getElementById('q-qualifier').value;await sb.from('leads').update({qualifier}).eq('id',id);const l=leads.find(x=>x.id===id);if(l)l.qualifier=qualifier;closeModals();renderSalesPipeline();renderDatabase();}
 
 // SUPPLIERS
 function renderSuppliers(){
   const q=(document.getElementById('supplier-search')?.value||'').toLowerCase();
   const filtered=suppliers.filter(s=>!q||[s.name,s.contact,s.phone,s.email,s.description].some(v=>(v||'').toLowerCase().includes(q)));
-  document.getElementById('supplier-grid').innerHTML=filtered.map(s=>`
-    <div class="contact-card">
-      <div class="contact-card-header">
-        <div><div class="contact-name">${s.name}</div>${s.contact?'<div class="contact-trade">'+s.contact+'</div>':''}</div>
-        <button class="btn-danger" onclick="promptDelete('supplier','${s.id}','${s.name.replace(/'/g,"\\'")}')">Delete</button>
-      </div>
-      ${s.phone?'<div class="contact-field">📞 <span>'+s.phone+'</span></div>':''}
-      ${s.email?'<div class="contact-field">✉️ <span>'+s.email+'</span></div>':''}
-      ${s.address?'<div class="contact-field">📍 <span>'+s.address+'</span></div>':''}
-      ${s.description?'<div class="contact-field" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;color:var(--text2);">'+s.description+'</div>':''}
-    </div>`).join('')||'<div class="empty" style="grid-column:1/-1;">No suppliers yet — add your first one above</div>';
+  document.getElementById('supplier-grid').innerHTML=filtered.map(s=>'<div class="contact-card"><div class="contact-card-header"><div><div class="contact-name">'+s.name+'</div>'+(s.contact?'<div class="contact-trade">'+s.contact+'</div>':'')+'</div><button class="btn-danger" onclick="promptDelete(\'supplier\',\''+s.id+'\',\''+s.name.replace(/'/g,"\\'")+'\')">Delete</button></div>'+(s.phone?'<div class="contact-field">📞 <span>'+s.phone+'</span></div>':'')+(s.email?'<div class="contact-field">✉️ <span>'+s.email+'</span></div>':'')+(s.address?'<div class="contact-field">📍 <span>'+s.address+'</span></div>':'')+(s.description?'<div class="contact-field" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;color:var(--text2);">'+s.description+'</div>':'')+'</div>').join('')||'<div class="empty" style="grid-column:1/-1;">No suppliers yet</div>';
 }
-async function saveSupplier(){
-  const name=document.getElementById('sp-name').value.trim();if(!name)return;
-  const {data}=await sb.from('suppliers').insert({name,contact:document.getElementById('sp-contact').value||'',phone:document.getElementById('sp-phone').value||'',email:document.getElementById('sp-email').value||'',address:document.getElementById('sp-address').value||'',description:document.getElementById('sp-desc').value||''}).select();
-  if(data)suppliers.unshift(data[0]);closeModals();renderSuppliers();
-  ['sp-name','sp-contact','sp-phone','sp-email','sp-address','sp-desc'].forEach(id=>document.getElementById(id).value='');
-}
+async function saveSupplier(){const name=document.getElementById('sp-name').value.trim();if(!name)return;const {data}=await sb.from('suppliers').insert({name,contact:document.getElementById('sp-contact').value||'',phone:document.getElementById('sp-phone').value||'',email:document.getElementById('sp-email').value||'',address:document.getElementById('sp-address').value||'',description:document.getElementById('sp-desc').value||''}).select();if(data)suppliers.unshift(data[0]);closeModals();renderSuppliers();['sp-name','sp-contact','sp-phone','sp-email','sp-address','sp-desc'].forEach(id=>document.getElementById(id).value='');}
 
 // SUBCONTRACTORS
 function renderSubs(){
   const q=(document.getElementById('sub-search')?.value||'').toLowerCase();
   const filtered=subs.filter(s=>!q||[s.name,s.trade,s.phone,s.email].some(v=>(v||'').toLowerCase().includes(q)));
-  document.getElementById('sub-grid').innerHTML=filtered.map(s=>{
-    const hist=subHistory[s.id]||[];
-    return `<div class="contact-card">
-      <div class="contact-card-header">
-        <div><div class="contact-name">${s.name}</div><div class="contact-trade">${s.trade||''}</div></div>
-        <button class="btn-danger" onclick="promptDelete('sub','${s.id}','${s.name.replace(/'/g,"\\'")}')">Delete</button>
-      </div>
-      ${s.phone?'<div class="contact-field">📞 <span>'+s.phone+'</span></div>':''}
-      ${s.email?'<div class="contact-field">✉️ <span>'+s.email+'</span></div>':''}
-      ${s.rate?'<div class="contact-field">💰 <span>'+s.rate+'</span></div>':''}
-      ${s.notes?'<div class="contact-field" style="margin-top:6px;font-size:12px;color:var(--text2);">'+s.notes+'</div>':''}
-      <div class="contact-actions">
-        <button class="history-btn${hist.length?' has-history':''}" onclick="openHistoryModal('${s.id}')">${hist.length?'Work history ('+hist.length+')':'+ Work history'}</button>
-      </div>
-    </div>`;
-  }).join('')||'<div class="empty" style="grid-column:1/-1;">No subcontractors yet — add your first one above</div>';
+  document.getElementById('sub-grid').innerHTML=filtered.map(s=>{const hist=subHistory[s.id]||[];return '<div class="contact-card"><div class="contact-card-header"><div><div class="contact-name">'+s.name+'</div><div class="contact-trade">'+(s.trade||'')+'</div></div><button class="btn-danger" onclick="promptDelete(\'sub\',\''+s.id+'\',\''+s.name.replace(/'/g,"\\'")+'\')">Delete</button></div>'+(s.phone?'<div class="contact-field">📞 <span>'+s.phone+'</span></div>':'')+(s.email?'<div class="contact-field">✉️ <span>'+s.email+'</span></div>':'')+(s.rate?'<div class="contact-field">💰 <span>'+s.rate+'</span></div>':'')+(s.notes?'<div class="contact-field" style="margin-top:6px;font-size:12px;color:var(--text2);">'+s.notes+'</div>':'')+'<div class="contact-actions"><button class="history-btn'+(hist.length?' has-history':'')+'" onclick="openHistoryModal(\''+s.id+'\')">'+(hist.length?'Work history ('+hist.length+')':'+ Work history')+'</button></div></div>';}).join('')||'<div class="empty" style="grid-column:1/-1;">No subcontractors yet</div>';
 }
-async function saveSub(){
-  const name=document.getElementById('sb-name').value.trim();if(!name)return;
-  const {data}=await sb.from('subcontractors').insert({name,trade:document.getElementById('sb-trade').value||'',phone:document.getElementById('sb-phone').value||'',email:document.getElementById('sb-email').value||'',rate:document.getElementById('sb-rate').value||'',notes:document.getElementById('sb-notes').value||''}).select();
-  if(data)subs.unshift(data[0]);closeModals();renderSubs();
-  ['sb-name','sb-trade','sb-phone','sb-email','sb-rate','sb-notes'].forEach(id=>document.getElementById(id).value='');
-}
+async function saveSub(){const name=document.getElementById('sb-name').value.trim();if(!name)return;const {data}=await sb.from('subcontractors').insert({name,trade:document.getElementById('sb-trade').value||'',phone:document.getElementById('sb-phone').value||'',email:document.getElementById('sb-email').value||'',rate:document.getElementById('sb-rate').value||'',notes:document.getElementById('sb-notes').value||''}).select();if(data)subs.unshift(data[0]);closeModals();renderSubs();['sb-name','sb-trade','sb-phone','sb-email','sb-rate','sb-notes'].forEach(id=>document.getElementById(id).value='');}
+function openHistoryModal(subId){currentHistorySubId=subId;const sub=subs.find(s=>s.id===subId);if(!sub)return;document.getElementById('history-name').textContent=sub.name;document.getElementById('history-meta').textContent=(sub.trade||'')+(sub.rate?' · '+sub.rate:'');document.getElementById('history-input').value='';renderHistoryList();openModal('history-modal');}
+function renderHistoryList(){const hist=subHistory[currentHistorySubId]||[];document.getElementById('history-list').innerHTML=hist.length?hist.map(h=>'<div class="notes-entry"><div class="notes-entry-date">'+fmtDateTime(h.created_at)+'</div><div class="notes-entry-text">'+h.entry+'</div></div>').join(''):'<div style="padding:1rem 0;font-size:13px;color:var(--text3);">No work history yet.</div>';}
+async function saveHistory(){const text=document.getElementById('history-input').value.trim();if(!text||!currentHistorySubId)return;const now=new Date().toISOString();const {data}=await sb.from('sub_history').insert({sub_id:currentHistorySubId,entry:text,created_at:now}).select();if(data){if(!subHistory[currentHistorySubId])subHistory[currentHistorySubId]=[];subHistory[currentHistorySubId].push(data[0]);}document.getElementById('history-input').value='';renderHistoryList();renderSubs();}
 
-// SUB WORK HISTORY
-function openHistoryModal(subId){
-  currentHistorySubId=subId;const sub=subs.find(s=>s.id===subId);if(!sub)return;
-  document.getElementById('history-name').textContent=sub.name;
-  document.getElementById('history-meta').textContent=(sub.trade||'')+(sub.rate?' · '+sub.rate:'');
-  document.getElementById('history-input').value='';renderHistoryList();openModal('history-modal');
-}
-function renderHistoryList(){
-  const hist=subHistory[currentHistorySubId]||[];
-  document.getElementById('history-list').innerHTML=hist.length?hist.map(h=>'<div class="notes-entry"><div class="notes-entry-date">'+fmtDateTime(h.created_at)+'</div><div class="notes-entry-text">'+h.entry+'</div></div>').join(''):'<div style="padding:1rem 0;font-size:13px;color:var(--text3);">No work history yet.</div>';
-}
-async function saveHistory(){
-  const text=document.getElementById('history-input').value.trim();if(!text||!currentHistorySubId)return;
-  const now=new Date().toISOString();
-  const {data}=await sb.from('sub_history').insert({sub_id:currentHistorySubId,entry:text,created_at:now}).select();
-  if(data){if(!subHistory[currentHistorySubId])subHistory[currentHistorySubId]=[];subHistory[currentHistorySubId].push(data[0]);}
-  document.getElementById('history-input').value='';renderHistoryList();renderSubs();
-}
-
-// DOCUMENT LIBRARY (unified for all types)
+// DOCUMENT LIBRARY
 function renderDocList(type){
   const docs=docLibs[type]||[];
   const listEl=document.getElementById(type+'-list');if(!listEl)return;
@@ -747,65 +635,32 @@ function renderDocList(type){
 function openDoc(type,id){
   const docs=docLibs[type]||[];const doc=docs.find(d=>d.id===id);if(!doc)return;
   currentDocType=type;currentDocId=id;
-  document.getElementById(type+'-empty').style.display='none';
-  document.getElementById(type+'-editor-area').style.display='flex';
-  document.getElementById(type+'-title-input').value=doc.title||'';
-  document.getElementById(type+'-content-input').value=doc.content||'';
-  document.getElementById(type+'-status').textContent='';
+  document.getElementById(type+'-empty').style.display='none';document.getElementById(type+'-editor-area').style.display='flex';
+  document.getElementById(type+'-title-input').value=doc.title||'';document.getElementById(type+'-content-input').value=doc.content||'';document.getElementById(type+'-status').textContent='';
   renderDocList(type);
 }
-function autoSaveDoc(type){
-  document.getElementById(type+'-status').textContent='Unsaved...';
-  clearTimeout(docSaveTimers[type]);docSaveTimers[type]=setTimeout(()=>saveDoc(type),1500);
-}
+function autoSaveDoc(type){document.getElementById(type+'-status').textContent='Unsaved...';clearTimeout(docSaveTimers[type]);docSaveTimers[type]=setTimeout(()=>saveDoc(type),1500);}
 async function saveDoc(type){
   if(!currentDocId||currentDocType!==type)return;
-  const title=document.getElementById(type+'-title-input').value;
-  const content=document.getElementById(type+'-content-input').value;
-  const now=new Date().toISOString();
+  const title=document.getElementById(type+'-title-input').value;const content=document.getElementById(type+'-content-input').value;const now=new Date().toISOString();
   await sb.from('documents').update({title,content,updated_at:now}).eq('id',currentDocId);
-  const docs=docLibs[type]||[];const doc=docs.find(d=>d.id===currentDocId);
-  if(doc){doc.title=title;doc.content=content;doc.updated_at=now;}
-  document.getElementById(type+'-status').textContent='Saved ✓';
-  setTimeout(()=>document.getElementById(type+'-status').textContent='',2000);
-  renderDocList(type);
+  const docs=docLibs[type]||[];const doc=docs.find(d=>d.id===currentDocId);if(doc){doc.title=title;doc.content=content;doc.updated_at=now;}
+  document.getElementById(type+'-status').textContent='Saved ✓';setTimeout(()=>document.getElementById(type+'-status').textContent='',2000);renderDocList(type);
 }
-let pendingDocType=null;
-function openDocModal(type){
-  pendingDocType=type;
-  const labels={sales_sop:'New SOP',sales_scripts:'New Script',proj_sop:'New SOP',proj_templates:'New Template'};
-  document.getElementById('new-doc-title').textContent=labels[type]||'New Document';
-  document.getElementById('new-doc-name').value='';
-  openModal('new-doc-modal');
-}
+function openDocModal(type){pendingDocType=type;const labels={sales_sop:'New SOP',sales_scripts:'New Script',proj_sop:'New SOP',proj_templates:'New Template'};document.getElementById('new-doc-title').textContent=labels[type]||'New Document';document.getElementById('new-doc-name').value='';openModal('new-doc-modal');}
 async function createDoc(){
-  const title=document.getElementById('new-doc-name').value.trim()||'Untitled';
-  const type=pendingDocType;const now=new Date().toISOString();
+  const title=document.getElementById('new-doc-name').value.trim()||'Untitled';const type=pendingDocType;const now=new Date().toISOString();
   const {data}=await sb.from('documents').insert({title,content:'',doc_type:type,created_at:now,updated_at:now}).select();
-  if(data){if(!docLibs[type])docLibs[type]=[];docLibs[type].unshift(data[0]);closeModals();renderDocList(type);openDoc(type,data[0].id);}
+  if(data){if(!docLibs[type])docLibs[type]=[];docLibs[type].unshift(data[0]);closeModals();renderDocList(type);openDoc(type,data[0].id);setupDocDragDrop();}
 }
-async function deleteDoc(type){
-  if(!currentDocId||currentDocType!==type)return;if(!confirm('Delete this document?'))return;
-  await sb.from('documents').delete().eq('id',currentDocId);
-  if(docLibs[type])docLibs[type]=docLibs[type].filter(d=>d.id!==currentDocId);
-  currentDocId=null;
-  document.getElementById(type+'-empty').style.display='flex';
-  document.getElementById(type+'-editor-area').style.display='none';
-  renderDocList(type);
-}
+async function deleteDoc(type){if(!currentDocId||currentDocType!==type)return;if(!confirm('Delete this document?'))return;await sb.from('documents').delete().eq('id',currentDocId);if(docLibs[type])docLibs[type]=docLibs[type].filter(d=>d.id!==currentDocId);currentDocId=null;document.getElementById(type+'-empty').style.display='flex';document.getElementById(type+'-editor-area').style.display='none';renderDocList(type);}
 
 // PROJECTS
 function renderProj(){
   const active=projects.filter(p=>ACTIVE_PROJ.includes(p.status));
   const q=(document.getElementById('proj-search')?.value||'').toLowerCase();
   const complete=projects.filter(p=>p.status==='Complete').filter(p=>!q||[p.name,p.job_id,p.client,p.customer_id,p.val].some(v=>(v||'').toLowerCase().includes(q)));
-  statCards('proj-stats',[
-    {label:'Active jobs',value:active.length,sub:'In progress'},
-    {label:'Active value',value:fmt(active.reduce((s,p)=>s+toNum(p.val),0)),sub:'Under contract'},
-    {label:'Preconstruction',value:projects.filter(p=>p.status==='Preconstruction').length},
-    {label:'Punchout',value:projects.filter(p=>p.status==='Punchout').length},
-    {label:'Completed',value:projects.filter(p=>p.status==='Complete').length,sub:'All time'},
-  ]);
+  statCards('proj-stats',[{label:'Active jobs',value:active.length,sub:'In progress'},{label:'Active value',value:fmt(active.reduce((s,p)=>s+toNum(p.val),0)),sub:'Under contract'},{label:'Preconstruction',value:projects.filter(p=>p.status==='Preconstruction').length},{label:'Punchout',value:projects.filter(p=>p.status==='Punchout').length},{label:'Completed',value:projects.filter(p=>p.status==='Complete').length,sub:'All time'}]);
   document.getElementById('active-proj-count').textContent=active.length;
   document.getElementById('active-proj-tbl').innerHTML=active.map(p=>`<tr>
     <td style="font-weight:600;">${p.name}</td>
@@ -813,7 +668,7 @@ function renderProj(){
     <td style="color:var(--text2);">${p.client||'—'}</td>
     <td>${p.customer_id?'<span class="cid-badge">'+p.customer_id+'</span>':'<span style="color:var(--text3);">—</span>'}</td>
     <td style="color:var(--brand);font-weight:600;">${p.val||'TBD'}</td>
-    <td><select class="inline-select" onchange="updateProjStatus('${p.id}',this.value)">${['Preconstruction','In progress','On hold','Punchout','Complete'].map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}</select></td>
+    <td>${projStatusSelect(p.id,p.status)}</td>
     <td>${progSlider(p.id,p.progress||0)}</td>
     <td style="color:var(--text2);font-size:12px;">${p.start_date||'—'}</td>
     <td style="color:var(--text2);font-size:12px;">${p.due_date||'—'}</td>
@@ -822,6 +677,7 @@ function renderProj(){
       <button class="btn-danger" onclick="promptDelete('project','${p.id}','${p.name.replace(/'/g,"\\'")}')">Delete</button>
     </td>
   </tr>`).join('')||'<tr><td colspan="10" class="empty">No active jobs</td></tr>';
+
   document.getElementById('complete-proj-count').textContent=complete.length;
   document.getElementById('complete-proj-tbl').innerHTML=complete.map(p=>`<tr>
     <td style="font-weight:600;">${p.name}</td>
@@ -829,133 +685,47 @@ function renderProj(){
     <td style="color:var(--text2);">${p.client||'—'}</td>
     <td>${p.customer_id?'<span class="cid-badge">'+p.customer_id+'</span>':'<span style="color:var(--text3);">—</span>'}</td>
     <td style="color:var(--brand);font-weight:600;">${p.val||'TBD'}</td>
-    <td>${badge(p.status)}</td>
+    <td>${projStatusSelect(p.id,p.status)}</td>
     <td style="color:var(--text2);font-size:12px;">${p.start_date||'—'}</td>
     <td style="color:var(--text2);font-size:12px;">${p.due_date||'—'}</td>
     <td>${profitSelect(p.id,p.profitable||'')}</td>
   </tr>`).join('')||'<tr><td colspan="9" class="empty">No completed jobs yet</td></tr>';
 }
-async function updateProgress(id,val){
-  const pct=parseInt(val)||0;clearTimeout(progDebounce[id]);
-  progDebounce[id]=setTimeout(async()=>{await sb.from('projects').update({progress:pct}).eq('id',id);const p=projects.find(x=>x.id===id);if(p)p.progress=pct;},600);
-}
+async function updateProgress(id,val){const pct=parseInt(val)||0;clearTimeout(progDebounce[id]);progDebounce[id]=setTimeout(async()=>{await sb.from('projects').update({progress:pct}).eq('id',id);const p=projects.find(x=>x.id===id);if(p)p.progress=pct;},600);}
 async function updateProjStatus(id,status){
-  await sb.from('projects').update({status}).eq('id',id);const p=projects.find(x=>x.id===id);if(p)p.status=status;renderProj();renderDash();
+  await sb.from('projects').update({status}).eq('id',id);
+  const p=projects.find(x=>x.id===id);if(p)p.status=status;
+  renderProj();renderDash();
 }
-async function updateProfitable(id,val){
-  await sb.from('projects').update({profitable:val}).eq('id',id);const p=projects.find(x=>x.id===id);if(p)p.profitable=val;
-}
-function openEditProj(id){
-  const p=projects.find(x=>x.id===id);if(!p)return;
-  document.getElementById('ep-id').value=id;document.getElementById('ep-name').value=p.name||'';document.getElementById('ep-client').value=p.client||'';document.getElementById('ep-customer-id').value=p.customer_id||'';document.getElementById('ep-val').value=p.val||'';document.getElementById('ep-status').value=p.status||'Preconstruction';document.getElementById('ep-start').value=p.start_date||'';document.getElementById('ep-due').value=p.due_date||'';
-  openModal('edit-proj-modal');
-}
-async function updateProj(){
-  const id=document.getElementById('ep-id').value;
-  const updates={name:document.getElementById('ep-name').value,client:document.getElementById('ep-client').value,customer_id:document.getElementById('ep-customer-id').value,val:document.getElementById('ep-val').value,status:document.getElementById('ep-status').value,start_date:document.getElementById('ep-start').value,due_date:document.getElementById('ep-due').value};
-  await sb.from('projects').update(updates).eq('id',id);const p=projects.find(x=>x.id===id);if(p)Object.assign(p,updates);
-  closeModals();renderProj();renderDash();
-}
+async function updateProfitable(id,val){await sb.from('projects').update({profitable:val}).eq('id',id);const p=projects.find(x=>x.id===id);if(p)p.profitable=val;}
+function openEditProj(id){const p=projects.find(x=>x.id===id);if(!p)return;document.getElementById('ep-id').value=id;document.getElementById('ep-name').value=p.name||'';document.getElementById('ep-client').value=p.client||'';document.getElementById('ep-customer-id').value=p.customer_id||'';document.getElementById('ep-val').value=p.val||'';document.getElementById('ep-status').value=p.status||'Preconstruction';document.getElementById('ep-start').value=p.start_date||'';document.getElementById('ep-due').value=p.due_date||'';openModal('edit-proj-modal');}
+async function updateProj(){const id=document.getElementById('ep-id').value;const updates={name:document.getElementById('ep-name').value,client:document.getElementById('ep-client').value,customer_id:document.getElementById('ep-customer-id').value,val:document.getElementById('ep-val').value,status:document.getElementById('ep-status').value,start_date:document.getElementById('ep-start').value,due_date:document.getElementById('ep-due').value};await sb.from('projects').update(updates).eq('id',id);const p=projects.find(x=>x.id===id);if(p)Object.assign(p,updates);closeModals();renderProj();renderDash();}
 
-function renderEst(){
-  statCards('est-stats',[{label:'Total estimates',value:estimates.length},{label:'Pending value',value:fmt(estimates.filter(e=>e.status==='Sent'||e.status==='Draft').reduce((s,e)=>s+toNum(e.amt),0)),sub:'Awaiting'},{label:'Approved',value:estimates.filter(e=>e.status==='Approved').length,sub:'Won'}]);
-  document.getElementById('est-tbl').innerHTML=estimates.map(e=>'<tr><td style="font-weight:600;">'+e.client+'</td><td style="color:var(--text2);">'+e.description+'</td><td style="color:var(--brand);font-weight:600;">'+e.amt+'</td><td>'+badge(e.status)+'</td><td style="color:var(--text2);">'+(e.sent||'—')+'</td><td style="color:var(--text2);">'+(e.follow_up||'—')+'</td></tr>').join('')||'<tr><td colspan="6" class="empty">No estimates yet</td></tr>';
-}
+function renderEst(){statCards('est-stats',[{label:'Total estimates',value:estimates.length},{label:'Pending value',value:fmt(estimates.filter(e=>e.status==='Sent'||e.status==='Draft').reduce((s,e)=>s+toNum(e.amt),0)),sub:'Awaiting'},{label:'Approved',value:estimates.filter(e=>e.status==='Approved').length,sub:'Won'}]);document.getElementById('est-tbl').innerHTML=estimates.map(e=>'<tr><td style="font-weight:600;">'+e.client+'</td><td style="color:var(--text2);">'+e.description+'</td><td style="color:var(--brand);font-weight:600;">'+e.amt+'</td><td>'+badge(e.status)+'</td><td style="color:var(--text2);">'+(e.sent||'—')+'</td><td style="color:var(--text2);">'+(e.follow_up||'—')+'</td></tr>').join('')||'<tr><td colspan="6" class="empty">No estimates yet</td></tr>';}
 function renderField(){
   document.getElementById('field-count').textContent=tasks.filter(t=>!t.done).length;
   document.getElementById('field-today').innerHTML=tasks.map(t=>'<div class="todo-item"><div class="chk'+(t.done?' done':'')+'" onclick="toggleTask(\''+t.id+'\','+!t.done+')"></div><div style="flex:1"><div class="todo-label'+(t.done?' striked':'')+'">'+t.text+'</div><div class="todo-meta">'+t.project+(t.priority==='High'?' · <span style="color:var(--brand)">High priority</span>':'')+'</div></div></div>').join('')||'<div class="empty">No tasks yet</div>';
   document.getElementById('field-sched').innerHTML=projects.filter(p=>ACTIVE_PROJ.includes(p.status)).map(p=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+p.name+'</div><div class="row-sub">'+(p.client||'—')+' · Due '+(p.due_date||'TBD')+'</div></div>'+badge(p.status)+'</div>').join('')||'<div class="empty">No active jobs</div>';
 }
 async function toggleTask(id,done){await sb.from('tasks').update({done}).eq('id',id);const t=tasks.find(x=>x.id===id);if(t)t.done=done;renderField();renderDash();}
-function renderOffice(){
-  const paid=invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+toNum(i.amt),0);const owed=invoices.filter(i=>i.status!=='Paid').reduce((s,i)=>s+toNum(i.amt),0);
-  statCards('office-stats',[{label:'Invoices',value:invoices.length},{label:'Collected',value:fmt(paid),sub:'Paid'},{label:'Outstanding',value:fmt(owed),sub:'Owed'},{label:'Overdue',value:invoices.filter(i=>i.status==='Overdue').length,sub:'Follow up'}]);
-  document.getElementById('inv-tbl').innerHTML=invoices.map(i=>'<tr><td style="font-weight:600;">'+i.client+'</td><td style="color:var(--brand);font-weight:600;">'+i.amt+'</td><td>'+badge(i.status)+'</td><td style="color:var(--text2);font-size:12px;">'+(i.due_date||'—')+'</td></tr>').join('')||'<tr><td colspan="4" class="empty">No invoices yet</td></tr>';
-  document.getElementById('exp-tbl').innerHTML=expenses.map(e=>'<tr><td style="font-weight:600;">'+e.description+'</td><td style="color:var(--text2);">'+e.project+'</td><td style="color:var(--brand);font-weight:600;">'+e.amt+'</td><td style="color:var(--text2);font-size:12px;">'+(e.expense_date||'—')+'</td></tr>').join('')||'<tr><td colspan="4" class="empty">No expenses yet</td></tr>';
-}
-function renderMkt(){
-  const sources={};leads.forEach(l=>{if(l.source)sources[l.source]=(sources[l.source]||0)+1;});
-  statCards('mkt-stats',[{label:'Total leads',value:leads.length},{label:'From referrals',value:leads.filter(l=>l.source==='Referral').length,sub:'Best source'},{label:'From Google',value:leads.filter(l=>l.source==='Google').length,sub:'Online'},{label:'Close rate',value:leads.length?Math.round(leads.filter(l=>l.stage==='Completed').length/leads.length*100)+'%':'0%',sub:'Leads → completed'}]);
-  document.getElementById('mkt-sources').innerHTML=Object.entries(sources).sort((a,b)=>b[1]-a[1]).map(([src,cnt])=>'<div class="list-row"><div class="row-name">'+src+'</div><div style="display:flex;align-items:center;gap:8px;"><div style="width:80px;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;"><div style="width:'+Math.round(cnt/leads.length*100)+'%;height:100%;background:var(--brand);border-radius:3px;"></div></div><span style="font-size:13px;font-weight:600;">'+cnt+'</span></div></div>').join('')||'<div class="empty">Add leads to see sources</div>';
-  document.getElementById('mkt-todos').innerHTML=mktTasks.map(t=>'<div class="todo-item"><div class="chk'+(t.done?' done':'')+'" onclick="toggleMktTask(\''+t.id+'\','+!t.done+')"></div><div class="todo-label'+(t.done?' striked':'')+'">'+t.text+'</div></div>').join('')||'<div class="empty">No marketing tasks yet</div>';
-}
+function renderOffice(){const paid=invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+toNum(i.amt),0);const owed=invoices.filter(i=>i.status!=='Paid').reduce((s,i)=>s+toNum(i.amt),0);statCards('office-stats',[{label:'Invoices',value:invoices.length},{label:'Collected',value:fmt(paid),sub:'Paid'},{label:'Outstanding',value:fmt(owed),sub:'Owed'},{label:'Overdue',value:invoices.filter(i=>i.status==='Overdue').length,sub:'Follow up'}]);document.getElementById('inv-tbl').innerHTML=invoices.map(i=>'<tr><td style="font-weight:600;">'+i.client+'</td><td style="color:var(--brand);font-weight:600;">'+i.amt+'</td><td>'+badge(i.status)+'</td><td style="color:var(--text2);font-size:12px;">'+(i.due_date||'—')+'</td></tr>').join('')||'<tr><td colspan="4" class="empty">No invoices yet</td></tr>';document.getElementById('exp-tbl').innerHTML=expenses.map(e=>'<tr><td style="font-weight:600;">'+e.description+'</td><td style="color:var(--text2);">'+e.project+'</td><td style="color:var(--brand);font-weight:600;">'+e.amt+'</td><td style="color:var(--text2);font-size:12px;">'+(e.expense_date||'—')+'</td></tr>').join('')||'<tr><td colspan="4" class="empty">No expenses yet</td></tr>';}
+function renderMkt(){const sources={};leads.forEach(l=>{if(l.source)sources[l.source]=(sources[l.source]||0)+1;});statCards('mkt-stats',[{label:'Total leads',value:leads.length},{label:'From referrals',value:leads.filter(l=>l.source==='Referral').length,sub:'Best source'},{label:'From Google',value:leads.filter(l=>l.source==='Google').length,sub:'Online'},{label:'Close rate',value:leads.length?Math.round(leads.filter(l=>l.stage==='Completed').length/leads.length*100)+'%':'0%',sub:'Leads → completed'}]);document.getElementById('mkt-sources').innerHTML=Object.entries(sources).sort((a,b)=>b[1]-a[1]).map(([src,cnt])=>'<div class="list-row"><div class="row-name">'+src+'</div><div style="display:flex;align-items:center;gap:8px;"><div style="width:80px;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;"><div style="width:'+Math.round(cnt/leads.length*100)+'%;height:100%;background:var(--brand);border-radius:3px;"></div></div><span style="font-size:13px;font-weight:600;">'+cnt+'</span></div></div>').join('')||'<div class="empty">Add leads to see sources</div>';document.getElementById('mkt-todos').innerHTML=mktTasks.map(t=>'<div class="todo-item"><div class="chk'+(t.done?' done':'')+'" onclick="toggleMktTask(\''+t.id+'\','+!t.done+')"></div><div class="todo-label'+(t.done?' striked':'')+'">'+t.text+'</div></div>').join('')||'<div class="empty">No marketing tasks yet</div>';}
 async function toggleMktTask(id,done){await sb.from('mkt_tasks').update({done}).eq('id',id);const t=mktTasks.find(x=>x.id===id);if(t)t.done=done;renderMkt();}
-function renderCeo(){
-  const paid=invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+toNum(i.amt),0);
-  document.getElementById('ceo-rev').textContent=fmt(paid);
-  document.getElementById('ceo-pipe').textContent=fmt(leads.filter(l=>ACTIVE_LEAD_STAGES.includes(l.stage)).reduce((s,l)=>s+toNum(l.val),0));
-  document.getElementById('ceo-jobs').textContent=projects.filter(p=>ACTIVE_PROJ.includes(p.status)).length;
-  const g=annualGoal,pct=g.goal>0?Math.min(100,Math.round(g.earned/g.goal*100)):0;
-  document.getElementById('ceo-goal-area').innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:7px;"><span style="font-size:13px;color:var(--text2);">Target: <strong>$'+g.goal.toLocaleString()+'</strong></span><span style="font-size:13px;font-weight:600;color:var(--brand);">'+pct+'% there</span></div><div class="goal-bar-track"><div class="goal-bar-fill" style="width:'+pct+'%"></div></div><div style="display:flex;justify-content:space-between;margin-top:9px;font-size:12px;color:var(--text3);"><span>Earned: <strong style="color:var(--text);">$'+g.earned.toLocaleString()+'</strong></span><span>Remaining: <strong style="color:var(--text);">$'+(g.goal-g.earned).toLocaleString()+'</strong></span></div>';
-  const attn=[];
-  if(invoices.some(i=>i.status==='Overdue'))attn.push({text:'Overdue invoices',sub:'Collect payment ASAP',sev:'b-red'});
-  if(estimates.some(e=>e.status==='Sent'))attn.push({text:'Estimates awaiting decisions',sub:'Follow up to close faster',sev:'b-amber'});
-  if(leads.filter(l=>l.stage==='New Lead').length>2)attn.push({text:'New leads need contact',sub:"Don't let them go cold",sev:'b-amber'});
-  if(tasks.filter(t=>!t.done&&t.priority==='High').length>0)attn.push({text:'High-priority tasks pending',sub:'Check field management',sev:'b-brand'});
-  if(!attn.length)attn.push({text:'All clear',sub:'No urgent items right now',sev:'b-green'});
-  document.getElementById('ceo-attention').innerHTML=attn.map(a=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+a.text+'</div><div class="row-sub">'+a.sub+'</div></div><span class="badge '+a.sev+'">!</span></div>').join('');
-  document.getElementById('ceo-pri-count').textContent=ceoPriorities.filter(p=>!p.done).length;
-  document.getElementById('ceo-priorities').innerHTML=ceoPriorities.map(p=>'<div class="todo-item"><div class="chk'+(p.done?' done':'')+'" onclick="toggleCeoPri(\''+p.id+'\','+!p.done+')"></div><div class="todo-label'+(p.done?' striked':'')+'">'+p.text+'</div></div>').join('')||'<div class="empty">Add your big-picture priorities</div>';
-  document.getElementById('ceo-health').innerHTML=[{label:'Active leads',value:leads.filter(l=>ACTIVE_LEAD_STAGES.includes(l.stage)).length},{label:'Close rate',value:leads.length?Math.round(leads.filter(l=>l.stage==='Completed').length/leads.length*100)+'%':'0%'},{label:'Active projects',value:projects.filter(p=>ACTIVE_PROJ.includes(p.status)).length},{label:'Overdue invoices',value:invoices.filter(i=>i.status==='Overdue').length},{label:'Pending estimates',value:estimates.filter(e=>e.status==='Sent').length},{label:'Suppliers',value:suppliers.length},{label:'Subcontractors',value:subs.length}].map(h=>'<div class="list-row"><div class="row-name" style="font-weight:400;">'+h.label+'</div><span style="font-size:13px;font-weight:600;">'+h.value+'</span></div>').join('');
-}
+function renderCeo(){const paid=invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+toNum(i.amt),0);document.getElementById('ceo-rev').textContent=fmt(paid);document.getElementById('ceo-pipe').textContent=fmt(leads.filter(l=>ACTIVE_LEAD_STAGES.includes(l.stage)).reduce((s,l)=>s+toNum(l.val),0));document.getElementById('ceo-jobs').textContent=projects.filter(p=>ACTIVE_PROJ.includes(p.status)).length;const g=annualGoal,pct=g.goal>0?Math.min(100,Math.round(g.earned/g.goal*100)):0;document.getElementById('ceo-goal-area').innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:7px;"><span style="font-size:13px;color:var(--text2);">Target: <strong>$'+g.goal.toLocaleString()+'</strong></span><span style="font-size:13px;font-weight:600;color:var(--brand);">'+pct+'% there</span></div><div class="goal-bar-track"><div class="goal-bar-fill" style="width:'+pct+'%"></div></div><div style="display:flex;justify-content:space-between;margin-top:9px;font-size:12px;color:var(--text3);"><span>Earned: <strong style="color:var(--text);">$'+g.earned.toLocaleString()+'</strong></span><span>Remaining: <strong style="color:var(--text);">$'+(g.goal-g.earned).toLocaleString()+'</strong></span></div>';const attn=[];if(invoices.some(i=>i.status==='Overdue'))attn.push({text:'Overdue invoices',sub:'Collect payment ASAP',sev:'b-red'});if(estimates.some(e=>e.status==='Sent'))attn.push({text:'Estimates awaiting decisions',sub:'Follow up to close faster',sev:'b-amber'});if(leads.filter(l=>l.stage==='New Lead').length>2)attn.push({text:'New leads need contact',sub:"Don't let them go cold",sev:'b-amber'});if(tasks.filter(t=>!t.done&&t.priority==='High').length>0)attn.push({text:'High-priority tasks pending',sub:'Check field management',sev:'b-brand'});if(!attn.length)attn.push({text:'All clear',sub:'No urgent items right now',sev:'b-green'});document.getElementById('ceo-attention').innerHTML=attn.map(a=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+a.text+'</div><div class="row-sub">'+a.sub+'</div></div><span class="badge '+a.sev+'">!</span></div>').join('');document.getElementById('ceo-pri-count').textContent=ceoPriorities.filter(p=>!p.done).length;document.getElementById('ceo-priorities').innerHTML=ceoPriorities.map(p=>'<div class="todo-item"><div class="chk'+(p.done?' done':'')+'" onclick="toggleCeoPri(\''+p.id+'\','+!p.done+')"></div><div class="todo-label'+(p.done?' striked':'')+'">'+p.text+'</div></div>').join('')||'<div class="empty">Add your big-picture priorities</div>';document.getElementById('ceo-health').innerHTML=[{label:'Active leads',value:leads.filter(l=>ACTIVE_LEAD_STAGES.includes(l.stage)).length},{label:'Close rate',value:leads.length?Math.round(leads.filter(l=>l.stage==='Completed').length/leads.length*100)+'%':'0%'},{label:'Active projects',value:projects.filter(p=>ACTIVE_PROJ.includes(p.status)).length},{label:'Overdue invoices',value:invoices.filter(i=>i.status==='Overdue').length},{label:'Pending estimates',value:estimates.filter(e=>e.status==='Sent').length},{label:'Suppliers',value:suppliers.length},{label:'Subcontractors',value:subs.length}].map(h=>'<div class="list-row"><div class="row-name" style="font-weight:400;">'+h.label+'</div><span style="font-size:13px;font-weight:600;">'+h.value+'</span></div>').join('');}
 async function toggleCeoPri(id,done){await sb.from('ceo_priorities').update({done}).eq('id',id);const p=ceoPriorities.find(x=>x.id===id);if(p)p.done=done;renderCeo();}
 
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModals(){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));}
 
-async function saveLead(){
-  const name=document.getElementById('l-name').value.trim();if(!name)return;
-  const now=new Date().toISOString();const customer_id=await getNextId('last_customer_id',1012);
-  const {data}=await sb.from('leads').insert({name,customer_id,phone:document.getElementById('l-phone').value||'',email:document.getElementById('l-email').value||'',address:document.getElementById('l-address').value||'',job:document.getElementById('l-job').value||'',val:document.getElementById('l-val').value||'TBD',source:document.getElementById('l-source').value,qualifier:document.getElementById('l-qualifier').value,stage:'New Lead',stage_updated_at:now}).select();
-  if(data)leads.unshift(data[0]);closeModals();renderSalesPipeline();renderDash();
-  ['l-name','l-phone','l-email','l-address','l-job','l-val'].forEach(id=>document.getElementById(id).value='');
-}
-async function saveEst(){
-  const client=document.getElementById('e-client').value.trim();if(!client)return;
-  const today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  const {data}=await sb.from('estimates').insert({client,description:document.getElementById('e-desc').value||'',amt:document.getElementById('e-amt').value||'TBD',status:document.getElementById('e-status').value,sent:today,follow_up:document.getElementById('e-follow').value||''}).select();
-  if(data)estimates.unshift(data[0]);closeModals();renderEst();renderDash();
-  ['e-client','e-desc','e-amt','e-follow'].forEach(id=>document.getElementById(id).value='');
-}
-async function saveProj(){
-  const name=document.getElementById('p-name').value.trim();if(!name)return;
-  const job_id=await getNextId('last_job_id',1045);
-  const {data}=await sb.from('projects').insert({name,job_id,client:document.getElementById('p-client').value||'',customer_id:document.getElementById('p-customer-id').value||'',val:document.getElementById('p-val').value||'TBD',status:document.getElementById('p-status').value,progress:0,start_date:document.getElementById('p-start').value||'',due_date:document.getElementById('p-due').value||'',profitable:''}).select();
-  if(data)projects.unshift(data[0]);closeModals();renderProj();renderDash();
-  ['p-name','p-client','p-customer-id','p-val','p-start','p-due'].forEach(id=>document.getElementById(id).value='');
-}
-async function saveTask(){
-  const text=document.getElementById('t-text').value.trim();if(!text)return;
-  const {data}=await sb.from('tasks').insert({text,project:document.getElementById('t-proj').value||'General',assigned_to:document.getElementById('t-assign').value||'Yourself',priority:document.getElementById('t-pri').value,done:false}).select();
-  if(data)tasks.unshift(data[0]);closeModals();renderField();renderDash();
-  ['t-text','t-proj','t-assign'].forEach(id=>document.getElementById(id).value='');
-}
-async function saveInvoice(){
-  const client=document.getElementById('i-client').value.trim();if(!client)return;
-  const {data}=await sb.from('invoices').insert({client,project:document.getElementById('i-proj').value||'',amt:document.getElementById('i-amt').value||'TBD',status:'Sent',due_date:document.getElementById('i-due').value||''}).select();
-  if(data)invoices.unshift(data[0]);closeModals();renderOffice();
-  ['i-client','i-proj','i-amt','i-due'].forEach(id=>document.getElementById(id).value='');
-}
-async function saveGoal(){
-  const goal={goal:parseInt(document.getElementById('goal-inp').value)||0,earned:parseInt(document.getElementById('earned-inp').value)||0};
-  await sb.from('settings').upsert({key:'annual_goal',value:JSON.stringify(goal)},{onConflict:'key'});
-  annualGoal=goal;closeModals();renderCeo();['goal-inp','earned-inp'].forEach(id=>document.getElementById(id).value='');
-}
-async function quickTask(){
-  const inp=document.getElementById('task-inp');const text=inp.value.trim();if(!text)return;
-  const {data}=await sb.from('tasks').insert({text,project:'General',assigned_to:'Yourself',priority:'Normal',done:false}).select();
-  if(data)tasks.unshift(data[0]);inp.value='';renderField();renderDash();
-}
-async function addMktTask(){
-  const inp=document.getElementById('mkt-inp');const text=inp.value.trim();if(!text)return;
-  const {data}=await sb.from('mkt_tasks').insert({text,done:false}).select();
-  if(data)mktTasks.unshift(data[0]);inp.value='';renderMkt();
-}
-async function addCeoPri(){
-  const inp=document.getElementById('ceo-inp');const text=inp.value.trim();if(!text)return;
-  const {data}=await sb.from('ceo_priorities').insert({text,done:false}).select();
-  if(data)ceoPriorities.unshift(data[0]);inp.value='';renderCeo();
-}
+async function saveLead(){const name=document.getElementById('l-name').value.trim();if(!name)return;const now=new Date().toISOString();const customer_id=await getNextId('last_customer_id',1012);const {data}=await sb.from('leads').insert({name,customer_id,phone:document.getElementById('l-phone').value||'',email:document.getElementById('l-email').value||'',address:document.getElementById('l-address').value||'',job:document.getElementById('l-job').value||'',val:document.getElementById('l-val').value||'TBD',source:document.getElementById('l-source').value,qualifier:document.getElementById('l-qualifier').value,stage:'New Lead',stage_updated_at:now}).select();if(data)leads.unshift(data[0]);closeModals();renderSalesPipeline();renderDash();['l-name','l-phone','l-email','l-address','l-job','l-val'].forEach(id=>document.getElementById(id).value='');}
+async function saveEst(){const client=document.getElementById('e-client').value.trim();if(!client)return;const today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});const {data}=await sb.from('estimates').insert({client,description:document.getElementById('e-desc').value||'',amt:document.getElementById('e-amt').value||'TBD',status:document.getElementById('e-status').value,sent:today,follow_up:document.getElementById('e-follow').value||''}).select();if(data)estimates.unshift(data[0]);closeModals();renderEst();renderDash();['e-client','e-desc','e-amt','e-follow'].forEach(id=>document.getElementById(id).value='');}
+async function saveProj(){const name=document.getElementById('p-name').value.trim();if(!name)return;const job_id=await getNextId('last_job_id',1045);const {data}=await sb.from('projects').insert({name,job_id,client:document.getElementById('p-client').value||'',customer_id:document.getElementById('p-customer-id').value||'',val:document.getElementById('p-val').value||'TBD',status:document.getElementById('p-status').value,progress:0,start_date:document.getElementById('p-start').value||'',due_date:document.getElementById('p-due').value||'',profitable:''}).select();if(data)projects.unshift(data[0]);closeModals();renderProj();renderDash();['p-name','p-client','p-customer-id','p-val','p-start','p-due'].forEach(id=>document.getElementById(id).value='');}
+async function saveTask(){const text=document.getElementById('t-text').value.trim();if(!text)return;const {data}=await sb.from('tasks').insert({text,project:document.getElementById('t-proj').value||'General',assigned_to:document.getElementById('t-assign').value||'Yourself',priority:document.getElementById('t-pri').value,done:false}).select();if(data)tasks.unshift(data[0]);closeModals();renderField();renderDash();['t-text','t-proj','t-assign'].forEach(id=>document.getElementById(id).value='');}
+async function saveInvoice(){const client=document.getElementById('i-client').value.trim();if(!client)return;const {data}=await sb.from('invoices').insert({client,project:document.getElementById('i-proj').value||'',amt:document.getElementById('i-amt').value||'TBD',status:'Sent',due_date:document.getElementById('i-due').value||''}).select();if(data)invoices.unshift(data[0]);closeModals();renderOffice();['i-client','i-proj','i-amt','i-due'].forEach(id=>document.getElementById(id).value='');}
+async function saveGoal(){const goal={goal:parseInt(document.getElementById('goal-inp').value)||0,earned:parseInt(document.getElementById('earned-inp').value)||0};await sb.from('settings').upsert({key:'annual_goal',value:JSON.stringify(goal)},{onConflict:'key'});annualGoal=goal;closeModals();renderCeo();['goal-inp','earned-inp'].forEach(id=>document.getElementById(id).value='');}
+async function quickTask(){const inp=document.getElementById('task-inp');const text=inp.value.trim();if(!text)return;const {data}=await sb.from('tasks').insert({text,project:'General',assigned_to:'Yourself',priority:'Normal',done:false}).select();if(data)tasks.unshift(data[0]);inp.value='';renderField();renderDash();}
+async function addMktTask(){const inp=document.getElementById('mkt-inp');const text=inp.value.trim();if(!text)return;const {data}=await sb.from('mkt_tasks').insert({text,done:false}).select();if(data)mktTasks.unshift(data[0]);inp.value='';renderMkt();}
+async function addCeoPri(){const inp=document.getElementById('ceo-inp');const text=inp.value.trim();if(!text)return;const {data}=await sb.from('ceo_priorities').insert({text,done:false}).select();if(data)ceoPriorities.unshift(data[0]);inp.value='';renderCeo();}
 loadAll();
 </script>
 </body>
