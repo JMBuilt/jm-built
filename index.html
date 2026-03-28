@@ -77,12 +77,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .lcard-val{font-size:12px;color:var(--brand);font-weight:600;margin-top:6px;}
 .tbl{width:100%;border-collapse:collapse;}
 .tbl th{text-align:left;font-size:11px;font-weight:600;color:var(--text3);padding:9px 13px;border-bottom:1px solid var(--border);background:var(--bg2);}
-.tbl td{padding:10px 13px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.tbl td{padding:9px 13px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;}
 .tbl tr:last-child td{border-bottom:none;}
 .tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-.prog-bar{width:80px;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:6px;}
-.prog-fill{height:100%;background:var(--brand);border-radius:3px;}
-.prog-wrap{display:flex;align-items:center;gap:4px;}
+/* Inline progress slider */
+.inline-prog{display:flex;align-items:center;gap:7px;min-width:130px;}
+.inline-prog input[type=range]{width:80px;height:4px;cursor:pointer;accent-color:var(--brand);}
+.inline-prog span{font-size:12px;color:var(--text2);min-width:32px;}
 .todo-item{display:flex;align-items:flex-start;gap:10px;padding:10px 1rem;border-bottom:1px solid var(--border);}
 .todo-item:last-child{border-bottom:none;}
 .chk{width:17px;height:17px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;margin-top:1px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
@@ -122,7 +123,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cid-badge{font-size:11px;font-weight:700;background:var(--bg2);color:var(--text2);padding:3px 8px;border-radius:6px;font-family:monospace;letter-spacing:0.5px;white-space:nowrap;}
 .jid-badge{font-size:11px;font-weight:700;background:var(--brand-light);color:var(--brand);padding:3px 8px;border-radius:6px;font-family:monospace;letter-spacing:0.5px;white-space:nowrap;}
 .inline-select{font-size:11px;border:1px solid var(--border);border-radius:5px;padding:2px 5px;background:var(--bg2);color:var(--text2);cursor:pointer;font-family:inherit;}
-.status-select{font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;background:var(--bg2);color:var(--text);cursor:pointer;font-family:inherit;}
+.profit-select{font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 9px;cursor:pointer;font-family:inherit;font-weight:600;}
+.profit-profitable{background:var(--green-bg);color:var(--green-txt);border-color:var(--green-txt);}
+.profit-not{background:var(--red-bg);color:var(--red-txt);border-color:var(--red-txt);}
+.profit-none{background:var(--bg2);color:var(--text2);border-color:var(--border2);}
+.status-inline{font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;background:var(--bg2);color:var(--text);cursor:pointer;font-family:inherit;}
 .notes-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;}
 .notes-name{font-size:16px;font-weight:600;}
 .notes-meta{font-size:12px;color:var(--text2);margin-top:3px;}
@@ -132,7 +137,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .notes-input-area{display:flex;flex-direction:column;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px;}
 .notes-textarea{width:100%;font-size:13px;border:1px solid var(--border2);border-radius:8px;padding:10px;background:var(--bg2);color:var(--text);font-family:inherit;line-height:1.6;resize:vertical;min-height:90px;}
 .notes-textarea:focus{outline:none;border-color:var(--brand);}
-.confirm-modal{background:var(--surface);border-radius:14px;border:1px solid var(--border2);padding:1.75rem;width:360px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,0.2);}
+.confirm-modal{background:var(--surface);border-radius:14px;border:1px solid var(--border2);padding:1.75rem;width:380px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,0.2);}
 .confirm-modal h3{font-size:16px;font-weight:600;margin-bottom:.5rem;}
 .confirm-modal p{font-size:13px;color:var(--text2);margin-bottom:1.25rem;line-height:1.5;}
 .confirm-footer{display:flex;gap:9px;justify-content:flex-end;}
@@ -145,9 +150,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fg input,.fg select,.fg textarea{width:100%;font-size:13px;border:1px solid var(--border2);border-radius:8px;padding:8px 11px;background:var(--bg2);color:var(--text);font-family:inherit;}
 .fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--brand);}
 .mfoot{display:flex;gap:9px;justify-content:flex-end;margin-top:1.1rem;}
-.prog-input-wrap{display:flex;align-items:center;gap:8px;}
-.prog-input-wrap input[type=range]{flex:1;}
-.prog-input-wrap span{font-size:13px;font-weight:600;min-width:36px;color:var(--brand);}
 </style>
 </head>
 <body>
@@ -240,8 +242,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="btn-primary" onclick="openModal('proj-modal')">+ New project</button>
   </div>
   <div class="grid5" style="margin-bottom:1.25rem;" id="proj-stats"></div>
-
-  <!-- Active jobs table -->
   <div class="card" style="margin-bottom:1.5rem;">
     <div class="card-header"><span class="card-title">Active jobs</span><span class="badge b-brand" id="active-proj-count">0</span></div>
     <table class="tbl">
@@ -249,8 +249,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <tbody id="active-proj-tbl"></tbody>
     </table>
   </div>
-
-  <!-- Completed jobs table -->
   <div class="section-header">
     <div><div class="section-title">Completed jobs</div><div class="section-sub">Searchable archive of all finished projects</div></div>
     <span class="badge b-gray" id="complete-proj-count">0</span>
@@ -258,7 +256,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="search-bar"><input id="proj-search" placeholder="Search completed jobs by name, job ID, customer..." oninput="renderProj()"/></div>
   <div class="tbl-wrap">
     <table class="tbl">
-      <thead><tr><th>Project</th><th>Job ID</th><th>Customer</th><th>Customer ID</th><th>Value</th><th>Status</th><th>Start</th><th>Completed</th></tr></thead>
+      <thead><tr><th>Project</th><th>Job ID</th><th>Customer</th><th>Customer ID</th><th>Value</th><th>Status</th><th>Start</th><th>Completed</th><th>Profitable?</th></tr></thead>
       <tbody id="complete-proj-tbl"></tbody>
     </table>
   </div>
@@ -299,7 +297,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="grid3" style="margin-bottom:1.25rem;">
     <div class="big-stat-card"><div class="big-stat-label">Revenue collected</div><div class="big-stat-value" id="ceo-rev">—</div><div class="big-stat-sub">From paid invoices</div></div>
     <div class="big-stat-card"><div class="big-stat-label">Pipeline value</div><div class="big-stat-value" id="ceo-pipe">—</div><div class="big-stat-sub">Potential revenue</div></div>
-    <div class="big-stat-card"><div class="big-stat-label">Jobs under contract</div><div class="big-stat-value" id="ceo-jobs">—</div><div class="big-stat-sub">Active + not started</div></div>
+    <div class="big-stat-card"><div class="big-stat-label">Jobs under contract</div><div class="big-stat-value" id="ceo-jobs">—</div><div class="big-stat-sub">Active jobs</div></div>
   </div>
   <div class="grid2" style="margin-bottom:12px;">
     <div class="card"><div class="card-header"><span class="card-title">Annual revenue goal</span><button class="btn-sm" onclick="openModal('goal-modal')">Set goal</button></div><div style="padding:1rem;" id="ceo-goal-area"></div></div>
@@ -313,14 +311,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 </div>
 
-<!-- MODALS -->
+<!-- CONFIRM DELETE MODAL (shared for leads and projects) -->
 <div class="modal-overlay" id="confirm-modal">
-  <div class="confirm-modal"><h3>Delete this lead?</h3><p id="confirm-msg"></p><div class="confirm-footer"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" style="background:var(--red-txt);" onclick="confirmDelete()">Yes, delete</button></div></div>
+  <div class="confirm-modal"><h3 id="confirm-title">Delete?</h3><p id="confirm-msg"></p><div class="confirm-footer"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" style="background:var(--red-txt);" id="confirm-btn" onclick="">Yes, delete</button></div></div>
 </div>
+
 <div class="modal-overlay" id="notes-modal">
   <div class="modal"><div class="notes-header"><div><div class="notes-name" id="notes-lead-name"></div><div class="notes-meta" id="notes-lead-meta"></div></div><button class="btn-sm" onclick="closeModals()">Close</button></div><div id="notes-list"></div><div class="notes-input-area"><textarea class="notes-textarea" id="notes-input" placeholder="Add a note..."></textarea><div style="display:flex;justify-content:flex-end;"><button class="btn-primary" onclick="saveNote()">Add note</button></div></div></div>
 </div>
 <div class="modal-overlay" id="qualifier-modal"><div class="modal"><h3>Update qualifier</h3><input type="hidden" id="q-lead-id"/><div class="fg"><label>Qualifier</label><select id="q-qualifier"><option>Good</option><option>Neutral</option><option>Do Not Contact</option></select></div><div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveQualifier()">Save</button></div></div></div>
+
 <div class="modal-overlay" id="lead-modal"><div class="modal"><h3>Add new lead</h3>
   <div class="fg"><label>Customer name</label><input id="l-name" placeholder="e.g. John Smith"/></div>
   <div class="fg"><label>Phone number</label><input id="l-phone" placeholder="e.g. 513-555-0100"/></div>
@@ -332,7 +332,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="fg"><label>Qualifier</label><select id="l-qualifier"><option>Good</option><option>Neutral</option><option>Do Not Contact</option></select></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveLead()">Save lead</button></div>
 </div></div>
+
 <div class="modal-overlay" id="new-doc-modal"><div class="modal"><h3>New Document</h3><div class="fg"><label>Title</label><input id="new-doc-name" placeholder="e.g. Initial Call SOP"/></div><div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="createDoc()">Create</button></div></div></div>
+
 <div class="modal-overlay" id="est-modal"><div class="modal"><h3>New estimate</h3>
   <div class="fg"><label>Client name</label><input id="e-client"/></div>
   <div class="fg"><label>Job description</label><input id="e-desc"/></div>
@@ -342,16 +344,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEst()">Save</button></div>
 </div></div>
 
-<!-- PROJECT MODAL -->
+<!-- PROJECT MODAL - no job ID field, no progress slider -->
 <div class="modal-overlay" id="proj-modal"><div class="modal"><h3>New project</h3>
   <div class="fg"><label>Project name</label><input id="p-name" placeholder="e.g. Johnson Master Bath Reno"/></div>
   <div class="fg"><label>Customer name</label><input id="p-client" placeholder="e.g. Mike Johnson"/></div>
-  <div class="fg"><label>Customer ID (optional)</label><input id="p-customer-id" placeholder="e.g. 01012 — link to a customer"/></div>
+  <div class="fg"><label>Customer ID <span style="color:var(--text3);font-weight:400;">(optional — links to a customer)</span></label><input id="p-customer-id" placeholder="e.g. 01012"/></div>
   <div class="fg"><label>Contract value</label><input id="p-val" placeholder="e.g. $28,000"/></div>
   <div class="fg"><label>Status</label><select id="p-status"><option>Preconstruction</option><option>In progress</option><option>On hold</option><option>Punchout</option><option>Complete</option></select></div>
-  <div class="fg"><label>Progress (0–100%)</label>
-    <div class="prog-input-wrap"><input type="range" id="p-progress" min="0" max="100" value="0" oninput="document.getElementById('p-prog-val').textContent=this.value+'%'"/><span id="p-prog-val">0%</span></div>
-  </div>
   <div class="fg"><label>Start date</label><input id="p-start" type="date"/></div>
   <div class="fg"><label>Due date</label><input id="p-due" type="date"/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveProj()">Save project</button></div>
@@ -365,9 +364,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="fg"><label>Customer ID</label><input id="ep-customer-id"/></div>
   <div class="fg"><label>Contract value</label><input id="ep-val"/></div>
   <div class="fg"><label>Status</label><select id="ep-status"><option>Preconstruction</option><option>In progress</option><option>On hold</option><option>Punchout</option><option>Complete</option></select></div>
-  <div class="fg"><label>Progress (0–100%)</label>
-    <div class="prog-input-wrap"><input type="range" id="ep-progress" min="0" max="100" value="0" oninput="document.getElementById('ep-prog-val').textContent=this.value+'%'"/><span id="ep-prog-val">0%</span></div>
-  </div>
   <div class="fg"><label>Start date</label><input id="ep-start" type="date"/></div>
   <div class="fg"><label>Due date</label><input id="ep-due" type="date"/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="updateProj()">Save changes</button></div>
@@ -395,16 +391,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <script>
 const sb=supabase.createClient('https://vzaedlvhsduirqonixus.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6YWVkbHZoc2R1aXJxb25peHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzODkzMDgsImV4cCI6MjA4OTk2NTMwOH0.CmfK7FqF4HA0Ixhizum6bafnGMfX53d15i8Hi7eiI7c');
-
 const ACTIVE_LEAD_STAGES=['New Lead','Contacted','Quoted','Negotiating'];
 const INACTIVE_LEAD_STAGES=['Completed','Lost'];
 const ALL_LEAD_STAGES=[...ACTIVE_LEAD_STAGES,...INACTIVE_LEAD_STAGES];
-const ACTIVE_PROJ_STATUSES=['Preconstruction','In progress','On hold','Punchout'];
-const PROJ_STARTING_ID=1045;
-
+const ACTIVE_PROJ=['Preconstruction','In progress','On hold','Punchout'];
 let leads=[],estimates=[],projects=[],tasks=[],invoices=[],expenses=[],mktTasks=[],ceoPriorities=[],annualGoal={goal:500000,earned:0};
 let sopDocs=[],scriptsDocs=[],currentDocType='sop',currentDocId=null,docSaveTimers={};
-let pendingDeleteId=null,currentNotesLeadId=null,leadNotes={};
+let pendingDeleteId=null,pendingDeleteType=null,currentNotesLeadId=null,leadNotes={};
+let progDebounce={};
 
 const SB={'New Lead':'b-blue','Contacted':'b-amber','Quoted':'b-brand','Negotiating':'b-amber','Completed':'b-green','Lost':'b-red','Draft':'b-gray','Sent':'b-blue','Approved':'b-green','Declined':'b-red','Preconstruction':'b-purple','In progress':'b-amber','On hold':'b-gray','Punchout':'b-blue','Complete':'b-green','Paid':'b-green','Overdue':'b-red','Good':'b-green','Neutral':'b-amber','Do Not Contact':'b-red'};
 function badge(t){return '<span class="badge '+(SB[t]||'b-gray')+'">'+t+'</span>';}
@@ -438,8 +432,7 @@ async function loadAll(){
       sb.from('lead_notes').select('*').order('created_at',{ascending:true}),
     ]);
     leads=l.data||[];estimates=e.data||[];projects=p.data||[];tasks=t.data||[];invoices=i.data||[];expenses=ex.data||[];mktTasks=m.data||[];ceoPriorities=c.data||[];
-    const settings=s.data||[];
-    const g=settings.find(x=>x.key==='annual_goal');if(g)annualGoal=JSON.parse(g.value);
+    const settings=s.data||[];const g=settings.find(x=>x.key==='annual_goal');if(g)annualGoal=JSON.parse(g.value);
     const allDocs=docs.data||[];sopDocs=allDocs.filter(d=>d.doc_type==='sop');scriptsDocs=allDocs.filter(d=>d.doc_type==='scripts');
     leadNotes={};(notes.data||[]).forEach(n=>{if(!leadNotes[n.lead_id])leadNotes[n.lead_id]=[];leadNotes[n.lead_id].push(n);});
     setSync(true);renderDash();
@@ -462,15 +455,30 @@ function showSalesSubtab(t){
 function statCards(el,items){document.getElementById(el).innerHTML=items.map(s=>'<div class="stat-card"><div class="stat-label">'+s.label+'</div><div class="stat-value">'+s.value+'</div><div class="stat-sub">'+(s.sub||'')+'</div></div>').join('');}
 function notesBtn(leadId){const count=(leadNotes[leadId]||[]).length;return '<button class="btn-notes'+(count?' has-notes':'')+'" onclick="openNotesModal(\''+leadId+'\')">'+(count?'Notes ('+count+')':'+ Notes')+'</button>';}
 function qualBadge(l){const qc={'Good':'b-green','Neutral':'b-amber','Do Not Contact':'b-red'};return '<span class="badge '+(qc[l.qualifier]||'b-gray')+'" style="cursor:pointer;" onclick="openQualifierModal(\''+l.id+'\',\''+(l.qualifier||'Good')+'\')">'+( l.qualifier||'Good')+'</span>';}
-function activeLeadRow(l){return '<tr><td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td><td style="font-weight:600;">'+l.name+'</td><td>'+badge(l.stage)+'</td><td style="color:var(--brand);font-weight:600;">'+(l.val||'TBD')+'</td><td style="color:var(--text2);">'+(l.job||'—')+'</td><td style="color:var(--text2);">'+(l.source||'—')+'</td><td>'+notesBtn(l.id)+'</td><td><button class="btn-danger" onclick="promptDelete(\''+l.id+'\',\''+l.name.replace(/'/g,"\\'")+'\')" >Delete</button></td></tr>';}
-function inactiveLeadRow(l){return '<tr><td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td><td style="font-weight:600;">'+l.name+'</td><td>'+badge(l.stage)+'</td><td style="color:var(--brand);font-weight:600;">'+(l.val||'TBD')+'</td><td style="color:var(--text2);">'+(l.job||'—')+'</td><td style="color:var(--text2);">'+(l.source||'—')+'</td><td>'+qualBadge(l)+'</td><td>'+notesBtn(l.id)+'</td><td><button class="btn-danger" onclick="promptDelete(\''+l.id+'\',\''+l.name.replace(/'/g,"\\'")+'\')" >Delete</button></td></tr>';}
+function activeLeadRow(l){return '<tr><td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td><td style="font-weight:600;">'+l.name+'</td><td>'+badge(l.stage)+'</td><td style="color:var(--brand);font-weight:600;">'+(l.val||'TBD')+'</td><td style="color:var(--text2);">'+(l.job||'—')+'</td><td style="color:var(--text2);">'+(l.source||'—')+'</td><td>'+notesBtn(l.id)+'</td><td><button class="btn-danger" onclick="promptDelete(\'lead\',\''+l.id+'\',\''+l.name.replace(/'/g,"\\'")+'\')" >Delete</button></td></tr>';}
+function inactiveLeadRow(l){return '<tr><td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td><td style="font-weight:600;">'+l.name+'</td><td>'+badge(l.stage)+'</td><td style="color:var(--brand);font-weight:600;">'+(l.val||'TBD')+'</td><td style="color:var(--text2);">'+(l.job||'—')+'</td><td style="color:var(--text2);">'+(l.source||'—')+'</td><td>'+qualBadge(l)+'</td><td>'+notesBtn(l.id)+'</td><td><button class="btn-danger" onclick="promptDelete(\'lead\',\''+l.id+'\',\''+l.name.replace(/'/g,"\\'")+'\')" >Delete</button></td></tr>';}
+
+// Inline progress slider
+function progSlider(projId, pct){
+  return '<div class="inline-prog"><input type="range" min="0" max="100" value="'+pct+'" step="5" onchange="updateProgress(\''+projId+'\',this.value)" oninput="this.nextElementSibling.textContent=this.value+\'%\'"/><span>'+pct+'%</span></div>';
+}
+
+// Profitable dropdown
+function profitSelect(projId, val){
+  const cls = val==='Profitable'?'profit-profitable':val==='Not profitable'?'profit-not':'profit-none';
+  return '<select class="profit-select '+cls+'" onchange="updateProfitable(\''+projId+'\',this.value);this.className=\'profit-select \'+(this.value===\'Profitable\'?\'profit-profitable\':this.value===\'Not profitable\'?\'profit-not\':\'profit-none\')">'
+    +'<option value="" '+((!val||val==='')?' selected':'')+'>— Select —</option>'
+    +'<option value="Profitable" '+(val==='Profitable'?'selected':'')+'>Profitable</option>'
+    +'<option value="Not profitable" '+(val==='Not profitable'?'selected':'')+'>Not profitable</option>'
+    +'</select>';
+}
 
 function renderDash(){
   const active=leads.filter(l=>ACTIVE_LEAD_STAGES.includes(l.stage));
-  const activeProj=projects.filter(p=>ACTIVE_PROJ_STATUSES.includes(p.status));
+  const activeProj=projects.filter(p=>ACTIVE_PROJ.includes(p.status));
   statCards('dash-stats',[{label:'Active leads',value:active.length,sub:'In pipeline'},{label:'Pipeline value',value:fmt(active.reduce((s,l)=>s+toNum(l.val),0)),sub:'Potential revenue'},{label:'Active projects',value:activeProj.length,sub:'In progress'},{label:'Open estimates',value:estimates.filter(e=>e.status==='Sent'||e.status==='Draft').length,sub:'Awaiting decision'}]);
   document.getElementById('dash-pipe').innerHTML=active.slice(0,4).map(l=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+l.name+'</div><div class="row-sub">'+(l.job||'—')+'</div></div>'+badge(l.stage)+'<span style="font-size:12px;color:var(--brand);font-weight:600;min-width:52px;text-align:right;">'+(l.val||'TBD')+'</span></div>').join('')||'<div class="empty">No active leads</div>';
-  document.getElementById('dash-proj').innerHTML=activeProj.slice(0,4).map(p=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+p.name+'</div><div class="row-sub">'+(p.client||'—')+'</div></div><div class="prog-bar"><div class="prog-fill" style="width:'+p.progress+'%"></div></div><span style="font-size:12px;color:var(--text2);">'+p.progress+'%</span></div>').join('')||'<div class="empty">No active projects</div>';
+  document.getElementById('dash-proj').innerHTML=activeProj.slice(0,4).map(p=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+p.name+'</div><div class="row-sub">'+(p.client||'—')+'</div></div>'+badge(p.status)+'</div>').join('')||'<div class="empty">No active projects</div>';
   document.getElementById('dash-est').innerHTML=estimates.filter(e=>e.status==='Sent').map(e=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+e.client+'</div><div class="row-sub">'+e.description+'</div></div>'+badge(e.status)+'<span style="font-size:12px;color:var(--brand);font-weight:600;">'+e.amt+'</span></div>').join('')||'<div class="empty">No open estimates</div>';
   document.getElementById('dash-tasks').innerHTML=tasks.filter(t=>!t.done).slice(0,4).map(t=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+t.text+'</div><div class="row-sub">'+t.project+'</div></div><span class="badge '+(t.priority==='High'?'b-red':'b-blue')+'">'+t.priority+'</span></div>').join('')||'<div class="empty">No pending tasks</div>';
 }
@@ -486,21 +494,34 @@ function renderSalesPipeline(){
   document.getElementById('inactive-count').textContent=inactive.length;
   document.getElementById('inactive-tbl').innerHTML=inactive.map(inactiveLeadRow).join('')||'<tr><td colspan="9" class="empty">No inactive leads</td></tr>';
 }
-
 async function moveLeadStage(id,stage){
-  const now=new Date().toISOString();
-  await sb.from('leads').update({stage,stage_updated_at:now}).eq('id',id);
-  const l=leads.find(x=>x.id===id);if(l){l.stage=stage;l.stage_updated_at=now;}
-  renderSalesPipeline();renderDash();
+  const now=new Date().toISOString();await sb.from('leads').update({stage,stage_updated_at:now}).eq('id',id);
+  const l=leads.find(x=>x.id===id);if(l){l.stage=stage;l.stage_updated_at=now;}renderSalesPipeline();renderDash();
 }
-function promptDelete(id,name){pendingDeleteId=id;document.getElementById('confirm-msg').textContent='Are you sure you want to permanently delete "'+name+'"? This cannot be undone.';openModal('confirm-modal');}
+
+// Unified delete prompt
+function promptDelete(type,id,name){
+  pendingDeleteId=id;pendingDeleteType=type;
+  document.getElementById('confirm-title').textContent='Delete this '+(type==='lead'?'lead':'project')+'?';
+  document.getElementById('confirm-msg').textContent='Are you sure you want to permanently delete "'+name+'"? This cannot be undone.';
+  document.getElementById('confirm-btn').onclick=confirmDelete;
+  openModal('confirm-modal');
+}
 async function confirmDelete(){
   if(!pendingDeleteId)return;
-  await sb.from('leads').delete().eq('id',pendingDeleteId);
-  await sb.from('lead_notes').delete().eq('lead_id',pendingDeleteId);
-  leads=leads.filter(l=>l.id!==pendingDeleteId);delete leadNotes[pendingDeleteId];pendingDeleteId=null;
-  closeModals();renderSalesPipeline();renderDatabase();renderDash();
+  if(pendingDeleteType==='lead'){
+    await sb.from('leads').delete().eq('id',pendingDeleteId);
+    await sb.from('lead_notes').delete().eq('lead_id',pendingDeleteId);
+    leads=leads.filter(l=>l.id!==pendingDeleteId);delete leadNotes[pendingDeleteId];
+    closeModals();renderSalesPipeline();renderDatabase();renderDash();
+  } else if(pendingDeleteType==='project'){
+    await sb.from('projects').delete().eq('id',pendingDeleteId);
+    projects=projects.filter(p=>p.id!==pendingDeleteId);
+    closeModals();renderProj();renderDash();
+  }
+  pendingDeleteId=null;pendingDeleteType=null;
 }
+
 function openNotesModal(leadId){
   currentNotesLeadId=leadId;const lead=leads.find(l=>l.id===leadId);if(!lead)return;
   document.getElementById('notes-lead-name').textContent=lead.name;
@@ -513,8 +534,7 @@ function renderNotesList(){
 }
 async function saveNote(){
   const text=document.getElementById('notes-input').value.trim();if(!text||!currentNotesLeadId)return;
-  const now=new Date().toISOString();
-  const {data}=await sb.from('lead_notes').insert({lead_id:currentNotesLeadId,note_text:text,created_at:now}).select();
+  const now=new Date().toISOString();const {data}=await sb.from('lead_notes').insert({lead_id:currentNotesLeadId,note_text:text,created_at:now}).select();
   if(data){if(!leadNotes[currentNotesLeadId])leadNotes[currentNotesLeadId]=[];leadNotes[currentNotesLeadId].push(data[0]);}
   document.getElementById('notes-input').value='';renderNotesList();renderSalesPipeline();
 }
@@ -522,7 +542,7 @@ function renderDatabase(){
   const q=(document.getElementById('db-search')?.value||'').toLowerCase();
   const filtered=leads.filter(l=>!q||[l.name,l.phone,l.email,l.address,l.job,l.customer_id].some(v=>(v||'').toLowerCase().includes(q)));
   const qc={'Good':'b-green','Neutral':'b-amber','Do Not Contact':'b-red'};
-  document.getElementById('db-tbl').innerHTML=filtered.map(l=>'<tr><td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td><td style="font-weight:600;">'+l.name+'</td><td style="color:var(--text2);">'+(l.phone||'—')+'</td><td style="color:var(--text2);">'+(l.email||'—')+'</td><td style="color:var(--text2);">'+(l.address||'—')+'</td><td style="color:var(--text2);font-size:12px;">'+fmtDate(l.stage_updated_at||l.created_at)+'</td><td>'+badge(l.stage)+'</td><td><span class="badge '+(qc[l.qualifier]||'b-gray')+'" style="cursor:pointer;" onclick="openQualifierModal(\''+l.id+'\',\''+(l.qualifier||'Good')+'\')">'+( l.qualifier||'Good')+'</span></td><td>'+notesBtn(l.id)+'</td><td><button class="btn-danger" onclick="promptDelete(\''+l.id+'\',\''+l.name.replace(/'/g,"\\'")+'\')">Delete</button></td></tr>').join('')||'<tr><td colspan="10" class="empty">No results found</td></tr>';
+  document.getElementById('db-tbl').innerHTML=filtered.map(l=>'<tr><td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td><td style="font-weight:600;">'+l.name+'</td><td style="color:var(--text2);">'+(l.phone||'—')+'</td><td style="color:var(--text2);">'+(l.email||'—')+'</td><td style="color:var(--text2);">'+(l.address||'—')+'</td><td style="color:var(--text2);font-size:12px;">'+fmtDate(l.stage_updated_at||l.created_at)+'</td><td>'+badge(l.stage)+'</td><td><span class="badge '+(qc[l.qualifier]||'b-gray')+'" style="cursor:pointer;" onclick="openQualifierModal(\''+l.id+'\',\''+(l.qualifier||'Good')+'\')">'+( l.qualifier||'Good')+'</span></td><td>'+notesBtn(l.id)+'</td><td><button class="btn-danger" onclick="promptDelete(\'lead\',\''+l.id+'\',\''+l.name.replace(/'/g,"\\'")+'\')">Delete</button></td></tr>').join('')||'<tr><td colspan="10" class="empty">No results found</td></tr>';
 }
 function openQualifierModal(id,current){document.getElementById('q-lead-id').value=id;document.getElementById('q-qualifier').value=current;openModal('qualifier-modal');}
 async function saveQualifier(){
@@ -562,34 +582,36 @@ async function deleteCurrentDoc(type){
 }
 
 // PROJECTS
-function progBar(pct){return '<div class="prog-wrap"><div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%"></div></div><span style="font-size:12px;color:var(--text2);">'+pct+'%</span></div>';}
-
 function renderProj(){
-  const active=projects.filter(p=>ACTIVE_PROJ_STATUSES.includes(p.status));
+  const active=projects.filter(p=>ACTIVE_PROJ.includes(p.status));
   const q=(document.getElementById('proj-search')?.value||'').toLowerCase();
   const complete=projects.filter(p=>p.status==='Complete').filter(p=>!q||[p.name,p.job_id,p.client,p.customer_id,p.val].some(v=>(v||'').toLowerCase().includes(q)));
-
-  const totalVal=active.reduce((s,p)=>s+toNum(p.val),0);
   statCards('proj-stats',[
     {label:'Active jobs',value:active.length,sub:'In progress'},
-    {label:'Active value',value:fmt(totalVal),sub:'Under contract'},
+    {label:'Active value',value:fmt(active.reduce((s,p)=>s+toNum(p.val),0)),sub:'Under contract'},
     {label:'Preconstruction',value:projects.filter(p=>p.status==='Preconstruction').length},
     {label:'Punchout',value:projects.filter(p=>p.status==='Punchout').length},
     {label:'Completed',value:projects.filter(p=>p.status==='Complete').length,sub:'All time'},
   ]);
-
   document.getElementById('active-proj-count').textContent=active.length;
   document.getElementById('active-proj-tbl').innerHTML=active.map(p=>`<tr>
     <td style="font-weight:600;">${p.name}</td>
     <td><span class="jid-badge">${p.job_id||'—'}</span></td>
     <td style="color:var(--text2);">${p.client||'—'}</td>
-    <td><span class="cid-badge">${p.customer_id||'—'}</span></td>
+    <td>${p.customer_id?'<span class="cid-badge">'+p.customer_id+'</span>':'<span style="color:var(--text3);">—</span>'}</td>
     <td style="color:var(--brand);font-weight:600;">${p.val||'TBD'}</td>
-    <td>${badge(p.status)}</td>
-    <td>${progBar(p.progress||0)}</td>
+    <td>
+      <select class="inline-select" onchange="updateProjStatus('${p.id}',this.value)">
+        ${['Preconstruction','In progress','On hold','Punchout','Complete'].map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}
+      </select>
+    </td>
+    <td>${progSlider(p.id, p.progress||0)}</td>
     <td style="color:var(--text2);font-size:12px;">${p.start_date||'—'}</td>
     <td style="color:var(--text2);font-size:12px;">${p.due_date||'—'}</td>
-    <td><button class="btn-sm" onclick="openEditProj('${p.id}')" style="font-size:11px;padding:4px 9px;">Edit</button></td>
+    <td style="display:flex;gap:5px;">
+      <button class="btn-sm" onclick="openEditProj('${p.id}')" style="font-size:11px;padding:4px 9px;">Edit</button>
+      <button class="btn-danger" onclick="promptDelete('project','${p.id}','${p.name.replace(/'/g,"\\'")}')">Delete</button>
+    </td>
   </tr>`).join('')||'<tr><td colspan="10" class="empty">No active jobs</td></tr>';
 
   document.getElementById('complete-proj-count').textContent=complete.length;
@@ -597,12 +619,33 @@ function renderProj(){
     <td style="font-weight:600;">${p.name}</td>
     <td><span class="jid-badge">${p.job_id||'—'}</span></td>
     <td style="color:var(--text2);">${p.client||'—'}</td>
-    <td><span class="cid-badge">${p.customer_id||'—'}</span></td>
+    <td>${p.customer_id?'<span class="cid-badge">'+p.customer_id+'</span>':'<span style="color:var(--text3);">—</span>'}</td>
     <td style="color:var(--brand);font-weight:600;">${p.val||'TBD'}</td>
     <td>${badge(p.status)}</td>
     <td style="color:var(--text2);font-size:12px;">${p.start_date||'—'}</td>
     <td style="color:var(--text2);font-size:12px;">${p.due_date||'—'}</td>
-  </tr>`).join('')||'<tr><td colspan="8" class="empty">No completed jobs yet</td></tr>';
+    <td>${profitSelect(p.id, p.profitable||'')}</td>
+  </tr>`).join('')||'<tr><td colspan="9" class="empty">No completed jobs yet</td></tr>';
+}
+
+async function updateProgress(id, val){
+  const pct=parseInt(val)||0;
+  clearTimeout(progDebounce[id]);
+  progDebounce[id]=setTimeout(async()=>{
+    await sb.from('projects').update({progress:pct}).eq('id',id);
+    const p=projects.find(x=>x.id===id);if(p)p.progress=pct;
+  },600);
+}
+
+async function updateProjStatus(id, status){
+  await sb.from('projects').update({status}).eq('id',id);
+  const p=projects.find(x=>x.id===id);if(p)p.status=status;
+  renderProj();renderDash();
+}
+
+async function updateProfitable(id, val){
+  await sb.from('projects').update({profitable:val}).eq('id',id);
+  const p=projects.find(x=>x.id===id);if(p)p.profitable=val;
 }
 
 function openEditProj(id){
@@ -613,25 +656,13 @@ function openEditProj(id){
   document.getElementById('ep-customer-id').value=p.customer_id||'';
   document.getElementById('ep-val').value=p.val||'';
   document.getElementById('ep-status').value=p.status||'Preconstruction';
-  document.getElementById('ep-progress').value=p.progress||0;
-  document.getElementById('ep-prog-val').textContent=(p.progress||0)+'%';
   document.getElementById('ep-start').value=p.start_date||'';
   document.getElementById('ep-due').value=p.due_date||'';
   openModal('edit-proj-modal');
 }
-
 async function updateProj(){
   const id=document.getElementById('ep-id').value;
-  const updates={
-    name:document.getElementById('ep-name').value,
-    client:document.getElementById('ep-client').value,
-    customer_id:document.getElementById('ep-customer-id').value,
-    val:document.getElementById('ep-val').value,
-    status:document.getElementById('ep-status').value,
-    progress:parseInt(document.getElementById('ep-progress').value)||0,
-    start_date:document.getElementById('ep-start').value,
-    due_date:document.getElementById('ep-due').value,
-  };
+  const updates={name:document.getElementById('ep-name').value,client:document.getElementById('ep-client').value,customer_id:document.getElementById('ep-customer-id').value,val:document.getElementById('ep-val').value,status:document.getElementById('ep-status').value,start_date:document.getElementById('ep-start').value,due_date:document.getElementById('ep-due').value};
   await sb.from('projects').update(updates).eq('id',id);
   const p=projects.find(x=>x.id===id);if(p)Object.assign(p,updates);
   closeModals();renderProj();renderDash();
@@ -641,22 +672,18 @@ function renderEst(){
   statCards('est-stats',[{label:'Total estimates',value:estimates.length},{label:'Pending value',value:fmt(estimates.filter(e=>e.status==='Sent'||e.status==='Draft').reduce((s,e)=>s+toNum(e.amt),0)),sub:'Awaiting'},{label:'Approved',value:estimates.filter(e=>e.status==='Approved').length,sub:'Won'}]);
   document.getElementById('est-tbl').innerHTML=estimates.map(e=>'<tr><td style="font-weight:600;">'+e.client+'</td><td style="color:var(--text2);">'+e.description+'</td><td style="color:var(--brand);font-weight:600;">'+e.amt+'</td><td>'+badge(e.status)+'</td><td style="color:var(--text2);">'+(e.sent||'—')+'</td><td style="color:var(--text2);">'+(e.follow_up||'—')+'</td></tr>').join('')||'<tr><td colspan="6" class="empty">No estimates yet</td></tr>';
 }
-
 function renderField(){
   document.getElementById('field-count').textContent=tasks.filter(t=>!t.done).length;
   document.getElementById('field-today').innerHTML=tasks.map(t=>'<div class="todo-item"><div class="chk'+(t.done?' done':'')+'" onclick="toggleTask(\''+t.id+'\','+!t.done+')"></div><div style="flex:1"><div class="todo-label'+(t.done?' striked':'')+'">'+t.text+'</div><div class="todo-meta">'+t.project+(t.priority==='High'?' · <span style="color:var(--brand)">High priority</span>':'')+'</div></div></div>').join('')||'<div class="empty">No tasks yet</div>';
-  const activeProj=projects.filter(p=>ACTIVE_PROJ_STATUSES.includes(p.status));
-  document.getElementById('field-sched').innerHTML=activeProj.map(p=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+p.name+'</div><div class="row-sub">'+(p.client||'—')+' · Due '+(p.due_date||'TBD')+'</div></div>'+badge(p.status)+'</div>').join('')||'<div class="empty">No active jobs</div>';
+  document.getElementById('field-sched').innerHTML=projects.filter(p=>ACTIVE_PROJ.includes(p.status)).map(p=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+p.name+'</div><div class="row-sub">'+(p.client||'—')+' · Due '+(p.due_date||'TBD')+'</div></div>'+badge(p.status)+'</div>').join('')||'<div class="empty">No active jobs</div>';
 }
 async function toggleTask(id,done){await sb.from('tasks').update({done}).eq('id',id);const t=tasks.find(x=>x.id===id);if(t)t.done=done;renderField();renderDash();}
-
 function renderOffice(){
   const paid=invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+toNum(i.amt),0);const owed=invoices.filter(i=>i.status!=='Paid').reduce((s,i)=>s+toNum(i.amt),0);
   statCards('office-stats',[{label:'Invoices',value:invoices.length},{label:'Collected',value:fmt(paid),sub:'Paid'},{label:'Outstanding',value:fmt(owed),sub:'Owed'},{label:'Overdue',value:invoices.filter(i=>i.status==='Overdue').length,sub:'Follow up'}]);
   document.getElementById('inv-tbl').innerHTML=invoices.map(i=>'<tr><td style="font-weight:600;">'+i.client+'</td><td style="color:var(--brand);font-weight:600;">'+i.amt+'</td><td>'+badge(i.status)+'</td><td style="color:var(--text2);font-size:12px;">'+(i.due_date||'—')+'</td></tr>').join('')||'<tr><td colspan="4" class="empty">No invoices yet</td></tr>';
   document.getElementById('exp-tbl').innerHTML=expenses.map(e=>'<tr><td style="font-weight:600;">'+e.description+'</td><td style="color:var(--text2);">'+e.project+'</td><td style="color:var(--brand);font-weight:600;">'+e.amt+'</td><td style="color:var(--text2);font-size:12px;">'+(e.expense_date||'—')+'</td></tr>').join('')||'<tr><td colspan="4" class="empty">No expenses yet</td></tr>';
 }
-
 function renderMkt(){
   const sources={};leads.forEach(l=>{if(l.source)sources[l.source]=(sources[l.source]||0)+1;});
   statCards('mkt-stats',[{label:'Total leads',value:leads.length},{label:'From referrals',value:leads.filter(l=>l.source==='Referral').length,sub:'Best source'},{label:'From Google',value:leads.filter(l=>l.source==='Google').length,sub:'Online'},{label:'Close rate',value:leads.length?Math.round(leads.filter(l=>l.stage==='Completed').length/leads.length*100)+'%':'0%',sub:'Leads → completed'}]);
@@ -664,12 +691,11 @@ function renderMkt(){
   document.getElementById('mkt-todos').innerHTML=mktTasks.map(t=>'<div class="todo-item"><div class="chk'+(t.done?' done':'')+'" onclick="toggleMktTask(\''+t.id+'\','+!t.done+')"></div><div class="todo-label'+(t.done?' striked':'')+'">'+t.text+'</div></div>').join('')||'<div class="empty">No marketing tasks yet</div>';
 }
 async function toggleMktTask(id,done){await sb.from('mkt_tasks').update({done}).eq('id',id);const t=mktTasks.find(x=>x.id===id);if(t)t.done=done;renderMkt();}
-
 function renderCeo(){
   const paid=invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+toNum(i.amt),0);
   document.getElementById('ceo-rev').textContent=fmt(paid);
   document.getElementById('ceo-pipe').textContent=fmt(leads.filter(l=>ACTIVE_LEAD_STAGES.includes(l.stage)).reduce((s,l)=>s+toNum(l.val),0));
-  document.getElementById('ceo-jobs').textContent=projects.filter(p=>ACTIVE_PROJ_STATUSES.includes(p.status)).length;
+  document.getElementById('ceo-jobs').textContent=projects.filter(p=>ACTIVE_PROJ.includes(p.status)).length;
   const g=annualGoal,pct=g.goal>0?Math.min(100,Math.round(g.earned/g.goal*100)):0;
   document.getElementById('ceo-goal-area').innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:7px;"><span style="font-size:13px;color:var(--text2);">Target: <strong>$'+g.goal.toLocaleString()+'</strong></span><span style="font-size:13px;font-weight:600;color:var(--brand);">'+pct+'% there</span></div><div class="goal-bar-track"><div class="goal-bar-fill" style="width:'+pct+'%"></div></div><div style="display:flex;justify-content:space-between;margin-top:9px;font-size:12px;color:var(--text3);"><span>Earned: <strong style="color:var(--text);">$'+g.earned.toLocaleString()+'</strong></span><span>Remaining: <strong style="color:var(--text);">$'+(g.goal-g.earned).toLocaleString()+'</strong></span></div>';
   const attn=[];
@@ -681,7 +707,7 @@ function renderCeo(){
   document.getElementById('ceo-attention').innerHTML=attn.map(a=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+a.text+'</div><div class="row-sub">'+a.sub+'</div></div><span class="badge '+a.sev+'">!</span></div>').join('');
   document.getElementById('ceo-pri-count').textContent=ceoPriorities.filter(p=>!p.done).length;
   document.getElementById('ceo-priorities').innerHTML=ceoPriorities.map(p=>'<div class="todo-item"><div class="chk'+(p.done?' done':'')+'" onclick="toggleCeoPri(\''+p.id+'\','+!p.done+')"></div><div class="todo-label'+(p.done?' striked':'')+'">'+p.text+'</div></div>').join('')||'<div class="empty">Add your big-picture priorities</div>';
-  document.getElementById('ceo-health').innerHTML=[{label:'Active leads',value:leads.filter(l=>ACTIVE_LEAD_STAGES.includes(l.stage)).length},{label:'Close rate',value:leads.length?Math.round(leads.filter(l=>l.stage==='Completed').length/leads.length*100)+'%':'0%'},{label:'Active projects',value:projects.filter(p=>ACTIVE_PROJ_STATUSES.includes(p.status)).length},{label:'Overdue invoices',value:invoices.filter(i=>i.status==='Overdue').length},{label:'Pending estimates',value:estimates.filter(e=>e.status==='Sent').length},{label:'Total customers',value:leads.length}].map(h=>'<div class="list-row"><div class="row-name" style="font-weight:400;">'+h.label+'</div><span style="font-size:13px;font-weight:600;">'+h.value+'</span></div>').join('');
+  document.getElementById('ceo-health').innerHTML=[{label:'Active leads',value:leads.filter(l=>ACTIVE_LEAD_STAGES.includes(l.stage)).length},{label:'Close rate',value:leads.length?Math.round(leads.filter(l=>l.stage==='Completed').length/leads.length*100)+'%':'0%'},{label:'Active projects',value:projects.filter(p=>ACTIVE_PROJ.includes(p.status)).length},{label:'Overdue invoices',value:invoices.filter(i=>i.status==='Overdue').length},{label:'Pending estimates',value:estimates.filter(e=>e.status==='Sent').length},{label:'Total customers',value:leads.length}].map(h=>'<div class="list-row"><div class="row-name" style="font-weight:400;">'+h.label+'</div><span style="font-size:13px;font-weight:600;">'+h.value+'</span></div>').join('');
 }
 async function toggleCeoPri(id,done){await sb.from('ceo_priorities').update({done}).eq('id',id);const p=ceoPriorities.find(x=>x.id===id);if(p)p.done=done;renderCeo();}
 
@@ -690,8 +716,7 @@ function closeModals(){document.querySelectorAll('.modal-overlay').forEach(m=>m.
 
 async function saveLead(){
   const name=document.getElementById('l-name').value.trim();if(!name)return;
-  const now=new Date().toISOString();
-  const customer_id=await getNextId('last_customer_id',1012);
+  const now=new Date().toISOString();const customer_id=await getNextId('last_customer_id',1012);
   const {data}=await sb.from('leads').insert({name,customer_id,phone:document.getElementById('l-phone').value||'',email:document.getElementById('l-email').value||'',address:document.getElementById('l-address').value||'',job:document.getElementById('l-job').value||'',val:document.getElementById('l-val').value||'TBD',source:document.getElementById('l-source').value,qualifier:document.getElementById('l-qualifier').value,stage:'New Lead',stage_updated_at:now}).select();
   if(data)leads.unshift(data[0]);closeModals();renderSalesPipeline();renderDash();
   ['l-name','l-phone','l-email','l-address','l-job','l-val'].forEach(id=>document.getElementById(id).value='');
@@ -705,20 +730,20 @@ async function saveEst(){
 }
 async function saveProj(){
   const name=document.getElementById('p-name').value.trim();if(!name)return;
-  const job_id=await getNextId('last_job_id',PROJ_STARTING_ID);
+  const job_id=await getNextId('last_job_id',1045);
   const {data}=await sb.from('projects').insert({
     name,job_id,
     client:document.getElementById('p-client').value||'',
     customer_id:document.getElementById('p-customer-id').value||'',
     val:document.getElementById('p-val').value||'TBD',
     status:document.getElementById('p-status').value,
-    progress:parseInt(document.getElementById('p-progress').value)||0,
+    progress:0,
     start_date:document.getElementById('p-start').value||'',
     due_date:document.getElementById('p-due').value||'',
+    profitable:'',
   }).select();
   if(data)projects.unshift(data[0]);closeModals();renderProj();renderDash();
   ['p-name','p-client','p-customer-id','p-val','p-start','p-due'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('p-progress').value=0;document.getElementById('p-prog-val').textContent='0%';
 }
 async function saveTask(){
   const text=document.getElementById('t-text').value.trim();if(!text)return;
