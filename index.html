@@ -121,8 +121,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .doc-textarea-wrap{position:relative;flex:1;display:flex;flex-direction:column;}
 .doc-textarea{flex:1;width:100%;min-height:420px;font-size:13px;border:none;padding:1rem;background:var(--surface);color:var(--text);font-family:inherit;line-height:1.7;resize:none;}
 .doc-textarea:focus{outline:none;}
-.doc-textarea.drag-over{background:var(--brand-light);border:2px dashed var(--brand);}
-.doc-drop-hint{position:absolute;bottom:12px;right:12px;font-size:11px;color:var(--text3);background:var(--bg2);padding:4px 10px;border-radius:6px;pointer-events:none;}
+.btn-import{background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--blue-txt);border-radius:6px;padding:4px 11px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;white-space:nowrap;}
+.btn-import:hover{opacity:0.85;}
+.doc-import-input{display:none;}
 .doc-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px;gap:10px;padding:2rem;}
 .cid-badge{font-size:11px;font-weight:700;background:var(--bg2);color:var(--text2);padding:3px 8px;border-radius:6px;font-family:monospace;letter-spacing:0.5px;white-space:nowrap;}
 .jid-badge{font-size:11px;font-weight:700;background:var(--brand-light);color:var(--brand);padding:3px 8px;border-radius:6px;font-family:monospace;letter-spacing:0.5px;white-space:nowrap;}
@@ -240,11 +241,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <div id="sales-sop" style="display:none;">
     <div class="hub-header"><div><div class="hub-title">Sales SOPs</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('sales_sop')">+ New SOP</button></div>
-    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="sales_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="sales_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="sales_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="sales_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('sales_sop')"/><span class="doc-editor-status" id="sales_sop-status"></span><button class="btn-danger" onclick="deleteDoc('sales_sop')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="sales_sop-content-input" placeholder="Paste, type, or drag a Word document here..." oninput="autoSaveDoc('sales_sop')"></textarea><span class="doc-drop-hint">Drop .docx to import</span></div></div></div></div>
+    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="sales_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="sales_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="sales_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="sales_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('sales_sop')"/><span class="doc-editor-status" id="sales_sop-status"></span><button class="btn-import" onclick="triggerDocImport('sales_sop')">Import Word doc</button><input type="file" class="doc-import-input" id="sales_sop-file-input" accept=".docx" onchange="handleDocImport('sales_sop',this)"/><button class="btn-danger" onclick="deleteDoc('sales_sop')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="sales_sop-content-input" placeholder="Paste or type your SOP here, or click Import Word doc to load a .docx file..." oninput="autoSaveDoc('sales_sop')"></textarea></div></div></div></div>
   </div>
   <div id="sales-scripts" style="display:none;">
     <div class="hub-header"><div><div class="hub-title">Sales Scripts</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('sales_scripts')">+ New Script</button></div>
-    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Scripts</span></div><div id="sales_scripts-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="sales_scripts-empty"><span style="font-size:32px;">📞</span><span>Select a script or create a new one</span></div><div id="sales_scripts-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="sales_scripts-title-input" placeholder="Script title..." oninput="autoSaveDoc('sales_scripts')"/><span class="doc-editor-status" id="sales_scripts-status"></span><button class="btn-danger" onclick="deleteDoc('sales_scripts')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="sales_scripts-content-input" placeholder="Paste, type, or drag a Word document here..." oninput="autoSaveDoc('sales_scripts')"></textarea><span class="doc-drop-hint">Drop .docx to import</span></div></div></div></div>
+    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Scripts</span></div><div id="sales_scripts-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="sales_scripts-empty"><span style="font-size:32px;">📞</span><span>Select a script or create a new one</span></div><div id="sales_scripts-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="sales_scripts-title-input" placeholder="Script title..." oninput="autoSaveDoc('sales_scripts')"/><span class="doc-editor-status" id="sales_scripts-status"></span><button class="btn-import" onclick="triggerDocImport('sales_scripts')">Import Word doc</button><input type="file" class="doc-import-input" id="sales_scripts-file-input" accept=".docx" onchange="handleDocImport('sales_scripts',this)"/><button class="btn-danger" onclick="deleteDoc('sales_scripts')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="sales_scripts-content-input" placeholder="Paste or type your script here, or click Import Word doc to load a .docx file..." oninput="autoSaveDoc('sales_scripts')"></textarea></div></div></div></div>
   </div>
 </div>
 
@@ -286,11 +287,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
   <div id="proj-templates" style="display:none;">
     <div class="hub-header"><div><div class="hub-title">Project Templates</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('proj_templates')">+ New template</button></div>
-    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Templates</span></div><div id="proj_templates-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="proj_templates-empty"><span style="font-size:32px;">📄</span><span>Select a template or create a new one</span></div><div id="proj_templates-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="proj_templates-title-input" placeholder="Template name..." oninput="autoSaveDoc('proj_templates')"/><span class="doc-editor-status" id="proj_templates-status"></span><button class="btn-danger" onclick="deleteDoc('proj_templates')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="proj_templates-content-input" placeholder="Paste, type, or drag a Word document here..." oninput="autoSaveDoc('proj_templates')"></textarea><span class="doc-drop-hint">Drop .docx to import</span></div></div></div></div>
+    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Templates</span></div><div id="proj_templates-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="proj_templates-empty"><span style="font-size:32px;">📄</span><span>Select a template or create a new one</span></div><div id="proj_templates-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="proj_templates-title-input" placeholder="Template name..." oninput="autoSaveDoc('proj_templates')"/><span class="doc-editor-status" id="proj_templates-status"></span><button class="btn-import" onclick="triggerDocImport('proj_templates')">Import Word doc</button><input type="file" class="doc-import-input" id="proj_templates-file-input" accept=".docx" onchange="handleDocImport('proj_templates',this)"/><button class="btn-danger" onclick="deleteDoc('proj_templates')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="proj_templates-content-input" placeholder="Paste or type your template here, or click Import Word doc to load a .docx file..." oninput="autoSaveDoc('proj_templates')"></textarea></div></div></div></div>
   </div>
   <div id="proj-proj-sop" style="display:none;">
     <div class="hub-header"><div><div class="hub-title">Project SOPs</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('proj_sop')">+ New SOP</button></div>
-    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="proj_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="proj_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="proj_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="proj_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('proj_sop')"/><span class="doc-editor-status" id="proj_sop-status"></span><button class="btn-danger" onclick="deleteDoc('proj_sop')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="proj_sop-content-input" placeholder="Paste, type, or drag a Word document here..." oninput="autoSaveDoc('proj_sop')"></textarea><span class="doc-drop-hint">Drop .docx to import</span></div></div></div></div>
+    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="proj_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="proj_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="proj_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="proj_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('proj_sop')"/><span class="doc-editor-status" id="proj_sop-status"></span><button class="btn-import" onclick="triggerDocImport('proj_sop')">Import Word doc</button><input type="file" class="doc-import-input" id="proj_sop-file-input" accept=".docx" onchange="handleDocImport('proj_sop',this)"/><button class="btn-danger" onclick="deleteDoc('proj_sop')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="proj_sop-content-input" placeholder="Paste or type your SOP here, or click Import Word doc to load a .docx file..." oninput="autoSaveDoc('proj_sop')"></textarea></div></div></div></div>
   </div>
 </div>
 
@@ -494,30 +495,24 @@ async function loadAll(){
   }catch(err){setSync(false);console.error(err);}
 }
 
-// DRAG & DROP WORD DOCS
-function setupDocDragDrop(){
-  const docTypes=['sales_sop','sales_scripts','proj_templates','proj_sop'];
-  docTypes.forEach(type=>{
-    const ta=document.getElementById(type+'-content-input');
-    if(!ta)return;
-    ta.addEventListener('dragover',e=>{e.preventDefault();ta.classList.add('drag-over');});
-    ta.addEventListener('dragleave',()=>ta.classList.remove('drag-over'));
-    ta.addEventListener('drop',e=>{
-      e.preventDefault();ta.classList.remove('drag-over');
-      const file=e.dataTransfer.files[0];
-      if(!file)return;
-      if(!file.name.endsWith('.docx')){alert('Please drop a .docx Word file.');return;}
-      const reader=new FileReader();
-      reader.onload=ev=>{
-        mammoth.extractRawText({arrayBuffer:ev.target.result}).then(result=>{
-          ta.value=(ta.value?ta.value+'\n\n':'')+result.value;
-          autoSaveDoc(type);
-        }).catch(()=>alert('Could not read the Word file. Make sure it is a .docx file.'));
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  });
+// WORD DOC IMPORT via file picker
+function triggerDocImport(type){
+  document.getElementById(type+'-file-input').click();
 }
+function handleDocImport(type,input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    mammoth.extractRawText({arrayBuffer:ev.target.result}).then(result=>{
+      const ta=document.getElementById(type+'-content-input');
+      ta.value=(ta.value?ta.value+'\n\n---\n\n':'')+result.value.trim();
+      autoSaveDoc(type);
+      input.value='';
+    }).catch(()=>alert('Could not read the Word file. Make sure it is a .docx file.'));
+  };
+  reader.readAsArrayBuffer(file);
+}
+function setupDocDragDrop(){/* file picker used instead */}
 
 const MAIN_TABS=['dash','sales','estimating','projects','field','office','marketing','ceo'];
 function showTab(t){
