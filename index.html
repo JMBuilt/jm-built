@@ -286,8 +286,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="contact-grid" id="sub-grid"></div>
   </div>
   <div id="proj-templates" style="display:none;">
-    <div class="hub-header"><div><div class="hub-title">Project Templates</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('proj_templates')">+ New template</button></div>
-    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Templates</span></div><div id="proj_templates-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="proj_templates-empty"><span style="font-size:32px;">📄</span><span>Select a template or create a new one</span></div><div id="proj_templates-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="proj_templates-title-input" placeholder="Template name..." oninput="autoSaveDoc('proj_templates')"/><span class="doc-editor-status" id="proj_templates-status"></span><button class="btn-import" onclick="triggerDocImport('proj_templates')">Import Word doc</button><input type="file" class="doc-import-input" id="proj_templates-file-input" accept=".docx" onchange="handleDocImport('proj_templates',this)"/><button class="btn-danger" onclick="deleteDoc('proj_templates')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="proj_templates-content-input" placeholder="Paste or type your template here, or click Import Word doc to load a .docx file..." oninput="autoSaveDoc('proj_templates')"></textarea></div></div></div></div>
+    <div class="hub-header">
+      <div><div class="hub-title">Project Templates</div><div class="hub-sub">Your Word templates — click Open to open directly in Word exactly as they are.</div></div>
+      <button class="btn-primary" onclick="openModal('template-link-modal')">+ Add template</button>
+    </div>
+    <div class="contact-grid" id="template-grid"></div>
   </div>
   <div id="proj-proj-sop" style="display:none;">
     <div class="hub-header"><div><div class="hub-title">Project SOPs</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('proj_sop')">+ New SOP</button></div>
@@ -466,7 +469,7 @@ async function getNextId(key,start){
 
 async function loadAll(){
   try{
-    const [l,e,p,t,i,ex,m,c,s,docs,notes,sup,sb2,hist]=await Promise.all([
+    const [l,e,p,t,i,ex,m,c,s,docs,notes,sup,sb2,hist,tlinks]=await Promise.all([
       sb.from('leads').select('*').order('created_at',{ascending:false}),
       sb.from('estimates').select('*').order('created_at',{ascending:false}),
       sb.from('projects').select('*').order('created_at',{ascending:false}),
@@ -481,6 +484,7 @@ async function loadAll(){
       sb.from('suppliers').select('*').order('created_at',{ascending:false}),
       sb.from('subcontractors').select('*').order('created_at',{ascending:false}),
       sb.from('sub_history').select('*').order('created_at',{ascending:true}),
+      sb.from('template_links').select('*').order('created_at',{ascending:false}),
     ]);
     leads=l.data||[];estimates=e.data||[];projects=p.data||[];tasks=t.data||[];
     invoices=i.data||[];expenses=ex.data||[];mktTasks=m.data||[];ceoPriorities=c.data||[];
@@ -489,6 +493,7 @@ async function loadAll(){
     docLibs={};(docs.data||[]).forEach(d=>{if(!docLibs[d.doc_type])docLibs[d.doc_type]=[];docLibs[d.doc_type].push(d);});
     leadNotes={};(notes.data||[]).forEach(n=>{if(!leadNotes[n.lead_id])leadNotes[n.lead_id]=[];leadNotes[n.lead_id].push(n);});
     subHistory={};(hist.data||[]).forEach(h=>{if(!subHistory[h.sub_id])subHistory[h.sub_id]=[];subHistory[h.sub_id].push(h);});
+    templateLinks=(tlinks&&tlinks.data)||[];
     setSync(true);renderDash();
     // Setup drag/drop on all doc textareas after load
     setupDocDragDrop();
@@ -534,7 +539,7 @@ function showProjSubtab(t){
   PROJ_SUBTABS.forEach(id=>document.getElementById('proj-'+id).style.display=id===t?'block':'none');
   document.querySelectorAll('#proj-subtabbar .subtab-btn').forEach((b,i)=>b.classList.toggle('active',PROJ_SUBTABS[i]===t));
   if(t==='dashboard')renderProj();if(t==='suppliers')renderSuppliers();if(t==='subs')renderSubs();
-  if(t==='templates'){renderDocList('proj_templates');setupDocDragDrop();}
+  if(t==='templates')renderTemplates();
   if(t==='proj-sop'){renderDocList('proj_sop');setupDocDragDrop();}
 }
 
@@ -721,7 +726,56 @@ async function saveGoal(){const goal={goal:parseInt(document.getElementById('goa
 async function quickTask(){const inp=document.getElementById('task-inp');const text=inp.value.trim();if(!text)return;const {data}=await sb.from('tasks').insert({text,project:'General',assigned_to:'Yourself',priority:'Normal',done:false}).select();if(data)tasks.unshift(data[0]);inp.value='';renderField();renderDash();}
 async function addMktTask(){const inp=document.getElementById('mkt-inp');const text=inp.value.trim();if(!text)return;const {data}=await sb.from('mkt_tasks').insert({text,done:false}).select();if(data)mktTasks.unshift(data[0]);inp.value='';renderMkt();}
 async function addCeoPri(){const inp=document.getElementById('ceo-inp');const text=inp.value.trim();if(!text)return;const {data}=await sb.from('ceo_priorities').insert({text,done:false}).select();if(data)ceoPriorities.unshift(data[0]);inp.value='';renderCeo();}
+
+// TEMPLATE LINK LIBRARY
+let templateLinks=[];
+async function loadTemplateLinks(){
+  const {data}=await sb.from('template_links').select('*').order('created_at',{ascending:false});
+  templateLinks=data||[];
+}
+function renderTemplates(){
+  const grid=document.getElementById('template-grid');if(!grid)return;
+  // Always show Change Order as first built-in
+  const builtIn=[{id:'builtin-co',name:'Change Order Template',desc:'JM Built change order — use for all scope changes on active jobs',url:'https://1drv.ms/w/c/986EE25883B76CC1/IQBdLjAcHPDrR6jDasnelHacAQIH1TwKFbOMT5A3OXnRaYc',builtin:true}];
+  const all=[...builtIn,...templateLinks];
+  grid.innerHTML=all.map(t=>`
+    <div class="contact-card">
+      <div class="contact-card-header">
+        <div>
+          <div class="contact-name">${t.name}</div>
+          ${t.desc?'<div class="contact-trade">'+t.desc+'</div>':''}
+        </div>
+        ${!t.builtin?'<button class="btn-danger" onclick="deleteTemplateLink(''+t.id+'')">Delete</button>':''}
+      </div>
+      <div class="contact-actions" style="margin-top:12px;">
+        <a href="${t.url}" target="_blank" style="text-decoration:none;">
+          <button class="btn-primary" style="font-size:12px;padding:6px 14px;">Open in Word</button>
+        </a>
+      </div>
+    </div>`).join('')||'<div class="empty" style="grid-column:1/-1;">No templates yet — add your first one above</div>';
+}
+async function saveTemplateLink(){
+  const name=document.getElementById('tl-name').value.trim();if(!name)return;
+  const url=document.getElementById('tl-url').value.trim();if(!url)return;
+  const {data}=await sb.from('template_links').insert({name,desc:document.getElementById('tl-desc').value||'',url}).select();
+  if(data)templateLinks.unshift(data[0]);
+  closeModals();renderTemplates();
+  ['tl-name','tl-desc','tl-url'].forEach(id=>document.getElementById(id).value='');
+}
+async function deleteTemplateLink(id){
+  if(!confirm('Delete this template link?'))return;
+  await sb.from('template_links').delete().eq('id',id);
+  templateLinks=templateLinks.filter(t=>t.id!==id);renderTemplates();
+}
 loadAll();
 </script>
+
+<!-- TEMPLATE LINK MODAL -->
+<div class="modal-overlay" id="template-link-modal"><div class="modal"><h3>Add template</h3>
+  <div class="fg"><label>Template name</label><input id="tl-name" placeholder="e.g. Change Order Template"/></div>
+  <div class="fg"><label>Description <span style="color:var(--text3);font-weight:400;">(optional)</span></label><input id="tl-desc" placeholder="e.g. Use for all scope changes on active jobs"/></div>
+  <div class="fg"><label>OneDrive / SharePoint link</label><input id="tl-url" placeholder="Paste your OneDrive share link here"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveTemplateLink()">Save template</button></div>
+</div></div>
 </body>
 </html>
