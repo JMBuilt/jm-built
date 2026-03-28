@@ -197,7 +197,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <button class="subtab-btn" onclick="showProjSubtab('ordering')">Ordering System</button>
   <button class="subtab-btn" onclick="showProjSubtab('suppliers')">Suppliers</button>
   <button class="subtab-btn" onclick="showProjSubtab('subs')">Subcontractors</button>
-  <button class="subtab-btn" onclick="showProjSubtab('templates')">Templates</button>
   <button class="subtab-btn" onclick="showProjSubtab('proj-sop')">SOP</button>
 </div>
 
@@ -284,13 +283,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="hub-header"><div><div class="hub-title">Subcontractors</div><div class="hub-sub">Your sub network — contacts, trade, rates, and work history.</div></div><button class="btn-primary" onclick="openModal('sub-modal')">+ Add subcontractor</button></div>
     <div class="search-bar"><input id="sub-search" placeholder="Search subcontractors by name or trade..." oninput="renderSubs()"/></div>
     <div class="contact-grid" id="sub-grid"></div>
-  </div>
-  <div id="proj-templates" style="display:none;">
-    <div class="hub-header">
-      <div><div class="hub-title">Project Templates</div><div class="hub-sub">Your Word templates — click Open to open directly in Word exactly as they are.</div></div>
-      <button class="btn-primary" onclick="openModal('template-link-modal')">+ Add template</button>
-    </div>
-    <div class="contact-grid" id="template-grid"></div>
   </div>
   <div id="proj-proj-sop" style="display:none;">
     <div class="hub-header"><div><div class="hub-title">Project SOPs</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('proj_sop')">+ New SOP</button></div>
@@ -469,7 +461,7 @@ async function getNextId(key,start){
 
 async function loadAll(){
   try{
-    const [l,e,p,t,i,ex,m,c,s,docs,notes,sup,sb2,hist,tlinks]=await Promise.all([
+    const [l,e,p,t,i,ex,m,c,s,docs,notes,sup,sb2,hist]=await Promise.all([
       sb.from('leads').select('*').order('created_at',{ascending:false}),
       sb.from('estimates').select('*').order('created_at',{ascending:false}),
       sb.from('projects').select('*').order('created_at',{ascending:false}),
@@ -484,7 +476,6 @@ async function loadAll(){
       sb.from('suppliers').select('*').order('created_at',{ascending:false}),
       sb.from('subcontractors').select('*').order('created_at',{ascending:false}),
       sb.from('sub_history').select('*').order('created_at',{ascending:true}),
-      sb.from('template_links').select('*').order('created_at',{ascending:false}),
     ]);
     leads=l.data||[];estimates=e.data||[];projects=p.data||[];tasks=t.data||[];
     invoices=i.data||[];expenses=ex.data||[];mktTasks=m.data||[];ceoPriorities=c.data||[];
@@ -493,7 +484,6 @@ async function loadAll(){
     docLibs={};(docs.data||[]).forEach(d=>{if(!docLibs[d.doc_type])docLibs[d.doc_type]=[];docLibs[d.doc_type].push(d);});
     leadNotes={};(notes.data||[]).forEach(n=>{if(!leadNotes[n.lead_id])leadNotes[n.lead_id]=[];leadNotes[n.lead_id].push(n);});
     subHistory={};(hist.data||[]).forEach(h=>{if(!subHistory[h.sub_id])subHistory[h.sub_id]=[];subHistory[h.sub_id].push(h);});
-    templateLinks=(tlinks&&tlinks.data)||[];
     setSync(true);renderDash();
     // Setup drag/drop on all doc textareas after load
     setupDocDragDrop();
@@ -534,12 +524,12 @@ function showSalesSubtab(t){
   if(t==='pipeline')renderSalesPipeline();if(t==='database')renderDatabase();
   if(t==='sop')renderDocList('sales_sop');if(t==='scripts')renderDocList('sales_scripts');
 }
-const PROJ_SUBTABS=['dashboard','ordering','suppliers','subs','templates','proj-sop'];
+const PROJ_SUBTABS=['dashboard','ordering','suppliers','subs','proj-sop'];
 function showProjSubtab(t){
   PROJ_SUBTABS.forEach(id=>document.getElementById('proj-'+id).style.display=id===t?'block':'none');
   document.querySelectorAll('#proj-subtabbar .subtab-btn').forEach((b,i)=>b.classList.toggle('active',PROJ_SUBTABS[i]===t));
   if(t==='dashboard')renderProj();if(t==='suppliers')renderSuppliers();if(t==='subs')renderSubs();
-  if(t==='templates')renderTemplates();
+  
   if(t==='proj-sop'){renderDocList('proj_sop');setupDocDragDrop();}
 }
 
@@ -727,48 +717,8 @@ async function quickTask(){const inp=document.getElementById('task-inp');const t
 async function addMktTask(){const inp=document.getElementById('mkt-inp');const text=inp.value.trim();if(!text)return;const {data}=await sb.from('mkt_tasks').insert({text,done:false}).select();if(data)mktTasks.unshift(data[0]);inp.value='';renderMkt();}
 async function addCeoPri(){const inp=document.getElementById('ceo-inp');const text=inp.value.trim();if(!text)return;const {data}=await sb.from('ceo_priorities').insert({text,done:false}).select();if(data)ceoPriorities.unshift(data[0]);inp.value='';renderCeo();}
 
-// TEMPLATE LINK LIBRARY
-let templateLinks=[];
-
-function renderTemplates(){
-  const grid=document.getElementById('template-grid');
-  if(!grid)return;
-  const builtIn=[{id:'builtin-co',name:'Change Order Template',desc:'JM Built change order — use for all scope changes on active jobs',url:'https://1drv.ms/w/c/986EE25883B76CC1/IQBdLjAcHPDrR6jDasnelHacAQIH1TwKFbOMT5A3OXnRaYc',builtin:true}];
-  const all=[...builtIn,...templateLinks];
-  if(!all.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1;">No templates yet</div>';return;}
-  grid.innerHTML=all.map(function(t){
-    var del=t.builtin?'':'<button class="btn-danger" onclick="deleteTemplateLink(&apos;'+t.id+'&apos;)">Delete</button>';
-    var desc=t.desc?'<div class="contact-trade">'+t.desc+'</div>':'';
-    return '<div class="contact-card"><div class="contact-card-header"><div><div class="contact-name">'+t.name+'</div>'+desc+'</div>'+del+'</div><div class="contact-actions" style="margin-top:12px;"><a href="'+t.url+'" target="_blank" style="text-decoration:none;"><button class="btn-primary" style="font-size:12px;padding:6px 14px;">Open in Word</button></a></div></div>';
-  }).join('');
-}
-
-async function saveTemplateLink(){
-  var name=document.getElementById('tl-name').value.trim();if(!name)return;
-  var url=document.getElementById('tl-url').value.trim();if(!url)return;
-  var desc=document.getElementById('tl-desc').value||'';
-  var res=await sb.from('template_links').insert({name:name,desc:desc,url:url}).select();
-  if(res.data)templateLinks.unshift(res.data[0]);
-  closeModals();renderTemplates();
-  ['tl-name','tl-desc','tl-url'].forEach(function(id){document.getElementById(id).value='';});
-}
-
-async function deleteTemplateLink(id){
-  if(!confirm('Delete this template link?'))return;
-  await sb.from('template_links').delete().eq('id',id);
-  templateLinks=templateLinks.filter(function(t){return t.id!==id;});
-  renderTemplates();
-}
-
 loadAll();
 </script>
 
-<!-- TEMPLATE LINK MODAL -->
-<div class="modal-overlay" id="template-link-modal"><div class="modal"><h3>Add template</h3>
-  <div class="fg"><label>Template name</label><input id="tl-name" placeholder="e.g. Change Order Template"/></div>
-  <div class="fg"><label>Description <span style="color:var(--text3);font-weight:400;">(optional)</span></label><input id="tl-desc" placeholder="e.g. Use for all scope changes on active jobs"/></div>
-  <div class="fg"><label>OneDrive / SharePoint link</label><input id="tl-url" placeholder="Paste your OneDrive share link here"/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveTemplateLink()">Save template</button></div>
-</div></div>
 </body>
 </html>
