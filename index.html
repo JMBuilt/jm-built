@@ -169,6 +169,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fg input,.fg select,.fg textarea{width:100%;font-size:13px;border:1px solid var(--border2);border-radius:8px;padding:8px 11px;background:var(--bg2);color:var(--text);font-family:inherit;}
 .fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--brand);}
 .mfoot{display:flex;gap:9px;justify-content:flex-end;margin-top:1.1rem;}
+
+.proj-link{color:var(--brand);font-weight:600;cursor:pointer;text-decoration:none;}
+.proj-link:hover{text-decoration:underline;}
+.jh-tab{border:none;background:transparent;padding:7px 14px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit;border-radius:7px;font-weight:500;transition:all 0.15s;}
+.jh-tab:hover{background:var(--surface);color:var(--text);}
+.jh-tab.active{background:var(--surface);color:var(--brand);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+.phase-row{padding:10px 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.phase-row:last-child{border-bottom:none;}
+.phase-name{font-size:13px;font-weight:600;flex:1;}
+.phase-dates{font-size:11px;color:var(--text3);}
+.log-entry{padding:10px 1rem;border-bottom:1px solid var(--border);}
+.log-entry:last-child{border-bottom:none;}
+.log-date{font-size:11px;color:var(--text3);margin-bottom:4px;}
+.log-text{font-size:13px;line-height:1.6;white-space:pre-wrap;}
 </style>
 </head>
 <body>
@@ -307,6 +321,128 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="hub-header"><div><div class="hub-title">Project SOPs</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('proj_sop')">+ New SOP</button></div>
     <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="proj_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="proj_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="proj_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="proj_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('proj_sop')"/><span class="doc-editor-status" id="proj_sop-status"></span><button class="btn-import" onclick="triggerDocImport('proj_sop')">Import Word doc</button><input type="file" class="doc-import-input" id="proj_sop-file-input" accept=".docx" onchange="handleDocImport('proj_sop',this)"/><button class="btn-danger" onclick="deleteDoc('proj_sop')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="proj_sop-content-input" placeholder="Paste or type your SOP here, or click Import Word doc to load a .docx file..." oninput="autoSaveDoc('proj_sop')"></textarea></div></div></div></div>
   </div>
+  <!-- JOB HUB (hidden, shown when a job is clicked) -->
+  <div id="proj-job-hub" style="display:none;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;">
+      <button class="btn-sm" onclick="closeJobHub()">← Back to projects</button>
+      <div>
+        <div class="hub-title" id="jh-title">Job</div>
+        <div class="hub-sub" id="jh-sub"></div>
+      </div>
+      <span class="jid-badge" id="jh-job-id" style="font-size:13px;padding:5px 12px;"></span>
+      <div id="jh-status-wrap" style="margin-left:auto;"></div>
+    </div>
+    <!-- Job hub sub-tabs -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;display:flex;gap:4px;padding:4px;margin-bottom:1.25rem;flex-wrap:wrap;" id="jh-tabs">
+      <button class="jh-tab active" onclick="showJhTab('management')">📋 Management</button>
+      <button class="jh-tab" onclick="showJhTab('financials')">💰 Financials</button>
+      <button class="jh-tab" onclick="showJhTab('documents')">📁 Documents</button>
+      <button class="jh-tab" onclick="showJhTab('people')">👥 People</button>
+    </div>
+
+    <!-- MANAGEMENT -->
+    <div id="jh-management">
+      <div class="grid2" style="margin-bottom:1rem;">
+        <!-- Phases -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Phases</span>
+            <button class="btn-sm" onclick="openModal('phase-modal')">+ Add phase</button>
+          </div>
+          <div id="jh-phases-list"></div>
+        </div>
+        <!-- Weekly/Daily Tasks -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Job tasks</span>
+            <span class="badge b-brand" id="jh-task-count">0</span>
+          </div>
+          <div id="jh-tasks-list"></div>
+          <div class="add-row">
+            <input id="jh-task-inp" placeholder="Add task..." onkeydown="if(event.key==='Enter')addJhTask()"/>
+            <button class="btn-primary" style="padding:7px 13px;" onclick="addJhTask()">Add</button>
+          </div>
+        </div>
+      </div>
+      <div class="grid2">
+        <!-- Notes -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Notes</span></div>
+          <div id="jh-notes-list"></div>
+          <div class="add-row">
+            <input id="jh-note-inp" placeholder="Add note..." onkeydown="if(event.key==='Enter')addJhNote()"/>
+            <button class="btn-primary" style="padding:7px 13px;" onclick="addJhNote()">Add</button>
+          </div>
+        </div>
+        <!-- Daily log -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Daily log</span></div>
+          <div id="jh-log-list" style="max-height:300px;overflow-y:auto;"></div>
+          <div class="add-row" style="flex-direction:column;gap:6px;">
+            <textarea id="jh-log-inp" placeholder="What happened today? Who was on site? Any issues?" style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:8px 11px;background:var(--bg2);color:var(--text);font-family:inherit;resize:vertical;min-height:70px;"></textarea>
+            <div style="display:flex;justify-content:flex-end;">
+              <button class="btn-primary" style="padding:7px 16px;" onclick="addJhLog()">Log entry</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FINANCIALS -->
+    <div id="jh-financials" style="display:none;">
+      <!-- P&L Summary -->
+      <div class="grid4" style="margin-bottom:1rem;" id="jh-pl-stats"></div>
+      <div class="grid2" style="margin-bottom:1rem;">
+        <!-- Labor -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Labor costs</span><button class="btn-sm" onclick="openModal('labor-modal')">+ Add</button></div>
+          <table class="tbl"><thead><tr><th>Name</th><th>Hours</th><th>Rate</th><th>Total</th><th></th></tr></thead><tbody id="jh-labor-list"></tbody></table>
+        </div>
+        <!-- Materials -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Material costs</span><button class="btn-sm" onclick="openModal('material-modal')">+ Add</button></div>
+          <table class="tbl"><thead><tr><th>Item</th><th>Qty</th><th>Unit cost</th><th>Total</th><th></th></tr></thead><tbody id="jh-material-list"></tbody></table>
+        </div>
+      </div>
+      <div class="grid2">
+        <!-- Subcontractors -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Subcontractor costs</span><button class="btn-sm" onclick="openModal('sub-cost-modal')">+ Add</button></div>
+          <table class="tbl"><thead><tr><th>Sub name</th><th>Trade</th><th>Amount</th><th>Notes</th><th></th></tr></thead><tbody id="jh-subcost-list"></tbody></table>
+        </div>
+        <!-- Change orders -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Change orders</span><button class="btn-sm" onclick="openModal('changeorder-modal')">+ Add</button></div>
+          <table class="tbl"><thead><tr><th>Description</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody id="jh-co-list"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div id="jh-documents" style="display:none;">
+      <div class="hub-header">
+        <div><div class="hub-title">Job Documents</div><div class="hub-sub">Add links to contracts, permits, plans, photos stored in OneDrive or Google Drive.</div></div>
+        <button class="btn-primary" onclick="openModal('job-doc-modal')">+ Add document</button>
+      </div>
+      <div class="contact-grid" id="jh-doc-grid"></div>
+    </div>
+
+    <!-- PEOPLE -->
+    <div id="jh-people" style="display:none;">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Client info</span></div>
+          <div id="jh-client-info"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Project team</span><button class="btn-sm" onclick="openModal('team-modal')">Edit</button></div>
+          <div id="jh-team-info"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
 <!-- FIELD -->
@@ -546,13 +682,15 @@ function showSalesSubtab(t){
   if(t==='pipeline')renderSalesPipeline();if(t==='database')renderDatabase();
   if(t==='sop')renderDocList('sales_sop');if(t==='scripts')renderDocList('sales_scripts');
 }
-const PROJ_SUBTABS=['dashboard','ordering','suppliers','subs','proj-sop'];
+const PROJ_SUBTABS=['dashboard','ordering','suppliers','subs','proj-sop','job-hub'];
 function showProjSubtab(t){
   PROJ_SUBTABS.forEach(id=>document.getElementById('proj-'+id).style.display=id===t?'block':'none');
   document.querySelectorAll('#proj-subtabbar .subtab-btn').forEach((b,i)=>b.classList.toggle('active',PROJ_SUBTABS[i]===t));
   if(t==='dashboard')renderProj();if(t==='suppliers')renderSuppliers();if(t==='subs')renderSubs();
   
   if(t==='proj-sop'){renderDocList('proj_sop');setupDocDragDrop();}
+  // hide subtab bar when in job hub
+  document.getElementById('proj-subtabbar').style.display=t==='job-hub'?'none':'flex';
 }
 
 function statCards(el,items){document.getElementById(el).innerHTML=items.map(s=>'<div class="stat-card"><div class="stat-label">'+s.label+'</div><div class="stat-value">'+s.value+'</div><div class="stat-sub">'+(s.sub||'')+'</div></div>').join('');}
@@ -676,7 +814,7 @@ function renderProj(){
   statCards('proj-stats',[{label:'Active jobs',value:active.length,sub:'In progress'},{label:'Active value',value:fmt(active.reduce((s,p)=>s+toNum(p.val),0)),sub:'Under contract'},{label:'Preconstruction',value:projects.filter(p=>p.status==='Preconstruction').length},{label:'Punchout',value:projects.filter(p=>p.status==='Punchout').length},{label:'Completed',value:projects.filter(p=>p.status==='Complete').length,sub:'All time'}]);
   document.getElementById('active-proj-count').textContent=active.length;
   document.getElementById('active-proj-tbl').innerHTML=active.map(p=>`<tr>
-    <td style="font-weight:600;">${p.name}</td>
+    <td><span class="proj-link" onclick="openJobHub('${p.id}')">${p.name}</span></td>
     <td><span class="jid-badge">${p.job_id||'—'}</span></td>
     <td style="color:var(--text2);">${p.client||'—'}</td>
     <td>${p.customer_id?'<span class="cid-badge">'+p.customer_id+'</span>':'<span style="color:var(--text3);">—</span>'}</td>
@@ -693,7 +831,7 @@ function renderProj(){
 
   document.getElementById('complete-proj-count').textContent=complete.length;
   document.getElementById('complete-proj-tbl').innerHTML=complete.map(p=>`<tr>
-    <td style="font-weight:600;">${p.name}</td>
+    <td><span class="proj-link" onclick="openJobHub('${p.id}')">${p.name}</span></td>
     <td><span class="jid-badge">${p.job_id||'—'}</span></td>
     <td style="color:var(--text2);">${p.client||'—'}</td>
     <td>${p.customer_id?'<span class="cid-badge">'+p.customer_id+'</span>':'<span style="color:var(--text3);">—</span>'}</td>
@@ -793,8 +931,346 @@ async function deleteSalesTask(id){
   renderSalesNotesAndTasks();
 }
 
+// ============================================================
+// JOB HUB
+// ============================================================
+let currentJobId=null;
+let jhPhases=[],jhTasks=[],jhNotes=[],jhLog=[],jhLabor=[],jhMaterials=[],jhSubCosts=[],jhChangeOrders=[],jhDocs=[],jhTeam=null;
+
+const JH_TABS=['management','financials','documents','people'];
+function showJhTab(t){
+  JH_TABS.forEach(id=>document.getElementById('jh-'+id).style.display=id===t?'block':'none');
+  document.querySelectorAll('.jh-tab').forEach((b,i)=>b.classList.toggle('active',JH_TABS[i]===t));
+  if(t==='financials')renderJhFinancials();
+  if(t==='documents')renderJhDocs();
+  if(t==='people')renderJhPeople();
+}
+
+async function openJobHub(projId){
+  currentJobId=projId;
+  const p=projects.find(x=>x.id===projId);
+  if(!p)return;
+  // Update header
+  document.getElementById('jh-title').textContent=p.name;
+  document.getElementById('jh-sub').textContent=(p.client||'')+(p.val?' · '+p.val:'');
+  document.getElementById('jh-job-id').textContent=p.job_id||'';
+  document.getElementById('jh-status-wrap').innerHTML='<select class="status-select-full" onchange="updateProjStatus(\''+p.id+'\',this.value)">'+['Preconstruction','In progress','On hold','Punchout','Complete'].map(function(s){return '<option'+(s===p.status?' selected':'')+'>'+s+'</option>';}).join('')+'</select>';
+  // Load all job data
+  await loadJobHubData(projId);
+  // Show job hub subtab
+  showProjSubtab('job-hub');
+  // Show management tab by default
+  showJhTab('management');
+}
+
+function closeJobHub(){
+  currentJobId=null;
+  showProjSubtab('dashboard');
+  document.getElementById('proj-subtabbar').style.display='flex';
+}
+
+async function loadJobHubData(projId){
+  try{
+    const [phases,tasks,notes,log,labor,materials,subcosts,cos,docs,team]=await Promise.all([
+      sb.from('job_phases').select('*').eq('project_id',projId).order('created_at',{ascending:true}),
+      sb.from('job_tasks').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
+      sb.from('job_notes').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
+      sb.from('job_log').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
+      sb.from('job_labor').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
+      sb.from('job_materials').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
+      sb.from('job_subcosts').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
+      sb.from('job_changeorders').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
+      sb.from('job_docs').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
+      sb.from('job_team').select('*').eq('project_id',projId).single(),
+    ]);
+    jhPhases=phases.data||[];
+    jhTasks=tasks.data||[];
+    jhNotes=notes.data||[];
+    jhLog=log.data||[];
+    jhLabor=labor.data||[];
+    jhMaterials=materials.data||[];
+    jhSubCosts=subcosts.data||[];
+    jhChangeOrders=cos.data||[];
+    jhDocs=docs.data||[];
+    jhTeam=team.data||null;
+    renderJhManagement();
+  }catch(err){console.error('loadJobHubData error:',err);}
+}
+
+// ---- MANAGEMENT ----
+function renderJhManagement(){
+  renderJhPhases();
+  renderJhTasks();
+  renderJhNotes();
+  renderJhLog();
+}
+
+const PHASE_STATUS_COLORS={'Not started':'b-gray','In progress':'b-amber','Complete':'b-green','On hold':'b-red'};
+function renderJhPhases(){
+  const el=document.getElementById('jh-phases-list');
+  if(!jhPhases.length){el.innerHTML='<div class="empty">No phases yet — add Demo, Framing, etc.</div>';return;}
+  el.innerHTML=jhPhases.map(function(ph){
+    return '<div class="phase-row"><div style="flex:1"><div class="phase-name">'+ph.name+'</div><div class="phase-dates">'+(ph.start_date||'?')+' → '+(ph.end_date||'?')+(ph.notes?' · '+ph.notes:'')+'</div></div><span class="badge '+(PHASE_STATUS_COLORS[ph.status]||'b-gray')+'">'+ph.status+'</span><button class="btn-danger" style="padding:3px 8px;font-size:10px;" onclick="deleteJhPhase(\''+ph.id+'\')">✕</button></div>';
+  }).join('');
+}
+
+async function savePhase(){
+  var name=document.getElementById('ph-name').value.trim();if(!name)return;
+  var res=await sb.from('job_phases').insert({project_id:currentJobId,name:name,status:document.getElementById('ph-status').value,start_date:document.getElementById('ph-start').value||null,end_date:document.getElementById('ph-end').value||null,notes:document.getElementById('ph-notes').value||''}).select();
+  if(res.data)jhPhases.push(res.data[0]);
+  closeModals();renderJhPhases();
+  ['ph-name','ph-start','ph-end','ph-notes'].forEach(function(id){document.getElementById(id).value='';});
+}
+
+async function deleteJhPhase(id){
+  await sb.from('job_phases').delete().eq('id',id);
+  jhPhases=jhPhases.filter(function(x){return x.id!==id;});renderJhPhases();
+}
+
+function renderJhTasks(){
+  var pending=jhTasks.filter(function(t){return !t.done;}).length;
+  var el=document.getElementById('jh-task-count');if(el)el.textContent=pending;
+  document.getElementById('jh-tasks-list').innerHTML=jhTasks.length
+    ? jhTasks.map(function(t){return '<div class="todo-item"><div class="chk'+(t.done?' done':'')+'" onclick="toggleJhTask(\''+t.id+'\','+(!t.done)+')"></div><div style="flex:1" class="todo-label'+(t.done?' striked':'')+'">'+t.text+'</div><button class="btn-danger" style="padding:3px 8px;font-size:10px;" onclick="deleteJhTask(\''+t.id+'\')">✕</button></div>';}).join('')
+    : '<div class="empty">No tasks yet</div>';
+}
+
+async function addJhTask(){
+  var inp=document.getElementById('jh-task-inp');var text=inp.value.trim();if(!text)return;
+  var res=await sb.from('job_tasks').insert({project_id:currentJobId,text:text,done:false}).select();
+  if(res.data)jhTasks.unshift(res.data[0]);inp.value='';renderJhTasks();
+}
+async function toggleJhTask(id,done){
+  await sb.from('job_tasks').update({done:done}).eq('id',id);
+  var t=jhTasks.find(function(x){return x.id===id;});if(t)t.done=done;renderJhTasks();
+}
+async function deleteJhTask(id){
+  await sb.from('job_tasks').delete().eq('id',id);
+  jhTasks=jhTasks.filter(function(x){return x.id!==id;});renderJhTasks();
+}
+
+function renderJhNotes(){
+  document.getElementById('jh-notes-list').innerHTML=jhNotes.length
+    ? jhNotes.map(function(n){return '<div class="list-row"><div style="flex:1;font-size:13px;">'+n.text+'</div><button class="btn-danger" style="padding:3px 8px;font-size:10px;" onclick="deleteJhNote(\''+n.id+'\')">✕</button></div>';}).join('')
+    : '<div class="empty">No notes yet</div>';
+}
+async function addJhNote(){
+  var inp=document.getElementById('jh-note-inp');var text=inp.value.trim();if(!text)return;
+  var res=await sb.from('job_notes').insert({project_id:currentJobId,text:text}).select();
+  if(res.data)jhNotes.unshift(res.data[0]);inp.value='';renderJhNotes();
+}
+async function deleteJhNote(id){
+  await sb.from('job_notes').delete().eq('id',id);
+  jhNotes=jhNotes.filter(function(x){return x.id!==id;});renderJhNotes();
+}
+
+function renderJhLog(){
+  document.getElementById('jh-log-list').innerHTML=jhLog.length
+    ? jhLog.map(function(l){return '<div class="log-entry"><div class="log-date">'+fmtDateTime(l.created_at)+'</div><div class="log-text">'+l.text+'</div></div>';}).join('')
+    : '<div class="empty">No log entries yet</div>';
+}
+async function addJhLog(){
+  var inp=document.getElementById('jh-log-inp');var text=inp.value.trim();if(!text)return;
+  var res=await sb.from('job_log').insert({project_id:currentJobId,text:text}).select();
+  if(res.data)jhLog.unshift(res.data[0]);inp.value='';renderJhLog();
+}
+
+// ---- FINANCIALS ----
+function renderJhFinancials(){
+  var p=projects.find(function(x){return x.id===currentJobId;});
+  var contractVal=p?parseInt((p.val||'0').replace(/[^0-9]/g,''))||0:0;
+  var laborTotal=jhLabor.reduce(function(s,l){return s+(parseFloat(l.hours)||0)*(parseFloat(l.rate)||0);},0);
+  var matTotal=jhMaterials.reduce(function(s,m){return s+(parseFloat(m.qty)||0)*(parseFloat(m.unit_cost)||0);},0);
+  var subTotal=jhSubCosts.reduce(function(s,sc){return s+(parseFloat(sc.amount)||0);},0);
+  var coApproved=jhChangeOrders.filter(function(co){return co.status==='Approved';}).reduce(function(s,co){return s+(parseFloat(co.amount)||0);},0);
+  var totalCost=laborTotal+matTotal+subTotal;
+  var totalRevenue=contractVal+coApproved;
+  var margin=totalRevenue-totalCost;
+  var pct=totalRevenue>0?Math.round(margin/totalRevenue*100):0;
+  statCards('jh-pl-stats',[
+    {label:'Contract value',value:'$'+totalRevenue.toLocaleString(),sub:'Incl. approved change orders'},
+    {label:'Total costs',value:'$'+Math.round(totalCost).toLocaleString(),sub:'Labor + materials + subs'},
+    {label:'Gross profit',value:'$'+Math.round(margin).toLocaleString(),sub:pct+'% margin'},
+    {label:'Change orders',value:jhChangeOrders.length,sub:coApproved>0?'+$'+Math.round(coApproved).toLocaleString()+' approved':'None approved'},
+  ]);
+  // Labor table
+  document.getElementById('jh-labor-list').innerHTML=jhLabor.length
+    ? jhLabor.map(function(l){var tot=(parseFloat(l.hours)||0)*(parseFloat(l.rate)||0);return '<tr><td style="font-weight:500;">'+l.name+'</td><td>'+l.hours+'h</td><td>$'+l.rate+'/hr</td><td style="color:var(--brand);font-weight:600;">$'+Math.round(tot).toLocaleString()+'</td><td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteJhLabor(\''+l.id+'\')">✕</button></td></tr>';}).join('')
+    : '<tr><td colspan="5" class="empty">No labor logged</td></tr>';
+  // Materials table
+  document.getElementById('jh-material-list').innerHTML=jhMaterials.length
+    ? jhMaterials.map(function(m){var tot=(parseFloat(m.qty)||0)*(parseFloat(m.unit_cost)||0);return '<tr><td style="font-weight:500;">'+m.item+'</td><td>'+m.qty+'</td><td>$'+m.unit_cost+'</td><td style="color:var(--brand);font-weight:600;">$'+Math.round(tot).toLocaleString()+'</td><td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteJhMaterial(\''+m.id+'\')">✕</button></td></tr>';}).join('')
+    : '<tr><td colspan="5" class="empty">No materials logged</td></tr>';
+  // Sub costs table
+  document.getElementById('jh-subcost-list').innerHTML=jhSubCosts.length
+    ? jhSubCosts.map(function(sc){return '<tr><td style="font-weight:500;">'+sc.name+'</td><td style="color:var(--text2);">'+sc.trade+'</td><td style="color:var(--brand);font-weight:600;">$'+(parseFloat(sc.amount)||0).toLocaleString()+'</td><td style="color:var(--text2);font-size:12px;">'+(sc.notes||'—')+'</td><td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteJhSubCost(\''+sc.id+'\')">✕</button></td></tr>';}).join('')
+    : '<tr><td colspan="5" class="empty">No sub costs logged</td></tr>';
+  // Change orders table
+  var coColors={'Pending':'b-amber','Approved':'b-green','Declined':'b-red'};
+  document.getElementById('jh-co-list').innerHTML=jhChangeOrders.length
+    ? jhChangeOrders.map(function(co){return '<tr><td style="font-weight:500;">'+co.description+'</td><td style="color:var(--brand);font-weight:600;">$'+(parseFloat(co.amount)||0).toLocaleString()+'</td><td><span class="badge '+(coColors[co.status]||'b-gray')+'">'+co.status+'</span></td><td style="color:var(--text2);font-size:12px;">'+(co.date||'—')+'</td><td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteJhCO(\''+co.id+'\')">✕</button></td></tr>';}).join('')
+    : '<tr><td colspan="5" class="empty">No change orders</td></tr>';
+}
+
+async function saveLabor(){
+  var name=document.getElementById('lb-name').value.trim();if(!name)return;
+  var res=await sb.from('job_labor').insert({project_id:currentJobId,name:name,hours:document.getElementById('lb-hours').value||0,rate:document.getElementById('lb-rate').value||0,date:document.getElementById('lb-date').value||null}).select();
+  if(res.data)jhLabor.unshift(res.data[0]);closeModals();renderJhFinancials();
+  ['lb-name','lb-hours','lb-rate','lb-date'].forEach(function(id){document.getElementById(id).value='';});
+}
+async function deleteJhLabor(id){await sb.from('job_labor').delete().eq('id',id);jhLabor=jhLabor.filter(function(x){return x.id!==id;});renderJhFinancials();}
+
+async function saveMaterial(){
+  var item=document.getElementById('mat-item').value.trim();if(!item)return;
+  var res=await sb.from('job_materials').insert({project_id:currentJobId,item:item,qty:document.getElementById('mat-qty').value||0,unit_cost:document.getElementById('mat-cost').value||0,supplier:document.getElementById('mat-supplier').value||''}).select();
+  if(res.data)jhMaterials.unshift(res.data[0]);closeModals();renderJhFinancials();
+  ['mat-item','mat-qty','mat-cost','mat-supplier'].forEach(function(id){document.getElementById(id).value='';});
+}
+async function deleteJhMaterial(id){await sb.from('job_materials').delete().eq('id',id);jhMaterials=jhMaterials.filter(function(x){return x.id!==id;});renderJhFinancials();}
+
+async function saveSubCost(){
+  var name=document.getElementById('sc-name').value.trim();if(!name)return;
+  var res=await sb.from('job_subcosts').insert({project_id:currentJobId,name:name,trade:document.getElementById('sc-trade').value||'',amount:document.getElementById('sc-amount').value||0,notes:document.getElementById('sc-notes').value||''}).select();
+  if(res.data)jhSubCosts.unshift(res.data[0]);closeModals();renderJhFinancials();
+  ['sc-name','sc-trade','sc-amount','sc-notes'].forEach(function(id){document.getElementById(id).value='';});
+}
+async function deleteJhSubCost(id){await sb.from('job_subcosts').delete().eq('id',id);jhSubCosts=jhSubCosts.filter(function(x){return x.id!==id;});renderJhFinancials();}
+
+async function saveChangeOrder(){
+  var desc=document.getElementById('co-desc').value.trim();if(!desc)return;
+  var res=await sb.from('job_changeorders').insert({project_id:currentJobId,description:desc,amount:document.getElementById('co-amount').value||0,status:document.getElementById('co-status').value,date:document.getElementById('co-date').value||null}).select();
+  if(res.data)jhChangeOrders.unshift(res.data[0]);closeModals();renderJhFinancials();
+  ['co-desc','co-amount','co-date'].forEach(function(id){document.getElementById(id).value='';});
+}
+async function deleteJhCO(id){await sb.from('job_changeorders').delete().eq('id',id);jhChangeOrders=jhChangeOrders.filter(function(x){return x.id!==id;});renderJhFinancials();}
+
+// ---- DOCUMENTS ----
+function renderJhDocs(){
+  var grid=document.getElementById('jh-doc-grid');
+  if(!jhDocs.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1;">No documents yet — add contracts, permits, plans, photos</div>';return;}
+  grid.innerHTML=jhDocs.map(function(d){
+    return '<div class="contact-card"><div class="contact-card-header"><div><div class="contact-name">'+d.name+'</div>'+(d.notes?'<div class="contact-trade">'+d.notes+'</div>':'')+'</div><button class="btn-danger" onclick="deleteJhDoc(\''+d.id+'\')">Delete</button></div><div class="contact-actions" style="margin-top:10px;"><a href="'+d.url+'" target="_blank" style="text-decoration:none;"><button class="btn-primary" style="font-size:12px;padding:6px 14px;">Open</button></a></div></div>';
+  }).join('');
+}
+async function saveJobDoc(){
+  var name=document.getElementById('jd-name').value.trim();if(!name)return;
+  var url=document.getElementById('jd-url').value.trim();if(!url)return;
+  var res=await sb.from('job_docs').insert({project_id:currentJobId,name:name,url:url,notes:document.getElementById('jd-notes').value||''}).select();
+  if(res.data)jhDocs.unshift(res.data[0]);closeModals();renderJhDocs();
+  ['jd-name','jd-url','jd-notes'].forEach(function(id){document.getElementById(id).value='';});
+}
+async function deleteJhDoc(id){await sb.from('job_docs').delete().eq('id',id);jhDocs=jhDocs.filter(function(x){return x.id!==id;});renderJhDocs();}
+
+// ---- PEOPLE ----
+function renderJhPeople(){
+  var p=projects.find(function(x){return x.id===currentJobId;});
+  // Client info - try to find matching lead
+  var lead=p&&p.customer_id?leads.find(function(l){return l.customer_id===p.customer_id;}):null;
+  var clientHtml='';
+  if(lead){
+    clientHtml='<div class="list-row"><div class="row-name">Name</div><span>'+lead.name+'</span></div>'
+      +(lead.phone?'<div class="list-row"><div class="row-name">Phone</div><span>'+lead.phone+'</span></div>':'')
+      +(lead.email?'<div class="list-row"><div class="row-name">Email</div><span>'+lead.email+'</span></div>':'')
+      +(lead.address?'<div class="list-row"><div class="row-name">Address</div><span>'+lead.address+'</span></div>':'');
+  } else if(p){
+    clientHtml='<div class="list-row"><div class="row-name">Name</div><span>'+(p.client||'—')+'</span></div><div class="list-row" style="font-size:12px;color:var(--text3);padding:8px 1rem;">Link a Customer ID to see full contact info</div>';
+  }
+  document.getElementById('jh-client-info').innerHTML=clientHtml||'<div class="empty">No client info</div>';
+  // Team
+  var t=jhTeam;
+  document.getElementById('jh-team-info').innerHTML=t
+    ? '<div class="list-row"><div class="row-name">Project manager</div><span>'+(t.pm||'—')+'</span></div>'
+      +'<div class="list-row"><div class="row-name">Foreman / Lead</div><span>'+(t.foreman||'—')+'</span></div>'
+      +'<div class="list-row"><div class="row-name">Subcontractors</div><span style="font-size:12px;">'+(t.subs||'—')+'</span></div>'
+      +'<div class="list-row"><div class="row-name">Crew</div><span style="font-size:12px;">'+(t.crew||'—')+'</span></div>'
+    : '<div class="empty">No team assigned yet</div>';
+  // Pre-fill team modal
+  if(t){
+    document.getElementById('tm-pm').value=t.pm||'';
+    document.getElementById('tm-foreman').value=t.foreman||'';
+    document.getElementById('tm-subs').value=t.subs||'';
+    document.getElementById('tm-crew').value=t.crew||'';
+  }
+}
+
+async function saveTeam(){
+  var data={project_id:currentJobId,pm:document.getElementById('tm-pm').value||'',foreman:document.getElementById('tm-foreman').value||'',subs:document.getElementById('tm-subs').value||'',crew:document.getElementById('tm-crew').value||''};
+  if(jhTeam){
+    await sb.from('job_team').update(data).eq('id',jhTeam.id);
+    Object.assign(jhTeam,data);
+  } else {
+    var res=await sb.from('job_team').insert(data).select();
+    if(res.data)jhTeam=res.data[0];
+  }
+  closeModals();renderJhPeople();
+}
+
 loadAll();
 </script>
+
+
+<!-- PHASE MODAL -->
+<div class="modal-overlay" id="phase-modal"><div class="modal"><h3>Add phase</h3>
+  <div class="fg"><label>Phase name</label><input id="ph-name" placeholder="e.g. Demo, Framing, Electrical, Plumbing..."/></div>
+  <div class="fg"><label>Status</label><select id="ph-status"><option>Not started</option><option>In progress</option><option>Complete</option><option>On hold</option></select></div>
+  <div class="fg"><label>Start date</label><input id="ph-start" type="date"/></div>
+  <div class="fg"><label>End date</label><input id="ph-end" type="date"/></div>
+  <div class="fg"><label>Notes</label><input id="ph-notes" placeholder="Optional notes"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="savePhase()">Save phase</button></div>
+</div></div>
+
+<!-- LABOR MODAL -->
+<div class="modal-overlay" id="labor-modal"><div class="modal"><h3>Add labor cost</h3>
+  <div class="fg"><label>Name</label><input id="lb-name" placeholder="e.g. Yourself, crew member..."/></div>
+  <div class="fg"><label>Hours</label><input id="lb-hours" type="number" placeholder="e.g. 8"/></div>
+  <div class="fg"><label>Rate ($/hr)</label><input id="lb-rate" type="number" placeholder="e.g. 65"/></div>
+  <div class="fg"><label>Date</label><input id="lb-date" type="date"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveLabor()">Save</button></div>
+</div></div>
+
+<!-- MATERIAL MODAL -->
+<div class="modal-overlay" id="material-modal"><div class="modal"><h3>Add material cost</h3>
+  <div class="fg"><label>Item</label><input id="mat-item" placeholder="e.g. 2x4 lumber, tile, drywall..."/></div>
+  <div class="fg"><label>Quantity</label><input id="mat-qty" type="number" placeholder="e.g. 50"/></div>
+  <div class="fg"><label>Unit cost ($)</label><input id="mat-cost" type="number" placeholder="e.g. 3.50"/></div>
+  <div class="fg"><label>Supplier</label><input id="mat-supplier" placeholder="e.g. ABC Lumber"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveMaterial()">Save</button></div>
+</div></div>
+
+<!-- SUB COST MODAL -->
+<div class="modal-overlay" id="sub-cost-modal"><div class="modal"><h3>Add subcontractor cost</h3>
+  <div class="fg"><label>Sub name</label><input id="sc-name" placeholder="e.g. Dave's Electric"/></div>
+  <div class="fg"><label>Trade</label><input id="sc-trade" placeholder="e.g. Electrical"/></div>
+  <div class="fg"><label>Amount ($)</label><input id="sc-amount" type="number" placeholder="e.g. 3200"/></div>
+  <div class="fg"><label>Notes</label><input id="sc-notes" placeholder="e.g. Rough-in complete"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveSubCost()">Save</button></div>
+</div></div>
+
+<!-- CHANGE ORDER MODAL -->
+<div class="modal-overlay" id="changeorder-modal"><div class="modal"><h3>Add change order</h3>
+  <div class="fg"><label>Description</label><input id="co-desc" placeholder="e.g. Added bathroom exhaust fan"/></div>
+  <div class="fg"><label>Amount ($)</label><input id="co-amount" type="number" placeholder="e.g. 450"/></div>
+  <div class="fg"><label>Status</label><select id="co-status"><option>Pending</option><option>Approved</option><option>Declined</option></select></div>
+  <div class="fg"><label>Date</label><input id="co-date" type="date"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveChangeOrder()">Save</button></div>
+</div></div>
+
+<!-- JOB DOC MODAL -->
+<div class="modal-overlay" id="job-doc-modal"><div class="modal"><h3>Add document link</h3>
+  <div class="fg"><label>Document name</label><input id="jd-name" placeholder="e.g. Signed Contract, Building Permit..."/></div>
+  <div class="fg"><label>Link (OneDrive, Google Drive, etc.)</label><input id="jd-url" placeholder="Paste link here"/></div>
+  <div class="fg"><label>Notes</label><input id="jd-notes" placeholder="Optional description"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveJobDoc()">Save</button></div>
+</div></div>
+
+<!-- TEAM MODAL -->
+<div class="modal-overlay" id="team-modal"><div class="modal"><h3>Project team</h3>
+  <div class="fg"><label>Project manager</label><input id="tm-pm" placeholder="e.g. Your name"/></div>
+  <div class="fg"><label>Foreman / Lead</label><input id="tm-foreman" placeholder="e.g. Name"/></div>
+  <div class="fg"><label>Subcontractors on this job</label><textarea id="tm-subs" rows="3" style="resize:vertical;" placeholder="e.g. Dave's Electric, ABC Plumbing..."></textarea></div>
+  <div class="fg"><label>Employees / Crew</label><textarea id="tm-crew" rows="3" style="resize:vertical;" placeholder="e.g. John, Mike..."></textarea></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveTeam()">Save</button></div>
+</div></div>
 
 </body>
 </html>
