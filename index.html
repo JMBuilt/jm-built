@@ -1087,7 +1087,7 @@ let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 const JH_TABS=['management','financials','documents','people'];
 function showJhTab(t){
   JH_TABS.forEach(id=>document.getElementById('jh-'+id).style.display=id===t?'block':'none');
-  document.querySelectorAll('.jh-tab').forEach((b,i)=>b.classList.toggle('active',JH_TABS[i]===t));
+  document.querySelectorAll('#jh-tabs .jh-tab').forEach((b,i)=>b.classList.toggle('active',JH_TABS[i]===t));
   if(t==='financials')renderJhFinancials();
   if(t==='documents')renderJhDocs();
   if(t==='people')renderJhPeople();
