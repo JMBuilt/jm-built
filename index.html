@@ -499,6 +499,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <table class="tbl"><thead><tr><th>Description</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody id="jh-co-list"></tbody></table>
         </div>
       </div>
+      <!-- Other Expenses -->
+      <div class="card" style="margin-top:1rem;">
+        <div class="card-header"><span class="card-title">Other expenses</span><button class="btn-sm" onclick="openModal('other-expense-modal')">+ Add</button></div>
+        <table class="tbl"><thead><tr><th>Description</th><th>Amount</th><th>Date</th><th></th></tr></thead><tbody id="jh-other-list"></tbody></table>
+      </div>
     </div>
 
     <!-- DOCUMENTS -->
@@ -1107,7 +1112,7 @@ async function deleteSalesTask(id){
 // JOB HUB
 // ============================================================
 let currentJobId=null;
-let jhPhases=[],jhTasks=[],jhNotes=[],jhLog=[],jhLabor=[],jhMaterials=[],jhSubCosts=[],jhChangeOrders=[],jhDocs=[],jhTeam=[],jhCalEvents=[],jhFinancials=null;
+let jhPhases=[],jhTasks=[],jhNotes=[],jhLog=[],jhLabor=[],jhMaterials=[],jhSubCosts=[],jhChangeOrders=[],jhOther=[],jhDocs=[],jhTeam=[],jhCalEvents=[],jhFinancials=null;
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 
 const JH_TABS=['management','financials','documents','people'];
@@ -1144,7 +1149,7 @@ function closeJobHub(){
 
 async function loadJobHubData(projId){
   try{
-    const [phases,tasks,notes,log,labor,materials,subcosts,cos,docs,people,calev,findata]=await Promise.all([
+    const [phases,tasks,notes,log,labor,materials,subcosts,cos,docs,people,calev,findata,other]=await Promise.all([
       sb.from('job_phases').select('*').eq('project_id',projId).order('created_at',{ascending:true}),
       sb.from('job_tasks').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
       sb.from('job_notes').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
@@ -1157,6 +1162,7 @@ async function loadJobHubData(projId){
       sb.from('job_people').select('*').eq('project_id',projId).order('created_at',{ascending:true}),
       sb.from('job_cal_events').select('*').eq('project_id',projId).order('date',{ascending:true}),
       sb.from('job_financials').select('*').eq('project_id',projId).single(),
+      sb.from('job_other_expenses').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
     ]);
     jhPhases=phases.data||[];
     jhTasks=tasks.data||[];
@@ -1170,6 +1176,7 @@ async function loadJobHubData(projId){
     jhTeam=people.data||[];
     jhCalEvents=calev.data||[];
     jhFinancials=findata.data||null;
+    jhOther=other.data||[];
     renderJhManagement();
   }catch(err){console.error('loadJobHubData error:',err);}
 }
@@ -1271,7 +1278,8 @@ function renderJhFinancials(){
   var matTotal=jhMaterials.reduce(function(s,m){return s+(parseFloat(m.qty)||0)*(parseFloat(m.unit_cost)||0);},0);
   var subTotal=jhSubCosts.reduce(function(s,sc){return s+(parseFloat(sc.amount)||0);},0);
   var coApproved=jhChangeOrders.filter(function(co){return co.status==='Approved';}).reduce(function(s,co){return s+(parseFloat(co.amount)||0);},0);
-  var totalCost=laborTotal+matTotal+subTotal;
+  var otherTotal=jhOther.reduce(function(s,o){return s+(parseFloat(o.amount)||0);},0);
+  var totalCost=laborTotal+matTotal+subTotal+otherTotal;
 
   // ---- REVENUE ----
   var contractVal=parseFloat(fin.contract)||p?parseInt((p.val||'0').replace(/[^0-9]/g,''))||0:0;
@@ -1306,6 +1314,7 @@ function renderJhFinancials(){
     +'<tr><td style="color:var(--text2);">Labor</td><td style="text-align:right;font-weight:500;">'+fmtMoney(laborTotal)+'</td></tr>'
     +'<tr><td style="color:var(--text2);">Materials</td><td style="text-align:right;font-weight:500;">'+fmtMoney(matTotal)+'</td></tr>'
     +'<tr><td style="color:var(--text2);">Subcontractors</td><td style="text-align:right;font-weight:500;">'+fmtMoney(subTotal)+'</td></tr>'
+    +'<tr><td style="color:var(--text2);">Other expenses</td><td style="text-align:right;font-weight:500;">'+fmtMoney(otherTotal)+'</td></tr>'
     +'<tr style="border-top:2px solid var(--border2);"><td style="font-weight:600;">Total costs</td><td style="text-align:right;font-weight:600;">'+fmtMoney(totalCost)+'</td></tr>'
     +'<tr><td style="font-weight:600;">Total revenue</td><td style="text-align:right;font-weight:600;">'+fmtMoney(totalRevenue)+'</td></tr>'
     +'<tr style="border-top:2px solid var(--border2);"><td style="font-weight:700;font-size:14px;">Gross profit</td><td style="text-align:right;font-weight:700;font-size:14px;color:'+(margin>=0?'var(--green-txt)':'var(--red-txt)')+';">'+fmtMoney(margin)+'</td></tr>'
@@ -1321,6 +1330,7 @@ function renderJhFinancials(){
     +'<tr><td style="font-weight:500;">Labor</td><td>'+(estL?fmtMoney(estL):'—')+'</td><td>'+fmtMoney(laborTotal)+'</td><td>'+(estL?fmtMoney(laborTotal-estL):'—')+'</td><td>'+varianceBadge(estL,laborTotal)+'</td></tr>'
     +'<tr><td style="font-weight:500;">Materials</td><td>'+(estM?fmtMoney(estM):'—')+'</td><td>'+fmtMoney(matTotal)+'</td><td>'+(estM?fmtMoney(matTotal-estM):'—')+'</td><td>'+varianceBadge(estM,matTotal)+'</td></tr>'
     +'<tr><td style="font-weight:500;">Subcontractors</td><td>'+(estS?fmtMoney(estS):'—')+'</td><td>'+fmtMoney(subTotal)+'</td><td>'+(estS?fmtMoney(subTotal-estS):'—')+'</td><td>'+varianceBadge(estS,subTotal)+'</td></tr>'
+    +'<tr><td style="font-weight:500;">Other</td><td>—</td><td>'+fmtMoney(otherTotal)+'</td><td>—</td><td><span class="badge b-gray">No estimate</span></td></tr>'
     +'<tr style="border-top:2px solid var(--border2);"><td style="font-weight:700;">Total</td><td>'+(estT?fmtMoney(estT):'—')+'</td><td>'+fmtMoney(totalCost)+'</td><td>'+(estT?fmtMoney(totalCost-estT):'—')+'</td><td>'+varianceBadge(estT,totalCost)+'</td></tr>'
     +'</tbody>';
 
@@ -1334,6 +1344,10 @@ function renderJhFinancials(){
   document.getElementById('jh-subcost-list').innerHTML=jhSubCosts.length
     ? jhSubCosts.map(function(sc){return '<tr><td style="font-weight:500;">'+sc.name+'</td><td style="color:var(--text2);">'+sc.trade+'</td><td style="color:var(--brand);font-weight:600;">$'+(parseFloat(sc.amount)||0).toLocaleString()+'</td><td style="color:var(--text2);font-size:12px;">'+(sc.notes||'—')+'</td><td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteJhSubCost(\''+sc.id+'\')">✕</button></td></tr>';}).join('')
     : '<tr><td colspan="5" class="empty">No sub costs logged</td></tr>';
+  // Other expenses table
+  document.getElementById('jh-other-list').innerHTML=jhOther.length
+    ? jhOther.map(function(o){return '<tr><td style="font-weight:500;">'+o.description+'</td><td style="color:var(--brand);font-weight:600;">$'+(parseFloat(o.amount)||0).toLocaleString()+'</td><td style="color:var(--text2);font-size:12px;">'+(o.date||'—')+'</td><td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteOtherExpense(\''+o.id+'\')" >✕</button></td></tr>';}).join('')
+    : '<tr><td colspan="4" class="empty">No other expenses</td></tr>';
   var coColors={'Pending':'b-amber','Approved':'b-green','Declined':'b-red'};
   document.getElementById('jh-co-list').innerHTML=jhChangeOrders.length
     ? jhChangeOrders.map(function(co){return '<tr><td style="font-weight:500;">'+co.description+'</td><td style="color:var(--brand);font-weight:600;">$'+(parseFloat(co.amount)||0).toLocaleString()+'</td><td><span class="badge '+(coColors[co.status]||'b-gray')+'">'+co.status+'</span></td><td style="color:var(--text2);font-size:12px;">'+(co.date||'—')+'</td><td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteJhCO(\''+co.id+'\')">✕</button></td></tr>';}).join('')
@@ -1624,6 +1638,19 @@ function preselectCalDate(dateStr){
   },50);
 }
 
+async function saveOtherExpense(){
+  var desc=document.getElementById('oe-desc').value.trim();if(!desc)return;
+  var res=await sb.from('job_other_expenses').insert({project_id:currentJobId,description:desc,amount:document.getElementById('oe-amount').value||0,date:document.getElementById('oe-date').value||null}).select();
+  if(res.data)jhOther.unshift(res.data[0]);
+  closeModals();renderJhFinancials();
+  ['oe-desc','oe-amount','oe-date'].forEach(function(id){document.getElementById(id).value='';});
+}
+async function deleteOtherExpense(id){
+  await sb.from('job_other_expenses').delete().eq('id',id);
+  jhOther=jhOther.filter(function(x){return x.id!==id;});
+  renderJhFinancials();
+}
+
 loadAll();
 </script>
 
@@ -1718,6 +1745,13 @@ loadAll();
   <div class="fg"><label>Estimated subcontractors ($)</label><input id="est-subs" type="number" placeholder="e.g. 5000"/></div>
   <div class="fg"><label>Estimated total cost ($)</label><input id="est-total" type="number" placeholder="e.g. 25000"/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEstimates()">Save estimates</button></div>
+</div></div>
+<!-- OTHER EXPENSE MODAL -->
+<div class="modal-overlay" id="other-expense-modal"><div class="modal"><h3>Add other expense</h3>
+  <div class="fg"><label>Description</label><input id="oe-desc" placeholder="e.g. Permit fees, tool rental, dump fees..."/></div>
+  <div class="fg"><label>Amount ($)</label><input id="oe-amount" type="number" placeholder="e.g. 250"/></div>
+  <div class="fg"><label>Date</label><input id="oe-date" type="date"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveOtherExpense()">Save</button></div>
 </div></div>
 </body>
 </html>
