@@ -222,11 +222,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cal-empty-day{font-size:13px;color:var(--text3);padding:8px 0;}
 
 /* ORDERING SYSTEM */
-.po-status-Draft{background:var(--bg2);color:var(--text2);}
-.po-status-Ordered{background:var(--blue-bg);color:var(--blue-txt);}
-.po-status-In-Transit{background:var(--amber-bg);color:var(--amber-txt);}
-.po-status-Delivered{background:var(--green-bg);color:var(--green-txt);}
-.po-status-Cancelled{background:var(--red-bg);color:var(--red-txt);}
+.ord-form-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;}
+.ord-form-header{display:flex;align-items:center;gap:12px;padding:12px 1rem;cursor:pointer;transition:background 0.12s;}
+.ord-form-header:hover{background:var(--bg2);}
+.ord-form-title{font-size:14px;font-weight:600;flex:1;}
+.ord-form-meta{font-size:12px;color:var(--text2);}
+.ord-form-body{display:none;border-top:1px solid var(--border);}
+.ord-form-body.open{display:block;}
+.ord-spreadsheet{width:100%;border-collapse:collapse;font-size:12px;}
+.ord-spreadsheet th{background:var(--bg2);padding:8px 10px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap;}
+.ord-spreadsheet td{padding:4px 6px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.ord-spreadsheet tr:last-child td{border-bottom:none;}
+.ord-cell{width:100%;font-size:12px;border:1px solid transparent;border-radius:4px;padding:5px 7px;background:transparent;color:var(--text);font-family:inherit;transition:border-color 0.15s;}
+.ord-cell:focus{outline:none;border-color:var(--brand);background:var(--bg2);}
+.ord-cell-total{font-size:12px;font-weight:600;color:var(--brand);padding:5px 7px;}
+.ord-form-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 1rem;border-top:1px solid var(--border);background:var(--bg2);}
+.ord-form-total{font-size:13px;font-weight:600;}
+@media print{
+  body > *:not(#po-print-area){display:none!important;}
+  #po-print-area{display:block!important;position:fixed;inset:0;background:white;padding:2rem;z-index:99999;}
+}
+#po-print-area{display:none;}
+
 /* Print PO styles */
 @media print{
   body > *:not(#po-print-area){display:none!important;}
@@ -378,34 +395,49 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th>Job ID</th><th>Customer</th><th>Customer ID</th><th>Value</th><th>Status</th><th>Start</th><th>Completed</th><th>Profitable?</th></tr></thead><tbody id="complete-proj-tbl"></tbody></table></div>
   </div>
   <div id="proj-ordering" style="display:none;">
-    <div class="hub-header">
-      <div><div class="hub-title">Ordering System</div><div class="hub-sub">Create purchase orders, track deliveries, and manage your material flow across all jobs.</div></div>
-      <button class="btn-primary" onclick="openModal('po-modal')">+ New purchase order</button>
+    <!-- inner subtabs -->
+    <div style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.25rem;width:fit-content;" id="ord-tabs">
+      <button class="jh-tab active" onclick="showOrdTab('orders')">📋 Orders</button>
+      <button class="jh-tab" onclick="showOrdTab('ord-suppliers')">🏭 Suppliers</button>
     </div>
-    <!-- Stat cards -->
-    <div class="grid4" style="margin-bottom:1.25rem;" id="po-stats"></div>
-    <!-- Filter bar -->
-    <div style="display:flex;gap:10px;margin-bottom:.75rem;align-items:center;">
-      <input id="po-search" placeholder="Search by supplier, job, or PO number..." style="flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="renderOrdering()"/>
-      <select id="po-filter-status" style="font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" onchange="renderOrdering()">
-        <option value="">All statuses</option>
-        <option>Draft</option>
-        <option>Ordered</option>
-        <option>In Transit</option>
-        <option>Delivered</option>
-        <option>Cancelled</option>
-      </select>
+
+    <!-- ORDERS TAB -->
+    <div id="ord-orders">
+      <div class="hub-header">
+        <div><div class="hub-title">Material Orders</div><div class="hub-sub">One order form per project. Spreadsheet-style line items — material, supplier, pricing, dates.</div></div>
+      </div>
+      <!-- Active forms -->
+      <div class="section-header" style="margin-top:0;">
+        <div><div class="section-title">Active order forms</div><div class="section-sub">Click a row to expand and edit</div></div>
+        <span class="badge b-brand" id="ord-active-count">0</span>
+      </div>
+      <div id="ord-active-list" style="margin-bottom:1.5rem;"></div>
+      <!-- Archived forms -->
+      <div class="section-header">
+        <div><div class="section-title">Archived order forms</div><div class="section-sub">Manually archived forms</div></div>
+        <span class="badge b-gray" id="ord-archive-count">0</span>
+      </div>
+      <div class="search-bar"><input id="ord-archive-search" placeholder="Search by project name or ID..." oninput="renderOrdering()"/></div>
+      <div id="ord-archive-list"></div>
     </div>
-    <!-- PO Table -->
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>PO #</th><th>Supplier</th><th>Job</th><th>Items</th><th>Total</th><th>Order date</th><th>Expected delivery</th><th>Status</th><th></th></tr></thead>
-        <tbody id="po-tbl"></tbody>
-      </table>
+
+    <!-- SUPPLIERS TAB -->
+    <div id="ord-suppliers" style="display:none;">
+      <div class="hub-header">
+        <div><div class="hub-title">Suppliers</div><div class="hub-sub">All your material vendors — name, phone, address, what they supply, notes.</div></div>
+        <button class="btn-primary" onclick="openModal('ord-supplier-modal')">+ Add supplier</button>
+      </div>
+      <div class="search-bar"><input id="ord-sup-search" placeholder="Search suppliers by name, what they supply..." oninput="renderOrdSuppliers()"/></div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>What they supply</th><th>Notes</th><th></th></tr></thead>
+          <tbody id="ord-sup-tbl"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
-  <!-- PO PRINT AREA (hidden, shown only when printing) -->
+  <!-- PO PRINT AREA -->
   <div id="po-print-area"></div>
   <div id="proj-suppliers" style="display:none;">
     <div class="hub-header"><div><div class="hub-title">Suppliers</div><div class="hub-sub">All your supplier contacts — what they supply, how to reach them.</div></div><button class="btn-primary" onclick="openModal('supplier-modal')">+ Add supplier</button></div>
@@ -844,7 +876,7 @@ function showProjSubtab(t){
   PROJ_SUBTABS.forEach(id=>document.getElementById('proj-'+id).style.display=id===t?'block':'none');
   document.querySelectorAll('#proj-subtabbar .subtab-btn').forEach((b,i)=>b.classList.toggle('active',PROJ_SUBTABS[i]===t));
   if(t==='dashboard')renderProj();
-  if(t==='ordering')renderOrdering();if(t==='suppliers')renderSuppliers();if(t==='subs')renderSubs();
+  if(t==='ordering'){renderOrdering();}if(t==='suppliers')renderSuppliers();if(t==='subs')renderSubs();
   
   if(t==='proj-sop'){renderDocList('proj_sop');setupDocDragDrop();}
   // hide subtab bar when in job hub
@@ -1186,6 +1218,255 @@ function showJhTab(t){
   if(t==='financials')renderJhFinancials();
   if(t==='documents')renderJhDocs();
   if(t==='people')renderJhPeople();
+}
+
+// ============================================================
+// ORDERING SYSTEM
+// ============================================================
+let orderForms=[], ordSuppliers=[], expandedFormId=null;
+
+const ORD_COLS=['material','description','supplier','price','qty','total','due_by','date_ordered','date_arrived'];
+const ORD_HEADERS=['Material','Description','Supplier','Price ($)','Quantity','Total','Due By','Date Ordered','Date Arrived'];
+
+function showOrdTab(t){
+  document.getElementById('ord-orders').style.display=t==='orders'?'block':'none';
+  document.getElementById('ord-suppliers').style.display=t==='ord-suppliers'?'block':'none';
+  document.querySelectorAll('#ord-tabs .jh-tab').forEach(function(b,i){b.classList.toggle('active',['orders','ord-suppliers'][i]===t);});
+  if(t==='ord-suppliers')renderOrdSuppliers();
+  if(t==='orders')renderOrdering();
+}
+
+async function loadOrders(){
+  var res=await sb.from('order_forms').select('*').order('created_at',{ascending:false});
+  orderForms=res.data||[];
+  var res2=await sb.from('ord_suppliers').select('*').order('name',{ascending:true});
+  ordSuppliers=res2.data||[];
+}
+
+// Auto-create an order form when a project is created
+async function createOrderFormForProject(proj){
+  var exists=orderForms.find(function(f){return f.project_id===proj.id;});
+  if(exists)return;
+  var res=await sb.from('order_forms').insert({
+    project_id:proj.id,
+    project_name:proj.name,
+    project_job_id:proj.job_id||'',
+    project_address:'',
+    archived:false,
+    rows:JSON.stringify([]),
+  }).select();
+  if(res.data)orderForms.unshift(res.data[0]);
+}
+
+function renderOrdering(){
+  var active=orderForms.filter(function(f){return !f.archived;});
+  var q=(document.getElementById('ord-archive-search')?.value||'').toLowerCase();
+  var archived=orderForms.filter(function(f){return f.archived;}).filter(function(f){
+    return !q||[f.project_name,f.project_job_id].some(function(v){return (v||'').toLowerCase().includes(q);});
+  });
+
+  document.getElementById('ord-active-count').textContent=active.length;
+  document.getElementById('ord-archive-count').textContent=archived.length;
+
+  document.getElementById('ord-active-list').innerHTML=active.length
+    ? active.map(function(f){return renderFormCard(f,false);}).join('')
+    : '<div class="empty">No active order forms — they are created automatically when you add a project.</div>';
+
+  document.getElementById('ord-archive-list').innerHTML=archived.length
+    ? archived.map(function(f){return renderFormCard(f,true);}).join('')
+    : '<div class="empty">No archived forms</div>';
+
+  // Re-attach save debounce listeners after render
+  setTimeout(attachOrdListeners, 50);
+}
+
+function renderFormCard(f, isArchived){
+  var rows=[];
+  try{rows=JSON.parse(f.rows||'[]');}catch(e){}
+  var total=rows.reduce(function(s,r){return s+(parseFloat(r.price)||0)*(parseFloat(r.qty)||0);},0);
+  var isOpen=expandedFormId===f.id;
+
+  var fid=f.id;
+  var headerHtml='<div class="ord-form-header" onclick="toggleOrdForm(this.dataset.fid)" data-fid="'+fid+'">'+
+    '<div style="flex:1">'+
+      '<div class="ord-form-title">'+f.project_name+'</div>'+
+      '<div class="ord-form-meta">'+
+        (f.project_job_id?'<span class="jid-badge" style="font-size:10px;margin-right:8px;">'+f.project_job_id+'</span>':'')+
+        (f.project_address?f.project_address:'<span style="color:var(--text3);">No address set</span>')+
+      '</div>'+
+    '</div>'+
+    '<div style="display:flex;align-items:center;gap:8px;">'+
+      '<span style="font-size:13px;font-weight:600;color:var(--brand);">$'+total.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'+
+      '<span style="font-size:20px;color:var(--text3);">'+(isOpen?'▲':'▼')+'</span>'+
+    '</div>'+
+  '</div>';
+
+  var colInputs=ORD_COLS.map(function(col,ci){
+    return '<th>'+ORD_HEADERS[ci]+'</th>';
+  }).join('');
+
+  var rowsHtml=rows.map(function(row,ri){
+    return '<tr>'+ORD_COLS.map(function(col){
+      if(col==='total'){
+        var t2=(parseFloat(row.price)||0)*(parseFloat(row.qty)||0);
+        return '<td><span class="ord-cell-total">$'+t2.toFixed(2)+'</span></td>';
+      }
+      var inputType=(col==='price'||col==='qty')?'number':'text';
+      if(col==='due_by'||col==='date_ordered'||col==='date_arrived')inputType='date';
+      return '<td><input class="ord-cell" type="'+inputType+'" value="'+(row[col]||'')+'" data-formid="'+f.id+'" data-row="'+ri+'" data-col="'+col+'" '+(col==='price'||col==='qty'?'step="0.01"':'')+' oninput="handleOrdCellInput(this)"/></td>';
+    }).join('')+
+    '<td><button onclick="deleteOrdRow(this.dataset.fid,'+ri+')" data-fid="'+f.id+'" style="background:none;border:none;cursor:pointer;color:var(--red-txt);font-size:14px;padding:2px 6px;">✕</button></td>'+
+    '</tr>';
+  }).join('');
+
+  var bodyHtml='<div class="ord-form-body'+(isOpen?' open':'')+'" id="ordbody-'+f.id+'">'+
+    '<div style="padding:10px 1rem;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;">'+
+      '<input placeholder="Project address..." value="'+(f.project_address||'')+'" data-formid="'+f.id+'" class="ord-address-inp" style="flex:1;font-size:12px;border:1px solid var(--border);border-radius:7px;padding:6px 10px;background:var(--bg2);color:var(--text);font-family:inherit;" oninput="debounceSaveFormMeta(this.dataset.formid,this.value)"/>'+
+    '</div>'+
+    '<div style="overflow-x:auto;">'+
+      '<table class="ord-spreadsheet">'+
+        '<thead><tr>'+colInputs+'<th style="width:32px;"></th></tr></thead>'+
+        '<tbody id="ordrows-'+f.id+'">'+rowsHtml+'</tbody>'+
+      '</table>'+
+    '</div>'+
+    '<div class="ord-form-footer">'+
+      '<button class="btn-sm" onclick="addOrdRow(this.dataset.fid)" data-fid="'+f.id+'">+ Add row</button>'+
+      '<div style="display:flex;align-items:center;gap:12px;">'+
+        '<span class="ord-form-total">Total: $'+total.toFixed(2)+'</span>'+
+        (isArchived
+          ? '<button class="btn-sm" onclick="archiveOrdForm(this.dataset.fid,false)" data-fid="'+f.id+'">Unarchive</button>'
+          : '<button class="btn-sm" onclick="archiveOrdForm(this.dataset.fid,true)" data-fid="'+f.id+'">Archive</button>')+
+      '</div>'+
+    '</div>'+
+  '</div>';
+
+  return '<div class="ord-form-card" id="ordcard-'+f.id+'">'+headerHtml+bodyHtml+'</div>';
+}
+
+function toggleOrdForm(id){
+  expandedFormId=(expandedFormId===id)?null:id;
+  renderOrdering();
+}
+
+let ordSaveTimers={};
+function handleOrdCellInput(inp){
+  var id=inp.dataset.formid;
+  var ri=parseInt(inp.dataset.row);
+  var col=inp.dataset.col;
+  var f=orderForms.find(function(x){return x.id===id;});
+  if(!f)return;
+  var rows=[];try{rows=JSON.parse(f.rows||'[]');}catch(e){}
+  if(!rows[ri])rows[ri]={};
+  rows[ri][col]=inp.value;
+  // Update total display
+  if(col==='price'||col==='qty'){
+    var totalCell=inp.closest('tr').querySelector('.ord-cell-total');
+    if(totalCell){
+      var p=parseFloat(rows[ri].price)||0;
+      var q=parseFloat(rows[ri].qty)||0;
+      totalCell.textContent='$'+(p*q).toFixed(2);
+    }
+    // Update form total
+    var formTotal=rows.reduce(function(s,r){return s+(parseFloat(r.price)||0)*(parseFloat(r.qty)||0);},0);
+    var card=document.getElementById('ordcard-'+id);
+    if(card){
+      var totEls=card.querySelectorAll('.ord-form-total');
+      totEls.forEach(function(el){el.textContent='Total: $'+formTotal.toFixed(2);});
+      var headerTot=card.querySelector('.ord-form-header span');
+      // update header total
+    }
+  }
+  f.rows=JSON.stringify(rows);
+  clearTimeout(ordSaveTimers[id]);
+  ordSaveTimers[id]=setTimeout(function(){saveOrdFormRows(id,rows);},800);
+}
+
+let ordMetaTimers={};
+function debounceSaveFormMeta(id,address){
+  var f=orderForms.find(function(x){return x.id===id;});
+  if(f)f.project_address=address;
+  clearTimeout(ordMetaTimers[id]);
+  ordMetaTimers[id]=setTimeout(function(){
+    sb.from('order_forms').update({project_address:address}).eq('id',id);
+  },800);
+}
+
+async function saveOrdFormRows(id,rows){
+  await sb.from('order_forms').update({rows:JSON.stringify(rows)}).eq('id',id);
+}
+
+async function addOrdRow(id){
+  var f=orderForms.find(function(x){return x.id===id;});
+  if(!f)return;
+  var rows=[];try{rows=JSON.parse(f.rows||'[]');}catch(e){}
+  rows.push({material:'',description:'',supplier:'',price:'',qty:'',due_by:'',date_ordered:'',date_arrived:''});
+  f.rows=JSON.stringify(rows);
+  await saveOrdFormRows(id,rows);
+  expandedFormId=id;
+  renderOrdering();
+}
+
+async function deleteOrdRow(id,ri){
+  var f=orderForms.find(function(x){return x.id===id;});
+  if(!f)return;
+  var rows=[];try{rows=JSON.parse(f.rows||'[]');}catch(e){}
+  rows.splice(ri,1);
+  f.rows=JSON.stringify(rows);
+  await saveOrdFormRows(id,rows);
+  expandedFormId=id;
+  renderOrdering();
+}
+
+async function archiveOrdForm(id,archive){
+  await sb.from('order_forms').update({archived:archive}).eq('id',id);
+  var f=orderForms.find(function(x){return x.id===id;});
+  if(f)f.archived=archive;
+  if(archive&&expandedFormId===id)expandedFormId=null;
+  renderOrdering();
+}
+
+function attachOrdListeners(){}
+
+// ── ORD SUPPLIERS ──
+function renderOrdSuppliers(){
+  var q=(document.getElementById('ord-sup-search')?.value||'').toLowerCase();
+  var filtered=ordSuppliers.filter(function(s){
+    return !q||[s.name,s.supply,s.address,s.notes].some(function(v){return (v||'').toLowerCase().includes(q);});
+  });
+  document.getElementById('ord-sup-tbl').innerHTML=filtered.length
+    ? filtered.map(function(s){
+        return '<tr>'+
+          '<td style="font-weight:600;">'+s.name+'</td>'+
+          '<td style="color:var(--text2);">'+(s.phone||'—')+'</td>'+
+          '<td style="color:var(--text2);font-size:12px;">'+(s.address||'—')+'</td>'+
+          '<td style="color:var(--text2);font-size:12px;">'+(s.supply||'—')+'</td>'+
+          '<td style="color:var(--text2);font-size:12px;">'+(s.notes||'—')+'</td>'+
+          '<td><button class="btn-danger" style="padding:3px 8px;font-size:10px;" onclick="deleteOrdSupplier(this.dataset.sid)" data-sid="'+s.id+'">Delete</button></td>'+
+          '</tr>';
+      }).join('')
+    : '<tr><td colspan="6" class="empty">No suppliers yet</td></tr>';
+}
+
+async function saveOrdSupplier(){
+  var name=document.getElementById('ords-name').value.trim();if(!name)return;
+  var res=await sb.from('ord_suppliers').insert({
+    name:name,
+    phone:document.getElementById('ords-phone').value||'',
+    address:document.getElementById('ords-address').value||'',
+    supply:document.getElementById('ords-supply').value||'',
+    notes:document.getElementById('ords-notes').value||'',
+  }).select();
+  if(res.data)ordSuppliers.push(res.data[0]);
+  ordSuppliers.sort(function(a,b){return a.name.localeCompare(b.name);});
+  closeModals();renderOrdSuppliers();
+  ['ords-name','ords-phone','ords-address','ords-supply','ords-notes'].forEach(function(id){document.getElementById(id).value='';});
+}
+
+async function deleteOrdSupplier(id){
+  if(!confirm('Delete this supplier?'))return;
+  await sb.from('ord_suppliers').delete().eq('id',id);
+  ordSuppliers=ordSuppliers.filter(function(s){return s.id!==id;});
+  renderOrdSuppliers();
 }
 
 async function openJobHub(projId){
@@ -1716,332 +1997,8 @@ async function deleteOtherExpense(id){
 }
 
 // ============================================================
-// ORDERING SYSTEM
-// ============================================================
-let purchaseOrders=[];
-let currentPOId=null;
-let poLineCount=0;
-
-async function loadOrders(){
-  var res=await sb.from('purchase_orders').select('*').order('created_at',{ascending:false});
-  purchaseOrders=res.data||[];
-}
-
-function renderOrdering(){
-  var q=(document.getElementById('po-search')?.value||'').toLowerCase();
-  var sf=document.getElementById('po-filter-status')?.value||'';
-  var filtered=purchaseOrders.filter(function(po){
-    var matchQ=!q||[po.supplier,po.job_name,po.po_number].some(function(v){return (v||'').toLowerCase().includes(q);});
-    var matchS=!sf||po.status===sf;
-    return matchQ&&matchS;
-  });
-
-  // Stats
-  var total=purchaseOrders.length;
-  var pending=purchaseOrders.filter(function(p){return p.status==='Ordered'||p.status==='In Transit';}).length;
-  var delivered=purchaseOrders.filter(function(p){return p.status==='Delivered';}).length;
-  var totalVal=purchaseOrders.reduce(function(s,p){return s+(parseFloat(p.total)||0);},0);
-  statCards('po-stats',[
-    {label:'Total POs',value:total,sub:'All time'},
-    {label:'Pending',value:pending,sub:'Ordered or in transit'},
-    {label:'Delivered',value:delivered,sub:'Received'},
-    {label:'Total ordered',value:'$'+Math.round(totalVal).toLocaleString(),sub:'All time value'},
-  ]);
-
-  var stColors={'Draft':'b-gray','Ordered':'b-blue','In Transit':'b-amber','Delivered':'b-green','Cancelled':'b-red'};
-  document.getElementById('po-tbl').innerHTML=filtered.length
-    ? filtered.map(function(po){
-        var items=JSON.parse(po.items||'[]');
-        var itemSummary=items.length?items.slice(0,2).map(function(i){return i.desc;}).join(', ')+(items.length>2?' +'+( items.length-2)+' more':''):'—';
-        var pid=po.id;
-        return '<tr style="cursor:pointer;" onclick="viewPO(this.getAttribute(\'data-pid\'))" data-pid="'+pid+'">' 
-          +'<td><span style="font-family:monospace;font-size:12px;font-weight:700;color:var(--brand);">'+po.po_number+'</span></td>'
-          +'<td style="font-weight:600;">'+po.supplier+'</td>'
-          +'<td style="color:var(--text2);">'+(po.job_name||'—')+(po.job_id?'<br><span class="jid-badge" style="font-size:10px;">'+po.job_id+'</span>':'')+'</td>'
-          +'<td style="color:var(--text2);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+itemSummary+'</td>'
-          +'<td style="color:var(--brand);font-weight:600;">$'+(parseFloat(po.total)||0).toLocaleString()+'</td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+(po.order_date||'—')+'</td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+(po.delivery_date||'—')+'</td>'
-          +'<td><span class="badge '+(stColors[po.status]||'b-gray')+'">'+po.status+'</span></td>'
-          +'<td onclick="event.stopPropagation()"><button class="btn-danger" style="padding:3px 8px;font-size:10px;" onclick="deletePO(this.closest(\'tr\').getAttribute(\'data-pid\'));event.stopPropagation()">Delete</button></td>'
-          +'</tr>';
-      }).join('')
-    : '<tr><td colspan="9" class="empty">No purchase orders yet</td></tr>';
-}
-
-// Line item editor in modal
-function addPoLine(){
-  var id='pl'+poLineCount++;
-  var tbody=document.getElementById('po-lines-body');
-  var tr=document.createElement('tr');
-  tr.id=id;
-  tr.innerHTML='<td style="padding:4px 6px;"><input oninput="recalcPOTotal()" placeholder="e.g. 2x4x8 Lumber" style="width:100%;font-size:12px;border:1px solid var(--border);border-radius:5px;padding:4px 7px;background:var(--bg2);color:var(--text);font-family:inherit;" class="pl-desc"/></td>'
-    +'<td style="padding:4px 6px;"><input oninput="recalcPOTotal()" type="number" placeholder="1" style="width:100%;font-size:12px;border:1px solid var(--border);border-radius:5px;padding:4px 7px;background:var(--bg2);color:var(--text);font-family:inherit;" class="pl-qty"/></td>'
-    +'<td style="padding:4px 6px;"><input placeholder="ea, bf, sq ft" style="width:100%;font-size:12px;border:1px solid var(--border);border-radius:5px;padding:4px 7px;background:var(--bg2);color:var(--text);font-family:inherit;" class="pl-unit"/></td>'
-    +'<td style="padding:4px 6px;"><input oninput="recalcPOTotal()" type="number" placeholder="0.00" step="0.01" style="width:100%;font-size:12px;border:1px solid var(--border);border-radius:5px;padding:4px 7px;background:var(--bg2);color:var(--text);font-family:inherit;" class="pl-price"/></td>'
-    +'<td style="padding:4px 6px;text-align:center;"><button onclick="this.closest(\'tr\').remove();recalcPOTotal();" style="background:none;border:none;cursor:pointer;color:var(--red-txt);font-size:14px;">✕</button></td>';
-  tbody.appendChild(tr);
-}
-
-function recalcPOTotal(){
-  var total=0;
-  document.querySelectorAll('#po-lines-body tr').forEach(function(tr){
-    var qty=parseFloat(tr.querySelector('.pl-qty')?.value)||0;
-    var price=parseFloat(tr.querySelector('.pl-price')?.value)||0;
-    total+=qty*price;
-  });
-  var el=document.getElementById('po-line-total');
-  if(el)el.textContent='$'+total.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-
-function getPoLines(){
-  var lines=[];
-  document.querySelectorAll('#po-lines-body tr').forEach(function(tr){
-    var desc=tr.querySelector('.pl-desc')?.value||'';
-    var qty=parseFloat(tr.querySelector('.pl-qty')?.value)||0;
-    var unit=tr.querySelector('.pl-unit')?.value||'';
-    var price=parseFloat(tr.querySelector('.pl-price')?.value)||0;
-    if(desc)lines.push({desc:desc,qty:qty,unit:unit,price:price,total:qty*price});
-  });
-  return lines;
-}
-
-async function savePO(){
-  var supplier=document.getElementById('po-supplier').value.trim();if(!supplier)return;
-  var lines=getPoLines();
-  var total=lines.reduce(function(s,l){return s+l.total;},0);
-  // Generate PO number
-  var poNum='PO-'+String(purchaseOrders.length+1001).padStart(5,'0');
-  var data={
-    po_number:poNum,
-    supplier:supplier,
-    supplier_phone:document.getElementById('po-sup-phone').value||'',
-    job_name:document.getElementById('po-job').value||'',
-    job_id:document.getElementById('po-job-id').value||'',
-    order_date:document.getElementById('po-order-date').value||null,
-    delivery_date:document.getElementById('po-delivery-date').value||null,
-    status:document.getElementById('po-status-inp').value,
-    items:JSON.stringify(lines),
-    total:total,
-    notes:document.getElementById('po-notes').value||'',
-  };
-  var res=await sb.from('purchase_orders').insert(data).select();
-  if(res.data)purchaseOrders.unshift(res.data[0]);
-  closeModals();renderOrdering();
-  // Reset form
-  ['po-supplier','po-sup-phone','po-job','po-job-id','po-notes'].forEach(function(id){document.getElementById(id).value='';});
-  document.getElementById('po-order-date').value='';
-  document.getElementById('po-delivery-date').value='';
-  document.getElementById('po-lines-body').innerHTML='';
-  document.getElementById('po-line-total').textContent='$0';
-  poLineCount=0;
-}
-
-async function deletePO(id){
-  if(!confirm('Delete this purchase order?'))return;
-  await sb.from('purchase_orders').delete().eq('id',id);
-  purchaseOrders=purchaseOrders.filter(function(p){return p.id!==id;});
-  renderOrdering();
-}
-
-function viewPO(id){
-  var po=purchaseOrders.find(function(p){return p.id===id;});
-  if(!po)return;
-  currentPOId=id;
-  var items=JSON.parse(po.items||'[]');
-  var stColors={'Draft':'b-gray','Ordered':'b-blue','In Transit':'b-amber','Delivered':'b-green','Cancelled':'b-red'};
-  var itemRows=items.map(function(item){
-    return '<tr><td>'+item.desc+'</td><td style="text-align:center;">'+item.qty+' '+(item.unit||'')+'</td><td style="text-align:right;">$'+(parseFloat(item.price)||0).toFixed(2)+'</td><td style="text-align:right;font-weight:600;">$'+(parseFloat(item.total)||0).toFixed(2)+'</td></tr>';
-  }).join('');
-  var html='<div class="po-doc">'
-    +'<div class="po-doc-header">'
-    +'<div><div class="po-doc-logo">JM Built</div><div class="po-doc-address">4421 Mount Carmel Tobasco Rd.<br>Cincinnati, OH 45244<br>513-604-3528 · JMBuilt.res@outlook.com</div></div>'
-    +'<div><div class="po-doc-title">PURCHASE ORDER</div><div class="po-doc-meta"><strong>PO #:</strong> '+po.po_number+'<br><strong>Date:</strong> '+(po.order_date||'—')+'<br><strong>Status:</strong> <span class="badge '+(stColors[po.status]||'b-gray')+'">'+po.status+'</span></div></div>'
-    +'</div>'
-    +'<div class="po-doc-parties">'
-    +'<div><div class="po-doc-party-label">Supplier</div><div class="po-doc-party-name">'+po.supplier+'</div><div class="po-doc-party-info">'+(po.supplier_phone||'')+'</div></div>'
-    +'<div><div class="po-doc-party-label">Job</div><div class="po-doc-party-name">'+(po.job_name||'—')+'</div><div class="po-doc-party-info">'+(po.job_id?'Job ID: '+po.job_id:'')+'<br>Expected delivery: '+(po.delivery_date||'—')+'</div></div>'
-    +'</div>'
-    +'<table class="po-doc-items"><thead><tr><th>Description</th><th style="text-align:center;">Qty / Unit</th><th style="text-align:right;">Unit price</th><th style="text-align:right;">Total</th></tr></thead><tbody>'+itemRows+'</tbody></table>'
-    +'<div class="po-doc-totals"><div class="po-doc-totals-box">'
-    +'<div class="po-doc-total-row grand"><span>Total</span><span>$'+(parseFloat(po.total)||0).toFixed(2)+'</span></div>'
-    +'</div></div>'
-    +(po.notes?'<div class="po-doc-notes"><strong>Notes:</strong> '+po.notes+'</div>':'')
-    +'<div class="po-doc-sig"><div><div class="po-doc-sig-line"></div><div class="po-doc-sig-label">Authorized by</div></div><div><div class="po-doc-sig-line"></div><div class="po-doc-sig-label">Supplier acknowledgment</div></div></div>'
-    +'</div>';
-  document.getElementById('po-view-content').innerHTML=html;
-  document.getElementById('po-new-status').value=po.status;
-  document.getElementById('po-status-update-row').style.display='none';
-  openModal('po-view-modal');
-}
-
-function updatePOStatus(){
-  var row=document.getElementById('po-status-update-row');
-  row.style.display=row.style.display==='none'?'flex':'none';
-}
-
-async function savePOStatus(){
-  var status=document.getElementById('po-new-status').value;
-  await sb.from('purchase_orders').update({status:status}).eq('id',currentPOId);
-  var po=purchaseOrders.find(function(p){return p.id===currentPOId;});
-  if(po)po.status=status;
-  closeModals();renderOrdering();
-}
-
-function printPO(){
-  var po=purchaseOrders.find(function(p){return p.id===currentPOId;});
-  if(!po)return;
-  var printArea=document.getElementById('po-print-area');
-  printArea.innerHTML=document.getElementById('po-view-content').innerHTML;
-  printArea.style.display='block';
-  window.print();
-  setTimeout(function(){printArea.style.display='none';},1000);
-}
 
 loadAll();
 </script>
-
-
-<!-- PHASE MODAL -->
-<div class="modal-overlay" id="phase-modal"><div class="modal"><h3>Add phase</h3>
-  <div class="fg"><label>Phase name</label><input id="ph-name" placeholder="e.g. Demo, Framing, Electrical, Plumbing..."/></div>
-  <div class="fg"><label>Status</label><select id="ph-status"><option>Not started</option><option>In progress</option><option>Complete</option><option>On hold</option></select></div>
-  <div class="fg"><label>Start date</label><input id="ph-start" type="date"/></div>
-  <div class="fg"><label>End date</label><input id="ph-end" type="date"/></div>
-  <div class="fg"><label>Notes</label><input id="ph-notes" placeholder="Optional notes"/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="savePhase()">Save phase</button></div>
-</div></div>
-
-<!-- LABOR MODAL -->
-<div class="modal-overlay" id="labor-modal"><div class="modal"><h3>Add labor cost</h3>
-  <div class="fg"><label>Name</label><input id="lb-name" placeholder="e.g. Yourself, crew member..."/></div>
-  <div class="fg"><label>Hours</label><input id="lb-hours" type="number" placeholder="e.g. 8"/></div>
-  <div class="fg"><label>Rate ($/hr)</label><input id="lb-rate" type="number" placeholder="e.g. 65"/></div>
-  <div class="fg"><label>Date</label><input id="lb-date" type="date"/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveLabor()">Save</button></div>
-</div></div>
-
-<!-- MATERIAL MODAL -->
-<div class="modal-overlay" id="material-modal"><div class="modal"><h3>Add material cost</h3>
-  <div class="fg"><label>Item</label><input id="mat-item" placeholder="e.g. 2x4 lumber, tile, drywall..."/></div>
-  <div class="fg"><label>Quantity</label><input id="mat-qty" type="number" placeholder="e.g. 50"/></div>
-  <div class="fg"><label>Unit cost ($)</label><input id="mat-cost" type="number" placeholder="e.g. 3.50"/></div>
-  <div class="fg"><label>Supplier</label><input id="mat-supplier" placeholder="e.g. ABC Lumber"/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveMaterial()">Save</button></div>
-</div></div>
-
-<!-- SUB COST MODAL -->
-<div class="modal-overlay" id="sub-cost-modal"><div class="modal"><h3>Add subcontractor cost</h3>
-  <div class="fg"><label>Sub name</label><input id="sc-name" placeholder="e.g. Dave's Electric"/></div>
-  <div class="fg"><label>Trade</label><input id="sc-trade" placeholder="e.g. Electrical"/></div>
-  <div class="fg"><label>Amount ($)</label><input id="sc-amount" type="number" placeholder="e.g. 3200"/></div>
-  <div class="fg"><label>Notes</label><input id="sc-notes" placeholder="e.g. Rough-in complete"/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveSubCost()">Save</button></div>
-</div></div>
-
-<!-- CHANGE ORDER MODAL -->
-<div class="modal-overlay" id="changeorder-modal"><div class="modal"><h3>Add change order</h3>
-  <div class="fg"><label>Description</label><input id="co-desc" placeholder="e.g. Added bathroom exhaust fan"/></div>
-  <div class="fg"><label>Amount ($)</label><input id="co-amount" type="number" placeholder="e.g. 450"/></div>
-  <div class="fg"><label>Status</label><select id="co-status"><option>Pending</option><option>Approved</option><option>Declined</option></select></div>
-  <div class="fg"><label>Date</label><input id="co-date" type="date"/></div>
-  <div class="fg"><label>OneDrive document link <span style="color:var(--text3);font-weight:400;">(optional)</span></label><input id="co-doc-url" placeholder="Paste OneDrive share link..."/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveChangeOrder()">Save</button></div>
-</div></div>
-
-<!-- JOB DOC MODAL -->
-<div class="modal-overlay" id="job-doc-modal"><div class="modal"><h3>Add document link</h3>
-  <div class="fg"><label>Document name</label><input id="jd-name" placeholder="e.g. Signed Contract, Building Permit..."/></div>
-  <div class="fg"><label>Link (OneDrive, Google Drive, etc.)</label><input id="jd-url" placeholder="Paste link here"/></div>
-  <div class="fg"><label>Notes</label><input id="jd-notes" placeholder="Optional description"/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveJobDoc()">Save</button></div>
-</div></div>
-
-<!-- PERSON MODAL -->
-<div class="modal-overlay" id="person-modal"><div class="modal"><h3>Add person</h3>
-  <div class="fg"><label>Role</label><select id="per-role"><option>Project Manager</option><option>Foreman</option><option>Subcontractor</option><option>Employee</option><option>Other</option></select></div>
-  <div class="fg"><label>Name</label><input id="per-name" placeholder="e.g. John Smith"/></div>
-  <div class="fg"><label>Phone</label><input id="per-phone" placeholder="e.g. 513-555-0100"/></div>
-  <div class="fg"><label>Email</label><input id="per-email" placeholder="e.g. john@email.com"/></div>
-  <div class="fg"><label>Notes</label><input id="per-notes" placeholder="e.g. Licensed electrician, lead carpenter..."/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="savePerson()">Add person</button></div>
-</div></div>
-
-
-<!-- CALENDAR EVENT MODAL -->
-<div class="modal-overlay" id="cal-event-modal"><div class="modal"><h3>Add calendar event</h3>
-  <div class="fg"><label>Event type</label><select id="cev-type"><option>Event</option><option>Inspection</option><option>Delivery</option></select></div>
-  <div class="fg"><label>Title</label><input id="cev-title" placeholder="e.g. City inspection, Lumber delivery..."/></div>
-  <div class="fg"><label>Date</label><input id="cev-date" type="date"/></div>
-  <div class="fg"><label>Notes</label><input id="cev-notes" placeholder="Optional details"/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveCalEvent()">Save</button></div>
-</div></div>
-
-<!-- REVENUE MODAL -->
-<div class="modal-overlay" id="revenue-modal"><div class="modal"><h3>Revenue details</h3>
-  <div class="fg"><label>Contract value ($)</label><input id="rev-contract" type="number" placeholder="From contract / lead value"/></div>
-  <div class="fg"><label>Amount invoiced ($)</label><input id="rev-invoiced" type="number" placeholder="Total invoiced to client so far"/></div>
-  <div class="fg"><label>Amount collected ($)</label><input id="rev-collected" type="number" placeholder="Cash actually received"/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveRevenue()">Save</button></div>
-</div></div>
-
-<!-- ESTIMATES MODAL -->
-<div class="modal-overlay" id="estimates-modal"><div class="modal"><h3>Set cost estimates</h3>
-  <p style="font-size:12px;color:var(--text2);margin-bottom:1rem;">Enter what you originally budgeted for each category. Actuals are calculated automatically from your cost entries.</p>
-  <div class="fg"><label>Estimated labor ($)</label><input id="est-labor" type="number" placeholder="e.g. 8000"/></div>
-  <div class="fg"><label>Estimated materials ($)</label><input id="est-materials" type="number" placeholder="e.g. 12000"/></div>
-  <div class="fg"><label>Estimated subcontractors ($)</label><input id="est-subs" type="number" placeholder="e.g. 5000"/></div>
-  <div class="fg"><label>Estimated total cost ($)</label><input id="est-total" type="number" placeholder="e.g. 25000"/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEstimates()">Save estimates</button></div>
-</div></div>
-<!-- OTHER EXPENSE MODAL -->
-<div class="modal-overlay" id="other-expense-modal"><div class="modal"><h3>Add other expense</h3>
-  <div class="fg"><label>Description</label><input id="oe-desc" placeholder="e.g. Permit fees, tool rental, dump fees..."/></div>
-  <div class="fg"><label>Amount ($)</label><input id="oe-amount" type="number" placeholder="e.g. 250"/></div>
-  <div class="fg"><label>Date</label><input id="oe-date" type="date"/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveOtherExpense()">Save</button></div>
-</div></div>
-
-<!-- PO MODAL -->
-<div class="modal-overlay" id="po-modal"><div class="modal" style="width:620px;"><h3>New Purchase Order</h3>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-    <div class="fg"><label>Supplier name</label><input id="po-supplier" placeholder="e.g. ABC Lumber Co."/></div>
-    <div class="fg"><label>Supplier phone</label><input id="po-sup-phone" placeholder="e.g. 513-555-0200"/></div>
-    <div class="fg"><label>Job name</label><input id="po-job" placeholder="e.g. Johnson Master Bath"/></div>
-    <div class="fg"><label>Job ID</label><input id="po-job-id" placeholder="e.g. 01045"/></div>
-    <div class="fg"><label>Order date</label><input id="po-order-date" type="date"/></div>
-    <div class="fg"><label>Expected delivery</label><input id="po-delivery-date" type="date"/></div>
-  </div>
-  <div class="fg"><label>Status</label><select id="po-status-inp"><option>Draft</option><option>Ordered</option><option>In Transit</option><option>Delivered</option><option>Cancelled</option></select></div>
-  <div class="fg">
-    <label>Line items <span style="color:var(--text3);font-weight:400;">(one per row: description, qty, unit, price)</span></label>
-    <div id="po-line-items" style="border:1px solid var(--border2);border-radius:8px;overflow:hidden;">
-      <table style="width:100%;border-collapse:collapse;">
-        <thead><tr style="background:var(--bg2);"><th style="padding:7px 10px;font-size:11px;font-weight:600;color:var(--text3);text-align:left;">Description</th><th style="padding:7px 10px;font-size:11px;font-weight:600;color:var(--text3);text-align:left;width:70px;">Qty</th><th style="padding:7px 10px;font-size:11px;font-weight:600;color:var(--text3);text-align:left;width:70px;">Unit</th><th style="padding:7px 10px;font-size:11px;font-weight:600;color:var(--text3);text-align:left;width:90px;">Unit price</th><th style="width:36px;"></th></tr></thead>
-        <tbody id="po-lines-body"></tbody>
-      </table>
-    </div>
-    <button class="btn-sm" style="margin-top:7px;" onclick="addPoLine()">+ Add line</button>
-    <div style="text-align:right;font-size:13px;font-weight:600;margin-top:8px;color:var(--brand);">Total: <span id="po-line-total">$0</span></div>
-  </div>
-  <div class="fg"><label>Notes / special instructions</label><textarea id="po-notes" rows="2" style="resize:vertical;" placeholder="e.g. Call before delivery, deliver to side entrance..."></textarea></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="savePO()">Save PO</button></div>
-</div></div>
-
-<!-- PO VIEW MODAL -->
-<div class="modal-overlay" id="po-view-modal"><div class="modal" style="width:660px;">
-  <div id="po-view-content"></div>
-  <div class="mfoot po-print-hide">
-    <button class="btn-sm" onclick="closeModals()">Close</button>
-    <button class="btn-sm" onclick="updatePOStatus()">Update status</button>
-    <button class="btn-primary" onclick="printPO()">🖨 Print / Share</button>
-  </div>
-  <div style="display:flex;gap:8px;align-items:center;margin-top:10px;" id="po-status-update-row" style="display:none;">
-    <select id="po-new-status" style="font-size:13px;border:1px solid var(--border);border-radius:8px;padding:6px 10px;background:var(--bg2);color:var(--text);font-family:inherit;flex:1;">
-      <option>Draft</option><option>Ordered</option><option>In Transit</option><option>Delivered</option><option>Cancelled</option>
-    </select>
-    <button class="btn-primary" onclick="savePOStatus()">Save</button>
-  </div>
-</div></div>
 </body>
 </html>
