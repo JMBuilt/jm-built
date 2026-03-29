@@ -496,7 +496,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         </div>
         <div class="card">
           <div class="card-header"><span class="card-title">Change orders</span><button class="btn-sm" onclick="openModal('changeorder-modal')">+ Add</button></div>
-          <table class="tbl"><thead><tr><th>Description</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody id="jh-co-list"></tbody></table>
+          <table class="tbl"><thead><tr><th>Description</th><th>Amount</th><th>Status</th><th>Date</th><th>Document</th><th></th></tr></thead><tbody id="jh-co-list"></tbody></table>
         </div>
       </div>
       <!-- Other Expenses -->
@@ -1419,9 +1419,9 @@ async function deleteJhSubCost(id){await sb.from('job_subcosts').delete().eq('id
 
 async function saveChangeOrder(){
   var desc=document.getElementById('co-desc').value.trim();if(!desc)return;
-  var res=await sb.from('job_changeorders').insert({project_id:currentJobId,description:desc,amount:document.getElementById('co-amount').value||0,status:document.getElementById('co-status').value,date:document.getElementById('co-date').value||null}).select();
+  var res=await sb.from('job_changeorders').insert({project_id:currentJobId,description:desc,amount:document.getElementById('co-amount').value||0,status:document.getElementById('co-status').value,date:document.getElementById('co-date').value||null,doc_url:document.getElementById('co-doc-url').value||''}).select();
   if(res.data)jhChangeOrders.unshift(res.data[0]);closeModals();renderJhFinancials();
-  ['co-desc','co-amount','co-date'].forEach(function(id){document.getElementById(id).value='';});
+  ['co-desc','co-amount','co-date','co-doc-url'].forEach(function(id){document.getElementById(id).value='';}); 
 }
 async function deleteJhCO(id){await sb.from('job_changeorders').delete().eq('id',id);jhChangeOrders=jhChangeOrders.filter(function(x){return x.id!==id;});renderJhFinancials();}
 
@@ -1698,6 +1698,7 @@ loadAll();
   <div class="fg"><label>Amount ($)</label><input id="co-amount" type="number" placeholder="e.g. 450"/></div>
   <div class="fg"><label>Status</label><select id="co-status"><option>Pending</option><option>Approved</option><option>Declined</option></select></div>
   <div class="fg"><label>Date</label><input id="co-date" type="date"/></div>
+  <div class="fg"><label>OneDrive document link <span style="color:var(--text3);font-weight:400;">(optional)</span></label><input id="co-doc-url" placeholder="Paste OneDrive share link..."/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveChangeOrder()">Save</button></div>
 </div></div>
 
