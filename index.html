@@ -743,12 +743,12 @@ function showSalesSubtab(t){
   if(t==='pipeline')renderSalesPipeline();if(t==='database')renderDatabase();
   if(t==='sop')renderDocList('sales_sop');if(t==='scripts')renderDocList('sales_scripts');
 }
-const PROJ_SUBTABS=['dashboard','ordering','suppliers','subs','proj-sop','job-hub'];
+const PROJ_SUBTABS=['dashboard','ordering','suppliers','proj-sop','job-hub'];
 function showProjSubtab(t){
   PROJ_SUBTABS.forEach(id=>document.getElementById('proj-'+id).style.display=id===t?'block':'none');
   document.querySelectorAll('#proj-subtabbar .subtab-btn').forEach((b,i)=>b.classList.toggle('active',PROJ_SUBTABS[i]===t));
   if(t==='dashboard')renderProj();
-  if(t==='ordering'){renderOrdering();}if(t==='suppliers')renderSuppliers();if(t==='subs')renderSubs();
+  if(t==='ordering'){renderOrdering();}if(t==='suppliers')renderSubs();
   
   if(t==='proj-sop'){renderDocList('proj_sop');setupDocDragDrop();}
   // hide subtab bar when in job hub
