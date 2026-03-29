@@ -183,6 +183,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .log-entry:last-child{border-bottom:none;}
 .log-date{font-size:11px;color:var(--text3);margin-bottom:4px;}
 .log-text{font-size:13px;line-height:1.6;white-space:pre-wrap;}
+
+/* JOB CALENDAR */
+.cal-header{display:flex;align-items:center;justify-content:space-between;padding:12px 1rem;border-bottom:1px solid var(--border);}
+.cal-nav{display:flex;align-items:center;gap:10px;}
+.cal-nav button{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:4px 11px;font-size:13px;cursor:pointer;color:var(--text);font-family:inherit;}
+.cal-nav button:hover{background:var(--border);}
+.cal-month-label{font-size:15px;font-weight:600;min-width:140px;text-align:center;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--border);border-top:1px solid var(--border);}
+.cal-day-name{text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:7px 0;background:var(--bg2);border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.cal-cell{min-height:90px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px;position:relative;vertical-align:top;}
+.cal-cell.other-month{background:var(--bg2);}
+.cal-cell.today{background:var(--brand-light);}
+.cal-date{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:3px;}
+.cal-cell.today .cal-date{color:var(--brand);}
+.cal-event{font-size:10px;font-weight:600;padding:2px 5px;border-radius:4px;margin-bottom:2px;cursor:default;line-height:1.4;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.cal-ev-phase{background:#EEEDFE;color:#3C3489;}
+.cal-ev-delivery{background:var(--amber-bg);color:var(--amber-txt);}
+.cal-ev-inspection{background:var(--blue-bg);color:var(--blue-txt);}
+.cal-ev-event{background:var(--green-bg);color:var(--green-txt);}
+.cal-legend{display:flex;gap:12px;padding:10px 1rem;border-top:1px solid var(--border);flex-wrap:wrap;}
+.cal-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
+.cal-legend-dot{width:10px;height:10px;border-radius:3px;}
+
+.cal-cell{cursor:pointer;transition:background 0.1s;}
+.cal-cell:not(.other-month):hover{background:var(--bg2);}
+.cal-cell.today:hover{background:#f5ddd4;}
+.cal-day-panel{display:none;border-top:1px solid var(--border);padding:1rem;}
+.cal-day-panel.open{display:block;}
+.cal-day-panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cal-day-panel-title{font-size:15px;font-weight:600;}
+.cal-day-event-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+.cal-day-event-row:last-child{border-bottom:none;}
+.cal-day-event-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+.cal-day-event-info{flex:1;}
+.cal-day-event-title{font-size:13px;font-weight:600;}
+.cal-day-event-notes{font-size:12px;color:var(--text2);margin-top:2px;}
+.cal-empty-day{font-size:13px;color:var(--text3);padding:8px 0;}
 </style>
 </head>
 <body>
@@ -364,6 +401,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           </div>
         </div>
       </div>
+      <!-- Calendar -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="cal-header">
+          <span class="card-title">Job Calendar</span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="cal-nav">
+              <button onclick="calPrev()">&#8249;</button>
+              <span class="cal-month-label" id="cal-month-label"></span>
+              <button onclick="calNext()">&#8250;</button>
+            </div>
+            <button class="btn-primary" style="font-size:12px;padding:6px 13px;" onclick="openModal('cal-event-modal')">+ Add event</button>
+          </div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="cal-day-panel" id="cal-day-panel"></div>
+        <div class="cal-legend">
+          <div class="cal-legend-item"><div class="cal-legend-dot cal-ev-phase"></div>Phase</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot cal-ev-delivery"></div>Delivery</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot cal-ev-inspection"></div>Inspection</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot cal-ev-event"></div>Event</div>
+        </div>
+      </div>
+
       <div class="grid2">
         <!-- Notes -->
         <div class="card">
@@ -1024,7 +1084,8 @@ async function deleteSalesTask(id){
 // JOB HUB
 // ============================================================
 let currentJobId=null;
-let jhPhases=[],jhTasks=[],jhNotes=[],jhLog=[],jhLabor=[],jhMaterials=[],jhSubCosts=[],jhChangeOrders=[],jhDocs=[],jhTeam=[];
+let jhPhases=[],jhTasks=[],jhNotes=[],jhLog=[],jhLabor=[],jhMaterials=[],jhSubCosts=[],jhChangeOrders=[],jhDocs=[],jhTeam=[],jhCalEvents=[];
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 
 const JH_TABS=['management','financials','documents','people'];
 function showJhTab(t){
@@ -1060,7 +1121,7 @@ function closeJobHub(){
 
 async function loadJobHubData(projId){
   try{
-    const [phases,tasks,notes,log,labor,materials,subcosts,cos,docs,people]=await Promise.all([
+    const [phases,tasks,notes,log,labor,materials,subcosts,cos,docs,people,calev]=await Promise.all([
       sb.from('job_phases').select('*').eq('project_id',projId).order('created_at',{ascending:true}),
       sb.from('job_tasks').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
       sb.from('job_notes').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
@@ -1071,6 +1132,7 @@ async function loadJobHubData(projId){
       sb.from('job_changeorders').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
       sb.from('job_docs').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
       sb.from('job_people').select('*').eq('project_id',projId).order('created_at',{ascending:true}),
+      sb.from('job_cal_events').select('*').eq('project_id',projId).order('date',{ascending:true}),
     ]);
     jhPhases=phases.data||[];
     jhTasks=tasks.data||[];
@@ -1082,6 +1144,7 @@ async function loadJobHubData(projId){
     jhChangeOrders=cos.data||[];
     jhDocs=docs.data||[];
     jhTeam=people.data||[];
+    jhCalEvents=calev.data||[];
     renderJhManagement();
   }catch(err){console.error('loadJobHubData error:',err);}
 }
@@ -1092,6 +1155,7 @@ function renderJhManagement(){
   renderJhTasks();
   renderJhNotes();
   renderJhLog();
+  renderJhCalendar();
 }
 
 const PHASE_STATUS_COLORS={'Not started':'b-gray','In progress':'b-amber','Complete':'b-green','On hold':'b-red'};
@@ -1304,6 +1368,148 @@ async function deleteJhPerson(id){
   renderJhPeople();
 }
 
+// ---- JOB CALENDAR ----
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderJhCalendar();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderJhCalendar();}
+
+function renderJhCalendar(){
+  var monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var el=document.getElementById('cal-month-label');
+  if(!el)return;
+  el.textContent=monthNames[calMonth]+' '+calYear;
+
+  // Build events map: 'YYYY-MM-DD' -> [{type,title,id}]
+  var evMap={};
+  function addEv(dateStr,type,title,id){
+    if(!dateStr)return;
+    var key=dateStr.slice(0,10);
+    if(!evMap[key])evMap[key]=[];
+    evMap[key].push({type:type,title:title,id:id});
+  }
+  // Phase start/end dates
+  jhPhases.forEach(function(ph){
+    if(ph.start_date)addEv(ph.start_date,'phase',ph.name+' starts',ph.id);
+    if(ph.end_date)addEv(ph.end_date,'phase',ph.name+' ends',ph.id);
+  });
+  // Material deliveries
+  jhMaterials.forEach(function(m){
+    // no date on materials - skip (future: add delivery_date field)
+  });
+  // Custom calendar events
+  jhCalEvents.forEach(function(e){
+    addEv(e.date,e.type.toLowerCase(),e.title,e.id);
+  });
+
+  // Build grid
+  var firstDay=new Date(calYear,calMonth,1).getDay();
+  var daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  var daysInPrev=new Date(calYear,calMonth,0).getDate();
+  var today=new Date();
+  var todayStr=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+
+  var html='<div class="cal-day-name">Sun</div><div class="cal-day-name">Mon</div><div class="cal-day-name">Tue</div><div class="cal-day-name">Wed</div><div class="cal-day-name">Thu</div><div class="cal-day-name">Fri</div><div class="cal-day-name">Sat</div>';
+
+  // Prev month overflow
+  for(var i=firstDay-1;i>=0;i--){
+    html+='<div class="cal-cell other-month"><div class="cal-date">'+(daysInPrev-i)+'</div></div>';
+  }
+  // Current month days
+  for(var d=1;d<=daysInMonth;d++){
+    var dateStr=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var isToday=dateStr===todayStr;
+    var evs=evMap[dateStr]||[];
+    var evHtml=evs.map(function(ev){
+      var cls={'phase':'cal-ev-phase','delivery':'cal-ev-delivery','inspection':'cal-ev-inspection','event':'cal-ev-event'}[ev.type]||'cal-ev-event';
+      var delBtn=ev.type!=='phase'?' <span onclick="deleteCalEvent(\''+ev.id+'\',event)" style="cursor:pointer;opacity:0.7;">✕</span>':'';
+      return '<div class="cal-event '+cls+'" title="'+ev.title+'">'+ev.title+delBtn+'</div>';
+    }).join('');
+    var clickable='onclick="openCalDay(\''+dateStr+'\')"';
+    html+='<div class="cal-cell'+(isToday?' today':'')+'" '+clickable+'><div class="cal-date">'+d+(evs.length?' <span style="font-size:10px;background:var(--brand);color:white;border-radius:10px;padding:1px 5px;">'+evs.length+'</span>':'')+'</div>'+evHtml+'</div>';
+  }
+  // Next month overflow
+  var totalCells=firstDay+daysInMonth;
+  var remaining=(7-totalCells%7)%7;
+  for(var n=1;n<=remaining;n++){
+    html+='<div class="cal-cell other-month"><div class="cal-date">'+n+'</div></div>';
+  }
+
+  document.getElementById('cal-grid').innerHTML=html;
+  window._calEvMap=evMap;
+  // Close day panel when month changes
+  var panel=document.getElementById('cal-day-panel');if(panel){panel.className='cal-day-panel';}
+}
+
+async function saveCalEvent(){
+  var title=document.getElementById('cev-title').value.trim();if(!title)return;
+  var date=document.getElementById('cev-date').value;if(!date)return;
+  var res=await sb.from('job_cal_events').insert({
+    project_id:currentJobId,
+    title:title,
+    type:document.getElementById('cev-type').value,
+    date:date,
+    notes:document.getElementById('cev-notes').value||''
+  }).select();
+  if(res.data)jhCalEvents.push(res.data[0]);
+  closeModals();renderJhCalendar();
+  ['cev-title','cev-date','cev-notes'].forEach(function(id){document.getElementById(id).value='';});
+}
+
+async function deleteCalEvent(id,e){
+  e.stopPropagation();
+  await sb.from('job_cal_events').delete().eq('id',id);
+  jhCalEvents=jhCalEvents.filter(function(x){return x.id!==id;});
+  renderJhCalendar();
+}
+
+function openCalDay(dateStr){
+  var panel=document.getElementById('cal-day-panel');
+  if(!panel)return;
+  var evMap=window._calEvMap||{};
+  var evs=evMap[dateStr]||[];
+  // Format date nicely
+  var d=new Date(dateStr+'T12:00:00');
+  var label=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  var typeCls={'phase':'cal-ev-phase','delivery':'cal-ev-delivery','inspection':'cal-ev-inspection','event':'cal-ev-event'};
+  var typeLabel={'phase':'Phase','delivery':'Delivery','inspection':'Inspection','event':'Event'};
+  // Find full event details for custom events (notes etc.)
+  var evHtml=evs.length ? evs.map(function(ev){
+    var calEv=jhCalEvents.find(function(x){return x.id===ev.id;});
+    var notes=calEv&&calEv.notes?calEv.notes:'';
+    var delBtn=ev.type!=='phase'
+      ? '<button class="btn-danger" style="padding:3px 8px;font-size:10px;" onclick="deleteCalEvent(\''+ev.id+'\',event)">Delete</button>'
+      : '';
+    return '<div class="cal-day-event-row">'
+      +'<span class="cal-day-event-badge '+(typeCls[ev.type]||'cal-ev-event')+'">'+(typeLabel[ev.type]||ev.type)+'</span>'
+      +'<div class="cal-day-event-info"><div class="cal-day-event-title">'+ev.title+'</div>'+(notes?'<div class="cal-day-event-notes">'+notes+'</div>':'')+'</div>'
+      +delBtn
+      +'</div>';
+  }).join('') : '<div class="cal-empty-day">No events on this day. <span style="color:var(--brand);cursor:pointer;" onclick="preselectCalDate(\''+dateStr+'\')">+ Add one</span></div>';
+  panel.innerHTML='<div class="cal-day-panel-header">'
+    +'<div class="cal-day-panel-title">'+label+'</div>'
+    +'<div style="display:flex;gap:8px;align-items:center;">'
+    +'<button class="btn-sm" onclick="preselectCalDate(\''+dateStr+'\')">+ Add event</button>'
+    +'<button class="btn-sm" onclick="closeCalDay()">✕ Close</button>'
+    +'</div>'
+    +'</div>'
+    +evHtml;
+  panel.className='cal-day-panel open';
+  // Scroll panel into view
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function closeCalDay(){
+  var panel=document.getElementById('cal-day-panel');
+  if(panel)panel.className='cal-day-panel';
+}
+
+function preselectCalDate(dateStr){
+  openModal('cal-event-modal');
+  setTimeout(function(){
+    var inp=document.getElementById('cev-date');
+    if(inp)inp.value=dateStr;
+  },50);
+}
+
 loadAll();
 </script>
 
@@ -1372,5 +1578,14 @@ loadAll();
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="savePerson()">Add person</button></div>
 </div></div>
 
+
+<!-- CALENDAR EVENT MODAL -->
+<div class="modal-overlay" id="cal-event-modal"><div class="modal"><h3>Add calendar event</h3>
+  <div class="fg"><label>Event type</label><select id="cev-type"><option>Event</option><option>Inspection</option><option>Delivery</option></select></div>
+  <div class="fg"><label>Title</label><input id="cev-title" placeholder="e.g. City inspection, Lumber delivery..."/></div>
+  <div class="fg"><label>Date</label><input id="cev-date" type="date"/></div>
+  <div class="fg"><label>Notes</label><input id="cev-notes" placeholder="Optional details"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveCalEvent()">Save</button></div>
+</div></div>
 </body>
 </html>
