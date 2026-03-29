@@ -742,7 +742,7 @@ async function moveLeadStage(id,stage){
 
 async function createProjectFromLead(l){
   // Check if a project for this lead already exists (avoid duplicates)
-  const existing=projects.find(function(p){return p.customer_id===l.customer_id&&p.name===l.job;});
+  const existing=projects.find(function(p){return p.customer_id===l.customer_id&&p.name===(l.job||l.name+' Job');});
   if(existing){return;}
   const job_id=await getNextId('last_job_id',1045);
   const res=await sb.from('projects').insert({
@@ -758,18 +758,59 @@ async function createProjectFromLead(l){
     profitable:'',
   }).select();
   if(res.data){
-    projects.unshift(res.data[0]);
-    // Show a brief confirmation
-    showToast('Job created in Project Management: '+job_id);
+    const newProj=res.data[0];
+    projects.unshift(newProj);
+    showToastWithUndo('Job '+job_id+' created in Project Management',l,newProj.id);
   }
 }
 
-function showToast(msg){
+function showToastWithUndo(msg, lead, projId){
+  // Remove any existing toast
+  var old=document.getElementById('jm-toast');if(old)old.remove();
   var t=document.createElement('div');
-  t.textContent=msg;
-  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1A1A18;color:white;padding:10px 20px;border-radius:8px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+  t.id='jm-toast';
+  var span=document.createElement('span');span.textContent=msg;
+  var btn=document.createElement('button');
+  btn.textContent='Undo';
+  btn.style.cssText='margin-left:14px;background:var(--brand);color:white;border:none;border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600;';
+  btn.onclick=function(){undoWon(lead.id,projId);};
+  t.appendChild(span);t.appendChild(btn);
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1A1A18;color:white;padding:12px 18px;border-radius:10px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.3);display:flex;align-items:center;white-space:nowrap;';
   document.body.appendChild(t);
-  setTimeout(function(){t.style.opacity='0';t.style.transition='opacity 0.4s';setTimeout(function(){t.remove();},400);},3000);
+  // Auto-dismiss after 8 seconds
+  var timer=setTimeout(function(){dismissToast();},8000);
+  t._timer=timer;
+}
+
+function dismissToast(){
+  var t=document.getElementById('jm-toast');
+  if(!t)return;
+  t.style.opacity='0';t.style.transition='opacity 0.4s';
+  setTimeout(function(){if(t.parentNode)t.remove();},400);
+}
+
+async function undoWon(leadId, projId){
+  dismissToast();
+  // Move lead back to Negotiating
+  const now=new Date().toISOString();
+  await sb.from('leads').update({stage:'Negotiating',stage_updated_at:now}).eq('id',leadId);
+  const l=leads.find(function(x){return x.id===leadId;});
+  if(l){l.stage='Negotiating';l.stage_updated_at=now;}
+  // Delete the auto-created project
+  await sb.from('projects').delete().eq('id',projId);
+  projects=projects.filter(function(p){return p.id!==projId;});
+  renderSalesPipeline();renderDash();
+  showToast('Undone — lead moved back to Negotiating');
+}
+
+function showToast(msg){
+  var old=document.getElementById('jm-toast');if(old)old.remove();
+  var t=document.createElement('div');
+  t.id='jm-toast';
+  t.textContent=msg;
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1A1A18;color:white;padding:12px 18px;border-radius:10px;font-size:13px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+  document.body.appendChild(t);
+  setTimeout(function(){dismissToast();},3000);
 }
 function promptDelete(type,id,name){
   pendingDeleteId=id;pendingDeleteType=type;
