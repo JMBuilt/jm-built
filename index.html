@@ -831,7 +831,7 @@ async function loadAll(){
     leadNotes={};(notes.data||[]).forEach(n=>{if(!leadNotes[n.lead_id])leadNotes[n.lead_id]=[];leadNotes[n.lead_id].push(n);});
     subHistory={};(hist.data||[]).forEach(h=>{if(!subHistory[h.sub_id])subHistory[h.sub_id]=[];subHistory[h.sub_id].push(h);});
     salesNotes=(sn&&sn.data)||[];salesTasks=(st&&st.data)||[];
-    setSync(true);await loadOrders();renderDash();
+    setSync(true);await loadOrders();await backfillOrderForms();renderDash();
     // Setup drag/drop on all doc textareas after load
     setupDocDragDrop();
   }catch(err){setSync(false);console.error(err);}
@@ -953,6 +953,7 @@ async function createProjectFromLead(l){
   if(res.data){
     const newProj=res.data[0];
     projects.unshift(newProj);
+    await createOrderFormForProject(newProj);
     showToastWithUndo('Job '+job_id+' created in Project Management',l,newProj.id);
   }
 }
@@ -1256,6 +1257,13 @@ async function createOrderFormForProject(proj){
     rows:JSON.stringify([]),
   }).select();
   if(res.data)orderForms.unshift(res.data[0]);
+}
+
+// Backfill - creates order forms for any existing projects that don't have one
+async function backfillOrderForms(){
+  for(var i=0;i<projects.length;i++){
+    await createOrderFormForProject(projects[i]);
+  }
 }
 
 function renderOrdering(){
