@@ -450,27 +450,50 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <!-- FINANCIALS -->
     <div id="jh-financials" style="display:none;">
-      <!-- P&L Summary -->
-      <div class="grid4" style="margin-bottom:1rem;" id="jh-pl-stats"></div>
+
+      <!-- REVENUE -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-header">
+          <span class="card-title">Revenue</span>
+          <button class="btn-sm" onclick="openModal('revenue-modal')">Edit</button>
+        </div>
+        <div class="grid4" style="padding:1rem;gap:1rem;" id="jh-revenue-cards"></div>
+      </div>
+
+      <!-- P&L SUMMARY -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-header"><span class="card-title">Profit & Loss</span></div>
+        <div style="padding:1rem;">
+          <div id="jh-pl-bar" style="margin-bottom:1rem;"></div>
+          <table class="tbl" id="jh-pl-table"></table>
+        </div>
+      </div>
+
+      <!-- ESTIMATED VS ACTUALS -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-header">
+          <span class="card-title">Estimated vs Actuals</span>
+          <button class="btn-sm" onclick="openModal('estimates-modal')">Set estimates</button>
+        </div>
+        <table class="tbl"><thead><tr><th>Category</th><th>Estimated</th><th>Actual</th><th>Variance</th><th>Status</th></tr></thead><tbody id="jh-eva-tbl"></tbody></table>
+      </div>
+
+      <!-- COST TABLES -->
       <div class="grid2" style="margin-bottom:1rem;">
-        <!-- Labor -->
         <div class="card">
           <div class="card-header"><span class="card-title">Labor costs</span><button class="btn-sm" onclick="openModal('labor-modal')">+ Add</button></div>
           <table class="tbl"><thead><tr><th>Name</th><th>Hours</th><th>Rate</th><th>Total</th><th></th></tr></thead><tbody id="jh-labor-list"></tbody></table>
         </div>
-        <!-- Materials -->
         <div class="card">
           <div class="card-header"><span class="card-title">Material costs</span><button class="btn-sm" onclick="openModal('material-modal')">+ Add</button></div>
           <table class="tbl"><thead><tr><th>Item</th><th>Qty</th><th>Unit cost</th><th>Total</th><th></th></tr></thead><tbody id="jh-material-list"></tbody></table>
         </div>
       </div>
       <div class="grid2">
-        <!-- Subcontractors -->
         <div class="card">
           <div class="card-header"><span class="card-title">Subcontractor costs</span><button class="btn-sm" onclick="openModal('sub-cost-modal')">+ Add</button></div>
           <table class="tbl"><thead><tr><th>Sub name</th><th>Trade</th><th>Amount</th><th>Notes</th><th></th></tr></thead><tbody id="jh-subcost-list"></tbody></table>
         </div>
-        <!-- Change orders -->
         <div class="card">
           <div class="card-header"><span class="card-title">Change orders</span><button class="btn-sm" onclick="openModal('changeorder-modal')">+ Add</button></div>
           <table class="tbl"><thead><tr><th>Description</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody id="jh-co-list"></tbody></table>
@@ -1084,7 +1107,7 @@ async function deleteSalesTask(id){
 // JOB HUB
 // ============================================================
 let currentJobId=null;
-let jhPhases=[],jhTasks=[],jhNotes=[],jhLog=[],jhLabor=[],jhMaterials=[],jhSubCosts=[],jhChangeOrders=[],jhDocs=[],jhTeam=[],jhCalEvents=[];
+let jhPhases=[],jhTasks=[],jhNotes=[],jhLog=[],jhLabor=[],jhMaterials=[],jhSubCosts=[],jhChangeOrders=[],jhDocs=[],jhTeam=[],jhCalEvents=[],jhFinancials=null;
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 
 const JH_TABS=['management','financials','documents','people'];
@@ -1121,7 +1144,7 @@ function closeJobHub(){
 
 async function loadJobHubData(projId){
   try{
-    const [phases,tasks,notes,log,labor,materials,subcosts,cos,docs,people,calev]=await Promise.all([
+    const [phases,tasks,notes,log,labor,materials,subcosts,cos,docs,people,calev,findata]=await Promise.all([
       sb.from('job_phases').select('*').eq('project_id',projId).order('created_at',{ascending:true}),
       sb.from('job_tasks').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
       sb.from('job_notes').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
@@ -1133,6 +1156,7 @@ async function loadJobHubData(projId){
       sb.from('job_docs').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
       sb.from('job_people').select('*').eq('project_id',projId).order('created_at',{ascending:true}),
       sb.from('job_cal_events').select('*').eq('project_id',projId).order('date',{ascending:true}),
+      sb.from('job_financials').select('*').eq('project_id',projId).single(),
     ]);
     jhPhases=phases.data||[];
     jhTasks=tasks.data||[];
@@ -1145,6 +1169,7 @@ async function loadJobHubData(projId){
     jhDocs=docs.data||[];
     jhTeam=people.data||[];
     jhCalEvents=calev.data||[];
+    jhFinancials=findata.data||null;
     renderJhManagement();
   }catch(err){console.error('loadJobHubData error:',err);}
 }
@@ -1229,40 +1254,129 @@ async function addJhLog(){
 }
 
 // ---- FINANCIALS ----
+function fmtMoney(n){return '$'+Math.round(n).toLocaleString();}
+function varianceBadge(est,act){
+  if(!est)return '<span class="badge b-gray">No estimate</span>';
+  var diff=act-est;
+  if(diff<=0)return '<span class="badge b-green">Under by '+fmtMoney(Math.abs(diff))+'</span>';
+  return '<span class="badge b-red">Over by '+fmtMoney(diff)+'</span>';
+}
+
 function renderJhFinancials(){
   var p=projects.find(function(x){return x.id===currentJobId;});
-  var contractVal=p?parseInt((p.val||'0').replace(/[^0-9]/g,''))||0:0;
+  var fin=jhFinancials||{};
+
+  // ---- COST TOTALS ----
   var laborTotal=jhLabor.reduce(function(s,l){return s+(parseFloat(l.hours)||0)*(parseFloat(l.rate)||0);},0);
   var matTotal=jhMaterials.reduce(function(s,m){return s+(parseFloat(m.qty)||0)*(parseFloat(m.unit_cost)||0);},0);
   var subTotal=jhSubCosts.reduce(function(s,sc){return s+(parseFloat(sc.amount)||0);},0);
   var coApproved=jhChangeOrders.filter(function(co){return co.status==='Approved';}).reduce(function(s,co){return s+(parseFloat(co.amount)||0);},0);
   var totalCost=laborTotal+matTotal+subTotal;
+
+  // ---- REVENUE ----
+  var contractVal=parseFloat(fin.contract)||p?parseInt((p.val||'0').replace(/[^0-9]/g,''))||0:0;
+  if(fin.contract)contractVal=parseFloat(fin.contract)||0;
+  var invoiced=parseFloat(fin.invoiced)||0;
+  var collected=parseFloat(fin.collected)||0;
   var totalRevenue=contractVal+coApproved;
+  var outstanding=invoiced-collected;
+
+  // Revenue cards
+  document.getElementById('jh-revenue-cards').innerHTML=[
+    {label:'Contract value',value:fmtMoney(contractVal),sub:'Original contract'},
+    {label:'Total with change orders',value:fmtMoney(totalRevenue),sub:coApproved>0?'+'+fmtMoney(coApproved)+' approved COs':'No approved COs'},
+    {label:'Invoiced',value:fmtMoney(invoiced),sub:'Sent to client'},
+    {label:'Collected',value:fmtMoney(collected),sub:outstanding>0?fmtMoney(outstanding)+' outstanding':'Fully collected'},
+  ].map(function(s){return '<div class="stat-card"><div class="stat-label">'+s.label+'</div><div class="stat-value" style="font-size:20px;">'+s.value+'</div><div class="stat-sub">'+(s.sub||'')+'</div></div>';}).join('');
+
+  // ---- P&L ----
   var margin=totalRevenue-totalCost;
-  var pct=totalRevenue>0?Math.round(margin/totalRevenue*100):0;
-  statCards('jh-pl-stats',[
-    {label:'Contract value',value:'$'+totalRevenue.toLocaleString(),sub:'Incl. approved change orders'},
-    {label:'Total costs',value:'$'+Math.round(totalCost).toLocaleString(),sub:'Labor + materials + subs'},
-    {label:'Gross profit',value:'$'+Math.round(margin).toLocaleString(),sub:pct+'% margin'},
-    {label:'Change orders',value:jhChangeOrders.length,sub:coApproved>0?'+$'+Math.round(coApproved).toLocaleString()+' approved':'None approved'},
-  ]);
-  // Labor table
+  var marginPct=totalRevenue>0?Math.round(margin/totalRevenue*100):0;
+  var barPct=Math.min(100,Math.max(0,totalRevenue>0?Math.round(totalCost/totalRevenue*100):0));
+  var barColor=marginPct>=20?'var(--green-txt)':marginPct>=5?'var(--amber-txt)':'var(--red-txt)';
+  document.getElementById('jh-pl-bar').innerHTML=
+    '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:6px;">'
+    +'<span>Cost vs Revenue</span><span style="font-weight:600;color:'+barColor+';">'+marginPct+'% margin</span></div>'
+    +'<div style="height:12px;background:var(--bg2);border-radius:6px;overflow:hidden;">'
+    +'<div style="width:'+barPct+'%;height:100%;background:'+barColor+';border-radius:6px;transition:width 0.4s;"></div></div>'
+    +'<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:4px;">'
+    +'<span>Costs: '+fmtMoney(totalCost)+'</span><span>Revenue: '+fmtMoney(totalRevenue)+'</span></div>';
+  document.getElementById('jh-pl-table').innerHTML=
+    '<thead><tr><th>Category</th><th style="text-align:right;">Amount</th></tr></thead><tbody>'
+    +'<tr><td style="color:var(--text2);">Labor</td><td style="text-align:right;font-weight:500;">'+fmtMoney(laborTotal)+'</td></tr>'
+    +'<tr><td style="color:var(--text2);">Materials</td><td style="text-align:right;font-weight:500;">'+fmtMoney(matTotal)+'</td></tr>'
+    +'<tr><td style="color:var(--text2);">Subcontractors</td><td style="text-align:right;font-weight:500;">'+fmtMoney(subTotal)+'</td></tr>'
+    +'<tr style="border-top:2px solid var(--border2);"><td style="font-weight:600;">Total costs</td><td style="text-align:right;font-weight:600;">'+fmtMoney(totalCost)+'</td></tr>'
+    +'<tr><td style="font-weight:600;">Total revenue</td><td style="text-align:right;font-weight:600;">'+fmtMoney(totalRevenue)+'</td></tr>'
+    +'<tr style="border-top:2px solid var(--border2);"><td style="font-weight:700;font-size:14px;">Gross profit</td><td style="text-align:right;font-weight:700;font-size:14px;color:'+(margin>=0?'var(--green-txt)':'var(--red-txt)')+';">'+fmtMoney(margin)+'</td></tr>'
+    +'</tbody>';
+
+  // ---- ESTIMATED VS ACTUALS ----
+  var estL=parseFloat(fin.est_labor)||0;
+  var estM=parseFloat(fin.est_materials)||0;
+  var estS=parseFloat(fin.est_subs)||0;
+  var estT=parseFloat(fin.est_total)||0;
+  document.getElementById('jh-eva-tbl').innerHTML=
+    '<thead><tr><th>Category</th><th>Estimated</th><th>Actual</th><th>Variance</th><th>Status</th></tr></thead><tbody>'
+    +'<tr><td style="font-weight:500;">Labor</td><td>'+(estL?fmtMoney(estL):'—')+'</td><td>'+fmtMoney(laborTotal)+'</td><td>'+(estL?fmtMoney(laborTotal-estL):'—')+'</td><td>'+varianceBadge(estL,laborTotal)+'</td></tr>'
+    +'<tr><td style="font-weight:500;">Materials</td><td>'+(estM?fmtMoney(estM):'—')+'</td><td>'+fmtMoney(matTotal)+'</td><td>'+(estM?fmtMoney(matTotal-estM):'—')+'</td><td>'+varianceBadge(estM,matTotal)+'</td></tr>'
+    +'<tr><td style="font-weight:500;">Subcontractors</td><td>'+(estS?fmtMoney(estS):'—')+'</td><td>'+fmtMoney(subTotal)+'</td><td>'+(estS?fmtMoney(subTotal-estS):'—')+'</td><td>'+varianceBadge(estS,subTotal)+'</td></tr>'
+    +'<tr style="border-top:2px solid var(--border2);"><td style="font-weight:700;">Total</td><td>'+(estT?fmtMoney(estT):'—')+'</td><td>'+fmtMoney(totalCost)+'</td><td>'+(estT?fmtMoney(totalCost-estT):'—')+'</td><td>'+varianceBadge(estT,totalCost)+'</td></tr>'
+    +'</tbody>';
+
+  // ---- COST TABLES ----
   document.getElementById('jh-labor-list').innerHTML=jhLabor.length
-    ? jhLabor.map(function(l){var tot=(parseFloat(l.hours)||0)*(parseFloat(l.rate)||0);return '<tr><td style="font-weight:500;">'+l.name+'</td><td>'+l.hours+'h</td><td>$'+l.rate+'/hr</td><td style="color:var(--brand);font-weight:600;">$'+Math.round(tot).toLocaleString()+'</td><td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteJhLabor(\''+l.id+'\')">✕</button></td></tr>';}).join('')
+    ? jhLabor.map(function(l){var tot=(parseFloat(l.hours)||0)*(parseFloat(l.rate)||0);return '<tr><td style="font-weight:500;">'+l.name+'</td><td>'+l.hours+'h</td><td>$'+l.rate+'/hr</td><td style="color:var(--brand);font-weight:600;">'+fmtMoney(tot)+'</td><td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteJhLabor(\''+l.id+'\')">✕</button></td></tr>';}).join('')
     : '<tr><td colspan="5" class="empty">No labor logged</td></tr>';
-  // Materials table
   document.getElementById('jh-material-list').innerHTML=jhMaterials.length
-    ? jhMaterials.map(function(m){var tot=(parseFloat(m.qty)||0)*(parseFloat(m.unit_cost)||0);return '<tr><td style="font-weight:500;">'+m.item+'</td><td>'+m.qty+'</td><td>$'+m.unit_cost+'</td><td style="color:var(--brand);font-weight:600;">$'+Math.round(tot).toLocaleString()+'</td><td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteJhMaterial(\''+m.id+'\')">✕</button></td></tr>';}).join('')
+    ? jhMaterials.map(function(m){var tot=(parseFloat(m.qty)||0)*(parseFloat(m.unit_cost)||0);return '<tr><td style="font-weight:500;">'+m.item+'</td><td>'+m.qty+'</td><td>$'+m.unit_cost+'</td><td style="color:var(--brand);font-weight:600;">'+fmtMoney(tot)+'</td><td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteJhMaterial(\''+m.id+'\')">✕</button></td></tr>';}).join('')
     : '<tr><td colspan="5" class="empty">No materials logged</td></tr>';
-  // Sub costs table
   document.getElementById('jh-subcost-list').innerHTML=jhSubCosts.length
     ? jhSubCosts.map(function(sc){return '<tr><td style="font-weight:500;">'+sc.name+'</td><td style="color:var(--text2);">'+sc.trade+'</td><td style="color:var(--brand);font-weight:600;">$'+(parseFloat(sc.amount)||0).toLocaleString()+'</td><td style="color:var(--text2);font-size:12px;">'+(sc.notes||'—')+'</td><td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteJhSubCost(\''+sc.id+'\')">✕</button></td></tr>';}).join('')
     : '<tr><td colspan="5" class="empty">No sub costs logged</td></tr>';
-  // Change orders table
   var coColors={'Pending':'b-amber','Approved':'b-green','Declined':'b-red'};
   document.getElementById('jh-co-list').innerHTML=jhChangeOrders.length
     ? jhChangeOrders.map(function(co){return '<tr><td style="font-weight:500;">'+co.description+'</td><td style="color:var(--brand);font-weight:600;">$'+(parseFloat(co.amount)||0).toLocaleString()+'</td><td><span class="badge '+(coColors[co.status]||'b-gray')+'">'+co.status+'</span></td><td style="color:var(--text2);font-size:12px;">'+(co.date||'—')+'</td><td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteJhCO(\''+co.id+'\')">✕</button></td></tr>';}).join('')
     : '<tr><td colspan="5" class="empty">No change orders</td></tr>';
+  
+  // Pre-fill modals
+  document.getElementById('rev-contract').value=fin.contract||'';
+  document.getElementById('rev-invoiced').value=fin.invoiced||'';
+  document.getElementById('rev-collected').value=fin.collected||'';
+  document.getElementById('est-labor').value=fin.est_labor||'';
+  document.getElementById('est-materials').value=fin.est_materials||'';
+  document.getElementById('est-subs').value=fin.est_subs||'';
+  document.getElementById('est-total').value=fin.est_total||'';
+}
+
+async function saveRevenue(){
+  var fin=jhFinancials||{};
+  fin.contract=document.getElementById('rev-contract').value||'0';
+  fin.invoiced=document.getElementById('rev-invoiced').value||'0';
+  fin.collected=document.getElementById('rev-collected').value||'0';
+  await saveFinancials(fin);
+  closeModals();renderJhFinancials();
+}
+
+async function saveEstimates(){
+  var fin=jhFinancials||{};
+  fin.est_labor=document.getElementById('est-labor').value||'0';
+  fin.est_materials=document.getElementById('est-materials').value||'0';
+  fin.est_subs=document.getElementById('est-subs').value||'0';
+  fin.est_total=document.getElementById('est-total').value||'0';
+  await saveFinancials(fin);
+  closeModals();renderJhFinancials();
+}
+
+async function saveFinancials(fin){
+  fin.project_id=currentJobId;
+  if(jhFinancials&&jhFinancials.id){
+    await sb.from('job_financials').update(fin).eq('id',jhFinancials.id);
+    Object.assign(jhFinancials,fin);
+  } else {
+    var res=await sb.from('job_financials').insert(fin).select();
+    if(res.data)jhFinancials=res.data[0];
+  }
 }
 
 async function saveLabor(){
@@ -1586,6 +1700,24 @@ loadAll();
   <div class="fg"><label>Date</label><input id="cev-date" type="date"/></div>
   <div class="fg"><label>Notes</label><input id="cev-notes" placeholder="Optional details"/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveCalEvent()">Save</button></div>
+</div></div>
+
+<!-- REVENUE MODAL -->
+<div class="modal-overlay" id="revenue-modal"><div class="modal"><h3>Revenue details</h3>
+  <div class="fg"><label>Contract value ($)</label><input id="rev-contract" type="number" placeholder="From contract / lead value"/></div>
+  <div class="fg"><label>Amount invoiced ($)</label><input id="rev-invoiced" type="number" placeholder="Total invoiced to client so far"/></div>
+  <div class="fg"><label>Amount collected ($)</label><input id="rev-collected" type="number" placeholder="Cash actually received"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveRevenue()">Save</button></div>
+</div></div>
+
+<!-- ESTIMATES MODAL -->
+<div class="modal-overlay" id="estimates-modal"><div class="modal"><h3>Set cost estimates</h3>
+  <p style="font-size:12px;color:var(--text2);margin-bottom:1rem;">Enter what you originally budgeted for each category. Actuals are calculated automatically from your cost entries.</p>
+  <div class="fg"><label>Estimated labor ($)</label><input id="est-labor" type="number" placeholder="e.g. 8000"/></div>
+  <div class="fg"><label>Estimated materials ($)</label><input id="est-materials" type="number" placeholder="e.g. 12000"/></div>
+  <div class="fg"><label>Estimated subcontractors ($)</label><input id="est-subs" type="number" placeholder="e.g. 5000"/></div>
+  <div class="fg"><label>Estimated total cost ($)</label><input id="est-total" type="number" placeholder="e.g. 25000"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEstimates()">Save estimates</button></div>
 </div></div>
 </body>
 </html>
