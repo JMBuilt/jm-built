@@ -429,15 +429,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <!-- PEOPLE -->
     <div id="jh-people" style="display:none;">
-      <div class="grid2">
-        <div class="card">
-          <div class="card-header"><span class="card-title">Client info</span></div>
-          <div id="jh-client-info"></div>
+      <!-- Client info card -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-header"><span class="card-title">Client info</span></div>
+        <div id="jh-client-info"></div>
+      </div>
+      <!-- People table -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Project team</span>
+          <button class="btn-primary" onclick="openModal('person-modal')">+ Add person</button>
         </div>
-        <div class="card">
-          <div class="card-header"><span class="card-title">Project team</span><button class="btn-sm" onclick="openModal('team-modal')">Edit</button></div>
-          <div id="jh-team-info"></div>
-        </div>
+        <table class="tbl">
+          <thead><tr><th>Role</th><th>Name</th><th>Phone</th><th>Email</th><th>Notes</th><th></th></tr></thead>
+          <tbody id="jh-people-tbl"></tbody>
+        </table>
       </div>
     </div>
 
@@ -1018,7 +1024,7 @@ async function deleteSalesTask(id){
 // JOB HUB
 // ============================================================
 let currentJobId=null;
-let jhPhases=[],jhTasks=[],jhNotes=[],jhLog=[],jhLabor=[],jhMaterials=[],jhSubCosts=[],jhChangeOrders=[],jhDocs=[],jhTeam=null;
+let jhPhases=[],jhTasks=[],jhNotes=[],jhLog=[],jhLabor=[],jhMaterials=[],jhSubCosts=[],jhChangeOrders=[],jhDocs=[],jhTeam=[];
 
 const JH_TABS=['management','financials','documents','people'];
 function showJhTab(t){
@@ -1054,7 +1060,7 @@ function closeJobHub(){
 
 async function loadJobHubData(projId){
   try{
-    const [phases,tasks,notes,log,labor,materials,subcosts,cos,docs,team]=await Promise.all([
+    const [phases,tasks,notes,log,labor,materials,subcosts,cos,docs,people]=await Promise.all([
       sb.from('job_phases').select('*').eq('project_id',projId).order('created_at',{ascending:true}),
       sb.from('job_tasks').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
       sb.from('job_notes').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
@@ -1064,7 +1070,7 @@ async function loadJobHubData(projId){
       sb.from('job_subcosts').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
       sb.from('job_changeorders').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
       sb.from('job_docs').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
-      sb.from('job_team').select('*').eq('project_id',projId).single(),
+      sb.from('job_people').select('*').eq('project_id',projId).order('created_at',{ascending:true}),
     ]);
     jhPhases=phases.data||[];
     jhTasks=tasks.data||[];
@@ -1075,7 +1081,7 @@ async function loadJobHubData(projId){
     jhSubCosts=subcosts.data||[];
     jhChangeOrders=cos.data||[];
     jhDocs=docs.data||[];
-    jhTeam=team.data||null;
+    jhTeam=people.data||[];
     renderJhManagement();
   }catch(err){console.error('loadJobHubData error:',err);}
 }
@@ -1247,45 +1253,55 @@ async function deleteJhDoc(id){await sb.from('job_docs').delete().eq('id',id);jh
 // ---- PEOPLE ----
 function renderJhPeople(){
   var p=projects.find(function(x){return x.id===currentJobId;});
-  // Client info - try to find matching lead
+  // Client info
   var lead=p&&p.customer_id?leads.find(function(l){return l.customer_id===p.customer_id;}):null;
   var clientHtml='';
   if(lead){
-    clientHtml='<div class="list-row"><div class="row-name">Name</div><span>'+lead.name+'</span></div>'
-      +(lead.phone?'<div class="list-row"><div class="row-name">Phone</div><span>'+lead.phone+'</span></div>':'')
-      +(lead.email?'<div class="list-row"><div class="row-name">Email</div><span>'+lead.email+'</span></div>':'')
-      +(lead.address?'<div class="list-row"><div class="row-name">Address</div><span>'+lead.address+'</span></div>':'');
+    clientHtml='<div class="list-row"><div class="row-name">Name</div><span style="font-size:13px;">'+lead.name+'</span></div>'
+      +(lead.phone?'<div class="list-row"><div class="row-name">Phone</div><span style="font-size:13px;">'+lead.phone+'</span></div>':'')
+      +(lead.email?'<div class="list-row"><div class="row-name">Email</div><span style="font-size:13px;">'+lead.email+'</span></div>':'')
+      +(lead.address?'<div class="list-row"><div class="row-name">Address</div><span style="font-size:13px;">'+lead.address+'</span></div>':'');
   } else if(p){
-    clientHtml='<div class="list-row"><div class="row-name">Name</div><span>'+(p.client||'—')+'</span></div><div class="list-row" style="font-size:12px;color:var(--text3);padding:8px 1rem;">Link a Customer ID to see full contact info</div>';
+    clientHtml='<div class="list-row"><div class="row-name">Name</div><span style="font-size:13px;">'+(p.client||'—')+'</span></div>'
+      +'<div style="padding:8px 1rem;font-size:12px;color:var(--text3);">Link a Customer ID to see full contact info</div>';
   }
   document.getElementById('jh-client-info').innerHTML=clientHtml||'<div class="empty">No client info</div>';
-  // Team
-  var t=jhTeam;
-  document.getElementById('jh-team-info').innerHTML=t
-    ? '<div class="list-row"><div class="row-name">Project manager</div><span>'+(t.pm||'—')+'</span></div>'
-      +'<div class="list-row"><div class="row-name">Foreman / Lead</div><span>'+(t.foreman||'—')+'</span></div>'
-      +'<div class="list-row"><div class="row-name">Subcontractors</div><span style="font-size:12px;">'+(t.subs||'—')+'</span></div>'
-      +'<div class="list-row"><div class="row-name">Crew</div><span style="font-size:12px;">'+(t.crew||'—')+'</span></div>'
-    : '<div class="empty">No team assigned yet</div>';
-  // Pre-fill team modal
-  if(t){
-    document.getElementById('tm-pm').value=t.pm||'';
-    document.getElementById('tm-foreman').value=t.foreman||'';
-    document.getElementById('tm-subs').value=t.subs||'';
-    document.getElementById('tm-crew').value=t.crew||'';
-  }
+  // People table
+  var roleBadge={'Project Manager':'b-brand','Foreman':'b-blue','Subcontractor':'b-amber','Employee':'b-green','Other':'b-gray'};
+  document.getElementById('jh-people-tbl').innerHTML=jhTeam.length
+    ? jhTeam.map(function(per){
+        return '<tr>'
+          +'<td><span class="badge '+(roleBadge[per.role]||'b-gray')+'">'+per.role+'</span></td>'
+          +'<td style="font-weight:600;">'+per.name+'</td>'
+          +'<td style="color:var(--text2);">'+(per.phone||'—')+'</td>'
+          +'<td style="color:var(--text2);">'+(per.email||'—')+'</td>'
+          +'<td style="color:var(--text2);font-size:12px;">'+(per.notes||'—')+'</td>'
+          +'<td><button class="btn-danger" style="padding:3px 8px;font-size:10px;" onclick="deleteJhPerson(\''+per.id+'\')">Delete</button></td>'
+          +'</tr>';
+      }).join('')
+    : '<tr><td colspan="6" class="empty">No team members yet — add your first person</td></tr>';
 }
 
-async function saveTeam(){
-  var data={project_id:currentJobId,pm:document.getElementById('tm-pm').value||'',foreman:document.getElementById('tm-foreman').value||'',subs:document.getElementById('tm-subs').value||'',crew:document.getElementById('tm-crew').value||''};
-  if(jhTeam){
-    await sb.from('job_team').update(data).eq('id',jhTeam.id);
-    Object.assign(jhTeam,data);
-  } else {
-    var res=await sb.from('job_team').insert(data).select();
-    if(res.data)jhTeam=res.data[0];
-  }
+async function savePerson(){
+  var name=document.getElementById('per-name').value.trim();if(!name)return;
+  var data={
+    project_id:currentJobId,
+    role:document.getElementById('per-role').value,
+    name:name,
+    phone:document.getElementById('per-phone').value||'',
+    email:document.getElementById('per-email').value||'',
+    notes:document.getElementById('per-notes').value||'',
+  };
+  var res=await sb.from('job_people').insert(data).select();
+  if(res.data)jhTeam.push(res.data[0]);
   closeModals();renderJhPeople();
+  ['per-name','per-phone','per-email','per-notes'].forEach(function(id){document.getElementById(id).value='';});
+}
+
+async function deleteJhPerson(id){
+  await sb.from('job_people').delete().eq('id',id);
+  jhTeam=jhTeam.filter(function(x){return x.id!==id;});
+  renderJhPeople();
 }
 
 loadAll();
@@ -1346,13 +1362,14 @@ loadAll();
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveJobDoc()">Save</button></div>
 </div></div>
 
-<!-- TEAM MODAL -->
-<div class="modal-overlay" id="team-modal"><div class="modal"><h3>Project team</h3>
-  <div class="fg"><label>Project manager</label><input id="tm-pm" placeholder="e.g. Your name"/></div>
-  <div class="fg"><label>Foreman / Lead</label><input id="tm-foreman" placeholder="e.g. Name"/></div>
-  <div class="fg"><label>Subcontractors on this job</label><textarea id="tm-subs" rows="3" style="resize:vertical;" placeholder="e.g. Dave's Electric, ABC Plumbing..."></textarea></div>
-  <div class="fg"><label>Employees / Crew</label><textarea id="tm-crew" rows="3" style="resize:vertical;" placeholder="e.g. John, Mike..."></textarea></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveTeam()">Save</button></div>
+<!-- PERSON MODAL -->
+<div class="modal-overlay" id="person-modal"><div class="modal"><h3>Add person</h3>
+  <div class="fg"><label>Role</label><select id="per-role"><option>Project Manager</option><option>Foreman</option><option>Subcontractor</option><option>Employee</option><option>Other</option></select></div>
+  <div class="fg"><label>Name</label><input id="per-name" placeholder="e.g. John Smith"/></div>
+  <div class="fg"><label>Phone</label><input id="per-phone" placeholder="e.g. 513-555-0100"/></div>
+  <div class="fg"><label>Email</label><input id="per-email" placeholder="e.g. john@email.com"/></div>
+  <div class="fg"><label>Notes</label><input id="per-notes" placeholder="e.g. Licensed electrician, lead carpenter..."/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="savePerson()">Add person</button></div>
 </div></div>
 
 </body>
