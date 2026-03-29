@@ -40,6 +40,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-danger{background:var(--red-bg);color:var(--red-txt);border:1px solid var(--red-txt);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}
 .btn-notes{background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--blue-txt);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}
 .btn-notes.has-notes{background:var(--amber-bg);color:var(--amber-txt);border-color:var(--amber-txt);}
+.btn-import{background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--blue-txt);border-radius:6px;padding:4px 11px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;white-space:nowrap;}
+.btn-import:hover{opacity:0.85;}
+.doc-import-input{display:none;}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
 .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
@@ -101,7 +104,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .search-bar{display:flex;gap:10px;margin-bottom:.75rem;}
 .search-bar input{flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;}
 .search-bar input:focus{outline:none;border-color:var(--brand);}
-/* Doc editor with drag/drop */
 .doc-layout{display:grid;grid-template-columns:240px 1fr;gap:12px;min-height:500px;}
 .doc-list{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
 .doc-list-header{padding:12px 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
@@ -121,9 +123,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .doc-textarea-wrap{position:relative;flex:1;display:flex;flex-direction:column;}
 .doc-textarea{flex:1;width:100%;min-height:420px;font-size:13px;border:none;padding:1rem;background:var(--surface);color:var(--text);font-family:inherit;line-height:1.7;resize:none;}
 .doc-textarea:focus{outline:none;}
-.btn-import{background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--blue-txt);border-radius:6px;padding:4px 11px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;white-space:nowrap;}
-.btn-import:hover{opacity:0.85;}
-.doc-import-input{display:none;}
 .doc-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:13px;gap:10px;padding:2rem;}
 .cid-badge{font-size:11px;font-weight:700;background:var(--bg2);color:var(--text2);padding:3px 8px;border-radius:6px;font-family:monospace;letter-spacing:0.5px;white-space:nowrap;}
 .jid-badge{font-size:11px;font-weight:700;background:var(--brand-light);color:var(--brand);padding:3px 8px;border-radius:6px;font-family:monospace;letter-spacing:0.5px;white-space:nowrap;}
@@ -143,10 +142,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .contact-actions{display:flex;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);}
 .history-btn{background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--blue-txt);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600;}
 .history-btn.has-history{background:var(--amber-bg);color:var(--amber-txt);border-color:var(--amber-txt);}
-.coming-soon{padding:4rem 2rem;text-align:center;color:var(--text3);}
-.coming-soon .icon{font-size:40px;margin-bottom:12px;}
-.coming-soon h3{font-size:16px;font-weight:600;color:var(--text2);margin-bottom:8px;}
-.coming-soon p{font-size:13px;line-height:1.6;}
 .notes-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;}
 .notes-name{font-size:16px;font-weight:600;}
 .notes-meta{font-size:12px;color:var(--text2);margin-top:3px;}
@@ -169,8 +164,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .fg input,.fg select,.fg textarea{width:100%;font-size:13px;border:1px solid var(--border2);border-radius:8px;padding:8px 11px;background:var(--bg2);color:var(--text);font-family:inherit;}
 .fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--brand);}
 .mfoot{display:flex;gap:9px;justify-content:flex-end;margin-top:1.1rem;}
-
-.proj-link{color:var(--brand);font-weight:600;cursor:pointer;text-decoration:none;}
+/* Job hub */
+.proj-link{color:var(--brand);font-weight:600;cursor:pointer;}
 .proj-link:hover{text-decoration:underline;}
 .jh-tab{border:none;background:transparent;padding:7px 14px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit;border-radius:7px;font-weight:500;transition:all 0.15s;}
 .jh-tab:hover{background:var(--surface);color:var(--text);}
@@ -183,8 +178,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .log-entry:last-child{border-bottom:none;}
 .log-date{font-size:11px;color:var(--text3);margin-bottom:4px;}
 .log-text{font-size:13px;line-height:1.6;white-space:pre-wrap;}
-
-/* JOB CALENDAR */
+/* Calendar */
 .cal-header{display:flex;align-items:center;justify-content:space-between;padding:12px 1rem;border-bottom:1px solid var(--border);}
 .cal-nav{display:flex;align-items:center;gap:10px;}
 .cal-nav button{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:4px 11px;font-size:13px;cursor:pointer;color:var(--text);font-family:inherit;}
@@ -192,12 +186,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cal-month-label{font-size:15px;font-weight:600;min-width:140px;text-align:center;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);border-left:1px solid var(--border);border-top:1px solid var(--border);}
 .cal-day-name{text-align:center;font-size:11px;font-weight:600;color:var(--text3);padding:7px 0;background:var(--bg2);border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
-.cal-cell{min-height:90px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px;position:relative;vertical-align:top;}
+.cal-cell{min-height:90px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px;cursor:pointer;transition:background 0.1s;}
 .cal-cell.other-month{background:var(--bg2);}
 .cal-cell.today{background:var(--brand-light);}
+.cal-cell:not(.other-month):hover{background:var(--bg2);}
+.cal-cell.today:hover{background:#f5ddd4;}
 .cal-date{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:3px;}
 .cal-cell.today .cal-date{color:var(--brand);}
-.cal-event{font-size:10px;font-weight:600;padding:2px 5px;border-radius:4px;margin-bottom:2px;cursor:default;line-height:1.4;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.cal-event{font-size:10px;font-weight:600;padding:2px 5px;border-radius:4px;margin-bottom:2px;line-height:1.4;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 .cal-ev-phase{background:#EEEDFE;color:#3C3489;}
 .cal-ev-delivery{background:var(--amber-bg);color:var(--amber-txt);}
 .cal-ev-inspection{background:var(--blue-bg);color:var(--blue-txt);}
@@ -205,10 +201,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cal-legend{display:flex;gap:12px;padding:10px 1rem;border-top:1px solid var(--border);flex-wrap:wrap;}
 .cal-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);}
 .cal-legend-dot{width:10px;height:10px;border-radius:3px;}
-
-.cal-cell{cursor:pointer;transition:background 0.1s;}
-.cal-cell:not(.other-month):hover{background:var(--bg2);}
-.cal-cell.today:hover{background:#f5ddd4;}
 .cal-day-panel{display:none;border-top:1px solid var(--border);padding:1rem;}
 .cal-day-panel.open{display:block;}
 .cal-day-panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
@@ -220,8 +212,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cal-day-event-title{font-size:13px;font-weight:600;}
 .cal-day-event-notes{font-size:12px;color:var(--text2);margin-top:2px;}
 .cal-empty-day{font-size:13px;color:var(--text3);padding:8px 0;}
-
-/* ORDERING SYSTEM */
+/* Ordering system */
 .ord-form-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;}
 .ord-form-header{display:flex;align-items:center;gap:12px;padding:12px 1rem;cursor:pointer;transition:background 0.12s;}
 .ord-form-header:hover{background:var(--bg2);}
@@ -238,41 +229,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ord-cell-total{font-size:12px;font-weight:600;color:var(--brand);padding:5px 7px;}
 .ord-form-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 1rem;border-top:1px solid var(--border);background:var(--bg2);}
 .ord-form-total{font-size:13px;font-weight:600;}
-@media print{
-  body > *:not(#po-print-area){display:none!important;}
-  #po-print-area{display:block!important;position:fixed;inset:0;background:white;padding:2rem;z-index:99999;}
-}
+@media print{body > *:not(#po-print-area){display:none!important;}#po-print-area{display:block!important;position:fixed;inset:0;background:white;padding:2rem;z-index:99999;}}
 #po-print-area{display:none;}
-
-/* Print PO styles */
-@media print{
-  body > *:not(#po-print-area){display:none!important;}
-  #po-print-area{display:block!important;position:fixed;inset:0;background:white;padding:2rem;z-index:99999;}
-  .po-print-hide{display:none!important;}
-}
-#po-print-area{display:none;}
-.po-doc{font-family:-apple-system,sans-serif;max-width:780px;margin:0 auto;color:#1A1A18;}
-.po-doc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:2px solid #C8440A;}
-.po-doc-logo{font-size:22px;font-weight:700;color:#C8440A;}
-.po-doc-address{font-size:12px;color:#6B6A66;margin-top:4px;line-height:1.6;}
-.po-doc-title{font-size:28px;font-weight:700;color:#C8440A;text-align:right;}
-.po-doc-meta{font-size:12px;color:#6B6A66;text-align:right;margin-top:4px;line-height:1.8;}
-.po-doc-parties{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2rem;}
-.po-doc-party-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#9E9C98;margin-bottom:6px;}
-.po-doc-party-name{font-size:14px;font-weight:600;}
-.po-doc-party-info{font-size:12px;color:#6B6A66;line-height:1.7;}
-.po-doc-items{width:100%;border-collapse:collapse;margin-bottom:1.5rem;}
-.po-doc-items th{text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#9E9C98;padding:8px 10px;border-bottom:2px solid #E0DDD8;}
-.po-doc-items td{padding:10px 10px;font-size:13px;border-bottom:1px solid #E0DDD8;}
-.po-doc-items tr:last-child td{border-bottom:none;}
-.po-doc-totals{display:flex;justify-content:flex-end;margin-bottom:2rem;}
-.po-doc-totals-box{min-width:220px;}
-.po-doc-total-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;}
-.po-doc-total-row.grand{font-size:15px;font-weight:700;border-top:2px solid #1A1A18;margin-top:6px;padding-top:8px;}
-.po-doc-notes{background:#F4F3F0;border-radius:8px;padding:14px;font-size:12px;color:#6B6A66;line-height:1.7;margin-bottom:2rem;}
-.po-doc-sig{display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-top:2rem;padding-top:1.5rem;border-top:1px solid #E0DDD8;}
-.po-doc-sig-line{border-bottom:1px solid #1A1A18;height:40px;margin-bottom:6px;}
-.po-doc-sig-label{font-size:11px;color:#9E9C98;}
 </style>
 </head>
 <body>
@@ -299,8 +257,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="subtabbar" id="proj-subtabbar" style="display:none;">
   <button class="subtab-btn active" onclick="showProjSubtab('dashboard')">Dashboard</button>
   <button class="subtab-btn" onclick="showProjSubtab('ordering')">Ordering System</button>
-  <button class="subtab-btn" onclick="showProjSubtab('suppliers')">Suppliers</button>
-  <button class="subtab-btn" onclick="showProjSubtab('subs')">Subcontractors</button>
+  <button class="subtab-btn" onclick="showProjSubtab('suppliers')">Subcontractors</button>
   <button class="subtab-btn" onclick="showProjSubtab('proj-sop')">SOP</button>
 </div>
 
@@ -323,26 +280,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <!-- SALES -->
 <div id="tab-sales" style="display:none;">
   <div id="sales-pipeline">
-    <!-- SALES NOTES + DAILY TASKS -->
+    <div class="hub-header"><div><div class="hub-title">Sales Pipeline</div><div class="hub-sub">Active leads — won and lost move to inactive automatically.</div></div><button class="btn-primary" onclick="openModal('lead-modal')">+ Add lead</button></div>
     <div class="grid2" style="margin-bottom:1.25rem;">
-      <div class="card">
-        <div class="card-header"><span class="card-title">Sales notes</span></div>
-        <div id="sales-notes-list"></div>
-        <div class="add-row">
-          <input id="sales-note-inp" placeholder="Add a note..." onkeydown="if(event.key==='Enter')addSalesNote()"/>
-          <button class="btn-primary" style="padding:7px 13px;" onclick="addSalesNote()">Add</button>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-header"><span class="card-title">Daily tasks</span><span class="badge b-brand" id="sales-task-count">0</span></div>
-        <div id="sales-tasks-list"></div>
-        <div class="add-row">
-          <input id="sales-task-inp" placeholder="Add a task..." onkeydown="if(event.key==='Enter')addSalesTask()"/>
-          <button class="btn-primary" style="padding:7px 13px;" onclick="addSalesTask()">Add</button>
-        </div>
-      </div>
+      <div class="card"><div class="card-header"><span class="card-title">Sales notes</span></div><div id="sales-notes-list"></div><div class="add-row"><input id="sales-note-inp" placeholder="Add a note..." onkeydown="if(event.key==='Enter')addSalesNote()"/><button class="btn-primary" style="padding:7px 13px;" onclick="addSalesNote()">Add</button></div></div>
+      <div class="card"><div class="card-header"><span class="card-title">Daily tasks</span><span class="badge b-brand" id="sales-task-count">0</span></div><div id="sales-tasks-list"></div><div class="add-row"><input id="sales-task-inp" placeholder="Add a task..." onkeydown="if(event.key==='Enter')addSalesTask()"/><button class="btn-primary" style="padding:7px 13px;" onclick="addSalesTask()">Add</button></div></div>
     </div>
-    <div class="hub-header"><div><div class="hub-title">Sales Pipeline</div><div class="hub-sub">Active leads — completed and lost move to inactive automatically.</div></div><button class="btn-primary" onclick="openModal('lead-modal')">+ Add lead</button></div>
     <div class="grid5" style="margin-bottom:1.25rem;" id="pipeline-stats"></div>
     <div class="pipeline" id="sales-board"></div>
     <div class="card" style="margin-bottom:1.5rem;">
@@ -350,7 +292,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <table class="tbl"><thead><tr><th>Customer ID</th><th>Name</th><th>Stage</th><th>Value</th><th>Job Type</th><th>Source</th><th>Notes</th><th></th></tr></thead><tbody id="leads-tbl"></tbody></table>
     </div>
     <div class="section-header">
-      <div><div class="section-title">Inactive leads</div><div class="section-sub">Completed and lost — use Qualifier to track re-contact potential</div></div>
+      <div><div class="section-title">Inactive leads</div><div class="section-sub">Won and lost — change stage to move back to active</div></div>
       <span class="badge b-gray" id="inactive-count">0</span>
     </div>
     <div class="search-bar"><input id="inactive-search" placeholder="Search inactive leads..." oninput="renderSalesPipeline()"/></div>
@@ -362,12 +304,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Customer ID</th><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th>Last Stage Change</th><th>Stage</th><th>Qualifier</th><th>Notes</th><th></th></tr></thead><tbody id="db-tbl"></tbody></table></div>
   </div>
   <div id="sales-sop" style="display:none;">
-    <div class="hub-header"><div><div class="hub-title">Sales SOPs</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('sales_sop')">+ New SOP</button></div>
-    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="sales_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="sales_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="sales_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="sales_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('sales_sop')"/><span class="doc-editor-status" id="sales_sop-status"></span><button class="btn-import" onclick="triggerDocImport('sales_sop')">Import Word doc</button><input type="file" class="doc-import-input" id="sales_sop-file-input" accept=".docx" onchange="handleDocImport('sales_sop',this)"/><button class="btn-danger" onclick="deleteDoc('sales_sop')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="sales_sop-content-input" placeholder="Paste or type your SOP here, or click Import Word doc to load a .docx file..." oninput="autoSaveDoc('sales_sop')"></textarea></div></div></div></div>
+    <div class="hub-header"><div><div class="hub-title">Sales SOPs</div><div class="hub-sub">Standard operating procedures for your sales process.</div></div><button class="btn-primary" onclick="openDocModal('sales_sop')">+ New SOP</button></div>
+    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="sales_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="sales_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="sales_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="sales_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('sales_sop')"/><span class="doc-editor-status" id="sales_sop-status"></span><button class="btn-import" onclick="triggerDocImport('sales_sop')">Import Word doc</button><input type="file" class="doc-import-input" id="sales_sop-file-input" accept=".docx" onchange="handleDocImport('sales_sop',this)"/><button class="btn-danger" onclick="deleteDoc('sales_sop')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="sales_sop-content-input" placeholder="Paste or type your SOP here..." oninput="autoSaveDoc('sales_sop')"></textarea></div></div></div></div>
   </div>
   <div id="sales-scripts" style="display:none;">
-    <div class="hub-header"><div><div class="hub-title">Sales Scripts</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('sales_scripts')">+ New Script</button></div>
-    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Scripts</span></div><div id="sales_scripts-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="sales_scripts-empty"><span style="font-size:32px;">📞</span><span>Select a script or create a new one</span></div><div id="sales_scripts-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="sales_scripts-title-input" placeholder="Script title..." oninput="autoSaveDoc('sales_scripts')"/><span class="doc-editor-status" id="sales_scripts-status"></span><button class="btn-import" onclick="triggerDocImport('sales_scripts')">Import Word doc</button><input type="file" class="doc-import-input" id="sales_scripts-file-input" accept=".docx" onchange="handleDocImport('sales_scripts',this)"/><button class="btn-danger" onclick="deleteDoc('sales_scripts')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="sales_scripts-content-input" placeholder="Paste or type your script here, or click Import Word doc to load a .docx file..." oninput="autoSaveDoc('sales_scripts')"></textarea></div></div></div></div>
+    <div class="hub-header"><div><div class="hub-title">Sales Scripts</div><div class="hub-sub">Call and follow-up scripts.</div></div><button class="btn-primary" onclick="openDocModal('sales_scripts')">+ New Script</button></div>
+    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Scripts</span></div><div id="sales_scripts-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="sales_scripts-empty"><span style="font-size:32px;">📞</span><span>Select a script or create a new one</span></div><div id="sales_scripts-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="sales_scripts-title-input" placeholder="Script title..." oninput="autoSaveDoc('sales_scripts')"/><span class="doc-editor-status" id="sales_scripts-status"></span><button class="btn-import" onclick="triggerDocImport('sales_scripts')">Import Word doc</button><input type="file" class="doc-import-input" id="sales_scripts-file-input" accept=".docx" onchange="handleDocImport('sales_scripts',this)"/><button class="btn-danger" onclick="deleteDoc('sales_scripts')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="sales_scripts-content-input" placeholder="Paste or type your script here..." oninput="autoSaveDoc('sales_scripts')"></textarea></div></div></div></div>
   </div>
 </div>
 
@@ -380,258 +322,113 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <!-- PROJECTS -->
 <div id="tab-projects" style="display:none;">
+  <!-- Dashboard subtab -->
   <div id="proj-dashboard">
-    <div class="hub-header"><div><div class="hub-title">Project Management</div><div class="hub-sub">Every job from start to finish.</div></div><button class="btn-primary" onclick="openModal('proj-modal')">+ New project</button></div>
+    <div class="hub-header"><div><div class="hub-title">Project Management</div><div class="hub-sub">Every job from start to finish — click a project name to open its full hub.</div></div><button class="btn-primary" onclick="openModal('proj-modal')">+ New project</button></div>
     <div class="grid5" style="margin-bottom:1.25rem;" id="proj-stats"></div>
     <div class="card" style="margin-bottom:1.5rem;">
       <div class="card-header"><span class="card-title">Active jobs</span><span class="badge b-brand" id="active-proj-count">0</span></div>
       <table class="tbl"><thead><tr><th>Project</th><th>Job ID</th><th>Customer</th><th>Customer ID</th><th>Value</th><th>Status</th><th>Progress</th><th>Start</th><th>Due</th><th></th></tr></thead><tbody id="active-proj-tbl"></tbody></table>
     </div>
     <div class="section-header">
-      <div><div class="section-title">Completed jobs</div><div class="section-sub">Searchable — change status to move a job back to active</div></div>
+      <div><div class="section-title">Completed jobs</div><div class="section-sub">Searchable — change status to move back to active</div></div>
       <span class="badge b-gray" id="complete-proj-count">0</span>
     </div>
     <div class="search-bar"><input id="proj-search" placeholder="Search completed jobs by name, job ID, customer..." oninput="renderProj()"/></div>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Project</th><th>Job ID</th><th>Customer</th><th>Customer ID</th><th>Value</th><th>Status</th><th>Start</th><th>Completed</th><th>Profitable?</th></tr></thead><tbody id="complete-proj-tbl"></tbody></table></div>
   </div>
+
+  <!-- Ordering subtab -->
   <div id="proj-ordering" style="display:none;">
-    <!-- inner subtabs -->
     <div style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.25rem;width:fit-content;" id="ord-tabs">
       <button class="jh-tab active" onclick="showOrdTab('orders')">📋 Orders</button>
       <button class="jh-tab" onclick="showOrdTab('ord-suppliers')">🏭 Suppliers</button>
     </div>
-
-    <!-- ORDERS TAB -->
     <div id="ord-orders">
-      <div class="hub-header">
-        <div><div class="hub-title">Material Orders</div><div class="hub-sub">One order form per project. Spreadsheet-style line items — material, supplier, pricing, dates.</div></div>
-      </div>
-      <!-- Active forms -->
-      <div class="section-header" style="margin-top:0;">
-        <div><div class="section-title">Active order forms</div><div class="section-sub">Click a row to expand and edit</div></div>
-        <span class="badge b-brand" id="ord-active-count">0</span>
-      </div>
+      <div class="hub-header"><div><div class="hub-title">Material Orders</div><div class="hub-sub">One order form per project — spreadsheet style. Click a card to expand and edit.</div></div></div>
+      <div class="section-header" style="margin-top:0;"><div><div class="section-title">Active order forms</div></div><span class="badge b-brand" id="ord-active-count">0</span></div>
       <div id="ord-active-list" style="margin-bottom:1.5rem;"></div>
-      <!-- Archived forms -->
-      <div class="section-header">
-        <div><div class="section-title">Archived order forms</div><div class="section-sub">Manually archived forms</div></div>
-        <span class="badge b-gray" id="ord-archive-count">0</span>
-      </div>
+      <div class="section-header"><div><div class="section-title">Archived order forms</div></div><span class="badge b-gray" id="ord-archive-count">0</span></div>
       <div class="search-bar"><input id="ord-archive-search" placeholder="Search by project name or ID..." oninput="renderOrdering()"/></div>
       <div id="ord-archive-list"></div>
     </div>
-
-    <!-- SUPPLIERS TAB -->
     <div id="ord-suppliers" style="display:none;">
-      <div class="hub-header">
-        <div><div class="hub-title">Suppliers</div><div class="hub-sub">All your material vendors — name, phone, address, what they supply, notes.</div></div>
-        <button class="btn-primary" onclick="openModal('ord-supplier-modal')">+ Add supplier</button>
-      </div>
-      <div class="search-bar"><input id="ord-sup-search" placeholder="Search suppliers by name, what they supply..." oninput="renderOrdSuppliers()"/></div>
-      <div class="tbl-wrap">
-        <table class="tbl">
-          <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>What they supply</th><th>Notes</th><th></th></tr></thead>
-          <tbody id="ord-sup-tbl"></tbody>
-        </table>
-      </div>
+      <div class="hub-header"><div><div class="hub-title">Suppliers</div><div class="hub-sub">All your material vendors — name, phone, address, what they supply, notes.</div></div><button class="btn-primary" onclick="openModal('ord-supplier-modal')">+ Add supplier</button></div>
+      <div class="search-bar"><input id="ord-sup-search" placeholder="Search suppliers..." oninput="renderOrdSuppliers()"/></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>What they supply</th><th>Notes</th><th></th></tr></thead><tbody id="ord-sup-tbl"></tbody></table></div>
     </div>
   </div>
 
-  <!-- PO PRINT AREA -->
-  <div id="po-print-area"></div>
+  <!-- Subcontractors subtab -->
   <div id="proj-suppliers" style="display:none;">
-    <div class="hub-header"><div><div class="hub-title">Suppliers</div><div class="hub-sub">All your supplier contacts — what they supply, how to reach them.</div></div><button class="btn-primary" onclick="openModal('supplier-modal')">+ Add supplier</button></div>
-    <div class="search-bar"><input id="supplier-search" placeholder="Search suppliers by name, trade, or description..." oninput="renderSuppliers()"/></div>
-    <div class="contact-grid" id="supplier-grid"></div>
-  </div>
-  <div id="proj-subs" style="display:none;">
     <div class="hub-header"><div><div class="hub-title">Subcontractors</div><div class="hub-sub">Your sub network — contacts, trade, rates, and work history.</div></div><button class="btn-primary" onclick="openModal('sub-modal')">+ Add subcontractor</button></div>
     <div class="search-bar"><input id="sub-search" placeholder="Search subcontractors by name or trade..." oninput="renderSubs()"/></div>
     <div class="contact-grid" id="sub-grid"></div>
   </div>
+
+  <!-- SOP subtab -->
   <div id="proj-proj-sop" style="display:none;">
-    <div class="hub-header"><div><div class="hub-title">Project SOPs</div><div class="hub-sub">Drag & drop a Word doc or paste/type directly.</div></div><button class="btn-primary" onclick="openDocModal('proj_sop')">+ New SOP</button></div>
-    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="proj_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="proj_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="proj_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="proj_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('proj_sop')"/><span class="doc-editor-status" id="proj_sop-status"></span><button class="btn-import" onclick="triggerDocImport('proj_sop')">Import Word doc</button><input type="file" class="doc-import-input" id="proj_sop-file-input" accept=".docx" onchange="handleDocImport('proj_sop',this)"/><button class="btn-danger" onclick="deleteDoc('proj_sop')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="proj_sop-content-input" placeholder="Paste or type your SOP here, or click Import Word doc to load a .docx file..." oninput="autoSaveDoc('proj_sop')"></textarea></div></div></div></div>
+    <div class="hub-header"><div><div class="hub-title">Project SOPs</div><div class="hub-sub">Standard operating procedures for your project workflow.</div></div><button class="btn-primary" onclick="openDocModal('proj_sop')">+ New SOP</button></div>
+    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="proj_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="proj_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="proj_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="proj_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('proj_sop')"/><span class="doc-editor-status" id="proj_sop-status"></span><button class="btn-import" onclick="triggerDocImport('proj_sop')">Import Word doc</button><input type="file" class="doc-import-input" id="proj_sop-file-input" accept=".docx" onchange="handleDocImport('proj_sop',this)"/><button class="btn-danger" onclick="deleteDoc('proj_sop')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="proj_sop-content-input" placeholder="Paste or type your SOP here..." oninput="autoSaveDoc('proj_sop')"></textarea></div></div></div></div>
   </div>
-  <!-- JOB HUB (hidden, shown when a job is clicked) -->
+
+  <!-- Job hub -->
   <div id="proj-job-hub" style="display:none;">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem;">
       <button class="btn-sm" onclick="closeJobHub()">← Back to projects</button>
-      <div>
-        <div class="hub-title" id="jh-title">Job</div>
-        <div class="hub-sub" id="jh-sub"></div>
-      </div>
+      <div><div class="hub-title" id="jh-title">Job</div><div class="hub-sub" id="jh-sub"></div></div>
       <span class="jid-badge" id="jh-job-id" style="font-size:13px;padding:5px 12px;"></span>
       <div id="jh-status-wrap" style="margin-left:auto;"></div>
     </div>
-    <!-- Job hub sub-tabs -->
     <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;display:flex;gap:4px;padding:4px;margin-bottom:1.25rem;flex-wrap:wrap;" id="jh-tabs">
       <button class="jh-tab active" onclick="showJhTab('management')">📋 Management</button>
       <button class="jh-tab" onclick="showJhTab('financials')">💰 Financials</button>
       <button class="jh-tab" onclick="showJhTab('documents')">📁 Documents</button>
       <button class="jh-tab" onclick="showJhTab('people')">👥 People</button>
     </div>
-
     <!-- MANAGEMENT -->
     <div id="jh-management">
       <div class="grid2" style="margin-bottom:1rem;">
-        <!-- Phases -->
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Phases</span>
-            <button class="btn-sm" onclick="openModal('phase-modal')">+ Add phase</button>
-          </div>
-          <div id="jh-phases-list"></div>
-        </div>
-        <!-- Weekly/Daily Tasks -->
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Job tasks</span>
-            <span class="badge b-brand" id="jh-task-count">0</span>
-          </div>
-          <div id="jh-tasks-list"></div>
-          <div class="add-row">
-            <input id="jh-task-inp" placeholder="Add task..." onkeydown="if(event.key==='Enter')addJhTask()"/>
-            <button class="btn-primary" style="padding:7px 13px;" onclick="addJhTask()">Add</button>
-          </div>
-        </div>
+        <div class="card"><div class="card-header"><span class="card-title">Phases</span><button class="btn-sm" onclick="openModal('phase-modal')">+ Add phase</button></div><div id="jh-phases-list"></div></div>
+        <div class="card"><div class="card-header"><span class="card-title">Job tasks</span><span class="badge b-brand" id="jh-task-count">0</span></div><div id="jh-tasks-list"></div><div class="add-row"><input id="jh-task-inp" placeholder="Add task..." onkeydown="if(event.key==='Enter')addJhTask()"/><button class="btn-primary" style="padding:7px 13px;" onclick="addJhTask()">Add</button></div></div>
       </div>
-      <!-- Calendar -->
       <div class="card" style="margin-bottom:1rem;">
-        <div class="cal-header">
-          <span class="card-title">Job Calendar</span>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div class="cal-nav">
-              <button onclick="calPrev()">&#8249;</button>
-              <span class="cal-month-label" id="cal-month-label"></span>
-              <button onclick="calNext()">&#8250;</button>
-            </div>
-            <button class="btn-primary" style="font-size:12px;padding:6px 13px;" onclick="openModal('cal-event-modal')">+ Add event</button>
-          </div>
-        </div>
+        <div class="cal-header"><span class="card-title">Job Calendar</span><div style="display:flex;align-items:center;gap:10px;"><div class="cal-nav"><button onclick="calPrev()">&#8249;</button><span class="cal-month-label" id="cal-month-label"></span><button onclick="calNext()">&#8250;</button></div><button class="btn-primary" style="font-size:12px;padding:6px 13px;" onclick="openModal('cal-event-modal')">+ Add event</button></div></div>
         <div class="cal-grid" id="cal-grid"></div>
         <div class="cal-day-panel" id="cal-day-panel"></div>
-        <div class="cal-legend">
-          <div class="cal-legend-item"><div class="cal-legend-dot cal-ev-phase"></div>Phase</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot cal-ev-delivery"></div>Delivery</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot cal-ev-inspection"></div>Inspection</div>
-          <div class="cal-legend-item"><div class="cal-legend-dot cal-ev-event"></div>Event</div>
-        </div>
+        <div class="cal-legend"><div class="cal-legend-item"><div class="cal-legend-dot cal-ev-phase"></div>Phase</div><div class="cal-legend-item"><div class="cal-legend-dot cal-ev-delivery"></div>Delivery</div><div class="cal-legend-item"><div class="cal-legend-dot cal-ev-inspection"></div>Inspection</div><div class="cal-legend-item"><div class="cal-legend-dot cal-ev-event"></div>Event</div></div>
       </div>
-
       <div class="grid2">
-        <!-- Notes -->
-        <div class="card">
-          <div class="card-header"><span class="card-title">Notes</span></div>
-          <div id="jh-notes-list"></div>
-          <div class="add-row">
-            <input id="jh-note-inp" placeholder="Add note..." onkeydown="if(event.key==='Enter')addJhNote()"/>
-            <button class="btn-primary" style="padding:7px 13px;" onclick="addJhNote()">Add</button>
-          </div>
-        </div>
-        <!-- Daily log -->
-        <div class="card">
-          <div class="card-header"><span class="card-title">Daily log</span></div>
-          <div id="jh-log-list" style="max-height:300px;overflow-y:auto;"></div>
-          <div class="add-row" style="flex-direction:column;gap:6px;">
-            <textarea id="jh-log-inp" placeholder="What happened today? Who was on site? Any issues?" style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:8px 11px;background:var(--bg2);color:var(--text);font-family:inherit;resize:vertical;min-height:70px;"></textarea>
-            <div style="display:flex;justify-content:flex-end;">
-              <button class="btn-primary" style="padding:7px 16px;" onclick="addJhLog()">Log entry</button>
-            </div>
-          </div>
-        </div>
+        <div class="card"><div class="card-header"><span class="card-title">Notes</span></div><div id="jh-notes-list"></div><div class="add-row"><input id="jh-note-inp" placeholder="Add note..." onkeydown="if(event.key==='Enter')addJhNote()"/><button class="btn-primary" style="padding:7px 13px;" onclick="addJhNote()">Add</button></div></div>
+        <div class="card"><div class="card-header"><span class="card-title">Daily log</span></div><div id="jh-log-list" style="max-height:300px;overflow-y:auto;"></div><div class="add-row" style="flex-direction:column;gap:6px;"><textarea id="jh-log-inp" placeholder="What happened today? Who was on site? Any issues?" style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:8px 11px;background:var(--bg2);color:var(--text);font-family:inherit;resize:vertical;min-height:70px;"></textarea><div style="display:flex;justify-content:flex-end;"><button class="btn-primary" style="padding:7px 16px;" onclick="addJhLog()">Log entry</button></div></div></div>
       </div>
     </div>
-
     <!-- FINANCIALS -->
     <div id="jh-financials" style="display:none;">
-
-      <!-- REVENUE -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-header">
-          <span class="card-title">Revenue</span>
-          <button class="btn-sm" onclick="openModal('revenue-modal')">Edit</button>
-        </div>
-        <div class="grid4" style="padding:1rem;gap:1rem;" id="jh-revenue-cards"></div>
-      </div>
-
-      <!-- P&L SUMMARY -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-header"><span class="card-title">Profit & Loss</span></div>
-        <div style="padding:1rem;">
-          <div id="jh-pl-bar" style="margin-bottom:1rem;"></div>
-          <table class="tbl" id="jh-pl-table"></table>
-        </div>
-      </div>
-
-      <!-- ESTIMATED VS ACTUALS -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-header">
-          <span class="card-title">Estimated vs Actuals</span>
-          <button class="btn-sm" onclick="openModal('estimates-modal')">Set estimates</button>
-        </div>
-        <table class="tbl"><thead><tr><th>Category</th><th>Estimated</th><th>Actual</th><th>Variance</th><th>Status</th></tr></thead><tbody id="jh-eva-tbl"></tbody></table>
-      </div>
-
-      <!-- COST TABLES -->
+      <div class="card" style="margin-bottom:1rem;"><div class="card-header"><span class="card-title">Revenue</span><button class="btn-sm" onclick="openModal('revenue-modal')">Edit</button></div><div class="grid4" style="padding:1rem;gap:1rem;" id="jh-revenue-cards"></div></div>
+      <div class="card" style="margin-bottom:1rem;"><div class="card-header"><span class="card-title">Profit & Loss</span></div><div style="padding:1rem;"><div id="jh-pl-bar" style="margin-bottom:1rem;"></div><table class="tbl" id="jh-pl-table"></table></div></div>
+      <div class="card" style="margin-bottom:1rem;"><div class="card-header"><span class="card-title">Estimated vs Actuals</span><button class="btn-sm" onclick="openModal('estimates-modal')">Set estimates</button></div><table class="tbl"><thead><tr><th>Category</th><th>Estimated</th><th>Actual</th><th>Variance</th><th>Status</th></tr></thead><tbody id="jh-eva-tbl"></tbody></table></div>
       <div class="grid2" style="margin-bottom:1rem;">
-        <div class="card">
-          <div class="card-header"><span class="card-title">Labor costs</span><button class="btn-sm" onclick="openModal('labor-modal')">+ Add</button></div>
-          <table class="tbl"><thead><tr><th>Name</th><th>Hours</th><th>Rate</th><th>Total</th><th></th></tr></thead><tbody id="jh-labor-list"></tbody></table>
-        </div>
-        <div class="card">
-          <div class="card-header"><span class="card-title">Material costs</span><button class="btn-sm" onclick="openModal('material-modal')">+ Add</button></div>
-          <table class="tbl"><thead><tr><th>Item</th><th>Qty</th><th>Unit cost</th><th>Total</th><th></th></tr></thead><tbody id="jh-material-list"></tbody></table>
-        </div>
+        <div class="card"><div class="card-header"><span class="card-title">Labor costs</span><button class="btn-sm" onclick="openModal('labor-modal')">+ Add</button></div><table class="tbl"><thead><tr><th>Name</th><th>Hours</th><th>Rate</th><th>Total</th><th></th></tr></thead><tbody id="jh-labor-list"></tbody></table></div>
+        <div class="card"><div class="card-header"><span class="card-title">Material costs</span><button class="btn-sm" onclick="openModal('material-modal')">+ Add</button></div><table class="tbl"><thead><tr><th>Item</th><th>Qty</th><th>Unit cost</th><th>Total</th><th></th></tr></thead><tbody id="jh-material-list"></tbody></table></div>
       </div>
-      <div class="grid2">
-        <div class="card">
-          <div class="card-header"><span class="card-title">Subcontractor costs</span><button class="btn-sm" onclick="openModal('sub-cost-modal')">+ Add</button></div>
-          <table class="tbl"><thead><tr><th>Sub name</th><th>Trade</th><th>Amount</th><th>Notes</th><th></th></tr></thead><tbody id="jh-subcost-list"></tbody></table>
-        </div>
-        <div class="card">
-          <div class="card-header"><span class="card-title">Change orders</span><button class="btn-sm" onclick="openModal('changeorder-modal')">+ Add</button></div>
-          <table class="tbl"><thead><tr><th>Description</th><th>Amount</th><th>Status</th><th>Date</th><th>Document</th><th></th></tr></thead><tbody id="jh-co-list"></tbody></table>
-        </div>
+      <div class="grid2" style="margin-bottom:1rem;">
+        <div class="card"><div class="card-header"><span class="card-title">Subcontractor costs</span><button class="btn-sm" onclick="openModal('sub-cost-modal')">+ Add</button></div><table class="tbl"><thead><tr><th>Sub name</th><th>Trade</th><th>Amount</th><th>Notes</th><th></th></tr></thead><tbody id="jh-subcost-list"></tbody></table></div>
+        <div class="card"><div class="card-header"><span class="card-title">Change orders</span><button class="btn-sm" onclick="openModal('changeorder-modal')">+ Add</button></div><table class="tbl"><thead><tr><th>Description</th><th>Amount</th><th>Status</th><th>Date</th><th>Document</th><th></th></tr></thead><tbody id="jh-co-list"></tbody></table></div>
       </div>
-      <!-- Other Expenses -->
-      <div class="card" style="margin-top:1rem;">
-        <div class="card-header"><span class="card-title">Other expenses</span><button class="btn-sm" onclick="openModal('other-expense-modal')">+ Add</button></div>
-        <table class="tbl"><thead><tr><th>Description</th><th>Amount</th><th>Date</th><th></th></tr></thead><tbody id="jh-other-list"></tbody></table>
-      </div>
+      <div class="card"><div class="card-header"><span class="card-title">Other expenses</span><button class="btn-sm" onclick="openModal('other-expense-modal')">+ Add</button></div><table class="tbl"><thead><tr><th>Description</th><th>Amount</th><th>Date</th><th></th></tr></thead><tbody id="jh-other-list"></tbody></table></div>
     </div>
-
     <!-- DOCUMENTS -->
     <div id="jh-documents" style="display:none;">
-      <div class="hub-header">
-        <div><div class="hub-title">Job Documents</div><div class="hub-sub">Add links to contracts, permits, plans, photos stored in OneDrive or Google Drive.</div></div>
-        <button class="btn-primary" onclick="openModal('job-doc-modal')">+ Add document</button>
-      </div>
+      <div class="hub-header"><div><div class="hub-title">Job Documents</div><div class="hub-sub">Add links to contracts, permits, plans, photos stored in OneDrive or Google Drive.</div></div><button class="btn-primary" onclick="openModal('job-doc-modal')">+ Add document</button></div>
       <div class="contact-grid" id="jh-doc-grid"></div>
     </div>
-
     <!-- PEOPLE -->
     <div id="jh-people" style="display:none;">
-      <!-- Client info card -->
-      <div class="card" style="margin-bottom:1rem;">
-        <div class="card-header"><span class="card-title">Client info</span></div>
-        <div id="jh-client-info"></div>
-      </div>
-      <!-- People table -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">Project team</span>
-          <button class="btn-primary" onclick="openModal('person-modal')">+ Add person</button>
-        </div>
-        <table class="tbl">
-          <thead><tr><th>Role</th><th>Name</th><th>Phone</th><th>Email</th><th>Notes</th><th></th></tr></thead>
-          <tbody id="jh-people-tbl"></tbody>
-        </table>
-      </div>
+      <div class="card" style="margin-bottom:1rem;"><div class="card-header"><span class="card-title">Client info</span></div><div id="jh-client-info"></div></div>
+      <div class="card"><div class="card-header"><span class="card-title">Project team</span><button class="btn-primary" onclick="openModal('person-modal')">+ Add person</button></div><table class="tbl"><thead><tr><th>Role</th><th>Name</th><th>Phone</th><th>Email</th><th>Notes</th><th></th></tr></thead><tbody id="jh-people-tbl"></tbody></table></div>
     </div>
-
   </div>
-
 </div>
 
 <!-- FIELD -->
@@ -681,18 +478,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-</div>
+</div><!-- end content -->
+<div id="po-print-area"></div>
 
 <!-- MODALS -->
-<div class="modal-overlay" id="confirm-modal">
-  <div class="confirm-modal"><h3 id="confirm-title">Delete?</h3><p id="confirm-msg"></p><div class="confirm-footer"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" style="background:var(--red-txt);" id="confirm-btn">Yes, delete</button></div></div>
-</div>
-<div class="modal-overlay" id="notes-modal">
-  <div class="modal"><div class="notes-header"><div><div class="notes-name" id="notes-lead-name"></div><div class="notes-meta" id="notes-lead-meta"></div></div><button class="btn-sm" onclick="closeModals()">Close</button></div><div id="notes-list"></div><div class="notes-input-area"><textarea class="notes-textarea" id="notes-input" placeholder="Add a note..."></textarea><div style="display:flex;justify-content:flex-end;"><button class="btn-primary" onclick="saveNote()">Add note</button></div></div></div>
-</div>
-<div class="modal-overlay" id="history-modal">
-  <div class="modal"><div class="notes-header"><div><div class="notes-name" id="history-name"></div><div class="notes-meta" id="history-meta"></div></div><button class="btn-sm" onclick="closeModals()">Close</button></div><div id="history-list"></div><div class="notes-input-area"><textarea class="notes-textarea" id="history-input" placeholder="e.g. Framed Johnson Master Bath — Mar 2025, $3,200"></textarea><div style="display:flex;justify-content:flex-end;"><button class="btn-primary" onclick="saveHistory()">Add entry</button></div></div></div>
-</div>
+<div class="modal-overlay" id="confirm-modal"><div class="confirm-modal"><h3 id="confirm-title">Delete?</h3><p id="confirm-msg"></p><div class="confirm-footer"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" style="background:var(--red-txt);" id="confirm-btn">Yes, delete</button></div></div></div>
+<div class="modal-overlay" id="notes-modal"><div class="modal"><div class="notes-header"><div><div class="notes-name" id="notes-lead-name"></div><div class="notes-meta" id="notes-lead-meta"></div></div><button class="btn-sm" onclick="closeModals()">Close</button></div><div id="notes-list"></div><div class="notes-input-area"><textarea class="notes-textarea" id="notes-input" placeholder="Add a note..."></textarea><div style="display:flex;justify-content:flex-end;"><button class="btn-primary" onclick="saveNote()">Add note</button></div></div></div></div>
+<div class="modal-overlay" id="history-modal"><div class="modal"><div class="notes-header"><div><div class="notes-name" id="history-name"></div><div class="notes-meta" id="history-meta"></div></div><button class="btn-sm" onclick="closeModals()">Close</button></div><div id="history-list"></div><div class="notes-input-area"><textarea class="notes-textarea" id="history-input" placeholder="e.g. Framed Johnson Master Bath — Mar 2025, $3,200"></textarea><div style="display:flex;justify-content:flex-end;"><button class="btn-primary" onclick="saveHistory()">Add entry</button></div></div></div></div>
 <div class="modal-overlay" id="qualifier-modal"><div class="modal"><h3>Update qualifier</h3><input type="hidden" id="q-lead-id"/><div class="fg"><label>Qualifier</label><select id="q-qualifier"><option>Good</option><option>Neutral</option><option>Do Not Contact</option></select></div><div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveQualifier()">Save</button></div></div></div>
 <div class="modal-overlay" id="lead-modal"><div class="modal"><h3>Add new lead</h3>
   <div class="fg"><label>Customer name</label><input id="l-name" placeholder="e.g. John Smith"/></div>
@@ -705,25 +497,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="fg"><label>Qualifier</label><select id="l-qualifier"><option>Good</option><option>Neutral</option><option>Do Not Contact</option></select></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveLead()">Save lead</button></div>
 </div></div>
-<div class="modal-overlay" id="new-doc-modal"><div class="modal"><h3 id="new-doc-title">New Document</h3><div class="fg"><label>Title</label><input id="new-doc-name" placeholder="e.g. Kitchen Remodel Template"/></div><div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="createDoc()">Create</button></div></div></div>
-<div class="modal-overlay" id="supplier-modal"><div class="modal"><h3>Add supplier</h3>
-  <div class="fg"><label>Company name</label><input id="sp-name" placeholder="e.g. ABC Lumber Co."/></div>
-  <div class="fg"><label>Contact name</label><input id="sp-contact" placeholder="e.g. Mike Thompson"/></div>
-  <div class="fg"><label>Phone</label><input id="sp-phone" placeholder="e.g. 513-555-0200"/></div>
-  <div class="fg"><label>Email</label><input id="sp-email" placeholder="e.g. mike@abclumber.com"/></div>
-  <div class="fg"><label>Address</label><input id="sp-address" placeholder="e.g. 456 Industrial Dr, Cincinnati OH"/></div>
-  <div class="fg"><label>What they supply</label><textarea id="sp-desc" rows="2" style="resize:vertical;" placeholder="e.g. Lumber, plywood, framing materials"></textarea></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveSupplier()">Save supplier</button></div>
-</div></div>
-<div class="modal-overlay" id="sub-modal"><div class="modal"><h3>Add subcontractor</h3>
-  <div class="fg"><label>Name</label><input id="sb-name" placeholder="e.g. Dave's Electric"/></div>
-  <div class="fg"><label>Trade</label><input id="sb-trade" placeholder="e.g. Electrical, Plumbing, HVAC, Framing..."/></div>
-  <div class="fg"><label>Phone</label><input id="sb-phone" placeholder="e.g. 513-555-0300"/></div>
-  <div class="fg"><label>Email</label><input id="sb-email" placeholder="e.g. dave@daveselectric.com"/></div>
-  <div class="fg"><label>Typical rate</label><input id="sb-rate" placeholder="e.g. $85/hr or $2,500 flat"/></div>
-  <div class="fg"><label>Notes</label><textarea id="sb-notes" rows="2" style="resize:vertical;" placeholder="e.g. Reliable, licensed, prefer 2 weeks notice"></textarea></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveSub()">Save subcontractor</button></div>
-</div></div>
+<div class="modal-overlay" id="new-doc-modal"><div class="modal"><h3 id="new-doc-title">New Document</h3><div class="fg"><label>Title</label><input id="new-doc-name" placeholder="e.g. Initial Call SOP"/></div><div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="createDoc()">Create</button></div></div></div>
 <div class="modal-overlay" id="est-modal"><div class="modal"><h3>New estimate</h3>
   <div class="fg"><label>Client name</label><input id="e-client"/></div>
   <div class="fg"><label>Job description</label><input id="e-desc"/></div>
@@ -753,6 +527,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="fg"><label>Due date</label><input id="ep-due" type="date"/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="updateProj()">Save changes</button></div>
 </div></div>
+<div class="modal-overlay" id="sub-modal"><div class="modal"><h3>Add subcontractor</h3>
+  <div class="fg"><label>Name</label><input id="sb-name" placeholder="e.g. Dave's Electric"/></div>
+  <div class="fg"><label>Trade</label><input id="sb-trade" placeholder="e.g. Electrical, Plumbing, HVAC, Framing..."/></div>
+  <div class="fg"><label>Phone</label><input id="sb-phone" placeholder="e.g. 513-555-0300"/></div>
+  <div class="fg"><label>Email</label><input id="sb-email" placeholder="e.g. dave@daveselectric.com"/></div>
+  <div class="fg"><label>Typical rate</label><input id="sb-rate" placeholder="e.g. $85/hr or $2,500 flat"/></div>
+  <div class="fg"><label>Notes</label><textarea id="sb-notes" rows="2" style="resize:vertical;" placeholder="e.g. Reliable, licensed, prefer 2 weeks notice"></textarea></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveSub()">Save subcontractor</button></div>
+</div></div>
 <div class="modal-overlay" id="task-modal"><div class="modal"><h3>Add field task</h3>
   <div class="fg"><label>Task</label><input id="t-text"/></div>
   <div class="fg"><label>Project</label><input id="t-proj"/></div>
@@ -772,8 +555,97 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="fg"><label>Revenue earned so far</label><input id="earned-inp" type="number" placeholder="e.g. 87000"/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveGoal()">Save</button></div>
 </div></div>
+<!-- Job hub modals -->
+<div class="modal-overlay" id="phase-modal"><div class="modal"><h3>Add phase</h3>
+  <div class="fg"><label>Phase name</label><input id="ph-name" placeholder="e.g. Demo, Framing, Electrical..."/></div>
+  <div class="fg"><label>Status</label><select id="ph-status"><option>Not started</option><option>In progress</option><option>Complete</option><option>On hold</option></select></div>
+  <div class="fg"><label>Start date</label><input id="ph-start" type="date"/></div>
+  <div class="fg"><label>End date</label><input id="ph-end" type="date"/></div>
+  <div class="fg"><label>Notes</label><input id="ph-notes" placeholder="Optional notes"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="savePhase()">Save phase</button></div>
+</div></div>
+<div class="modal-overlay" id="cal-event-modal"><div class="modal"><h3>Add calendar event</h3>
+  <div class="fg"><label>Event type</label><select id="cev-type"><option>Event</option><option>Inspection</option><option>Delivery</option></select></div>
+  <div class="fg"><label>Title</label><input id="cev-title" placeholder="e.g. City inspection, Lumber delivery..."/></div>
+  <div class="fg"><label>Date</label><input id="cev-date" type="date"/></div>
+  <div class="fg"><label>Notes</label><input id="cev-notes" placeholder="Optional details"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveCalEvent()">Save</button></div>
+</div></div>
+<div class="modal-overlay" id="labor-modal"><div class="modal"><h3>Add labor cost</h3>
+  <div class="fg"><label>Name</label><input id="lb-name" placeholder="e.g. Yourself, crew member..."/></div>
+  <div class="fg"><label>Hours</label><input id="lb-hours" type="number" placeholder="e.g. 8"/></div>
+  <div class="fg"><label>Rate ($/hr)</label><input id="lb-rate" type="number" placeholder="e.g. 65"/></div>
+  <div class="fg"><label>Date</label><input id="lb-date" type="date"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveLabor()">Save</button></div>
+</div></div>
+<div class="modal-overlay" id="material-modal"><div class="modal"><h3>Add material cost</h3>
+  <div class="fg"><label>Item</label><input id="mat-item" placeholder="e.g. 2x4 lumber, tile, drywall..."/></div>
+  <div class="fg"><label>Quantity</label><input id="mat-qty" type="number" placeholder="e.g. 50"/></div>
+  <div class="fg"><label>Unit cost ($)</label><input id="mat-cost" type="number" placeholder="e.g. 3.50"/></div>
+  <div class="fg"><label>Supplier</label><input id="mat-supplier" placeholder="e.g. ABC Lumber"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveMaterial()">Save</button></div>
+</div></div>
+<div class="modal-overlay" id="sub-cost-modal"><div class="modal"><h3>Add subcontractor cost</h3>
+  <div class="fg"><label>Sub name</label><input id="sc-name" placeholder="e.g. Dave's Electric"/></div>
+  <div class="fg"><label>Trade</label><input id="sc-trade" placeholder="e.g. Electrical"/></div>
+  <div class="fg"><label>Amount ($)</label><input id="sc-amount" type="number" placeholder="e.g. 3200"/></div>
+  <div class="fg"><label>Notes</label><input id="sc-notes" placeholder="e.g. Rough-in complete"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveSubCost()">Save</button></div>
+</div></div>
+<div class="modal-overlay" id="changeorder-modal"><div class="modal"><h3>Add change order</h3>
+  <div class="fg"><label>Description</label><input id="co-desc" placeholder="e.g. Added bathroom exhaust fan"/></div>
+  <div class="fg"><label>Amount ($)</label><input id="co-amount" type="number" placeholder="e.g. 450"/></div>
+  <div class="fg"><label>Status</label><select id="co-status"><option>Pending</option><option>Approved</option><option>Declined</option></select></div>
+  <div class="fg"><label>Date</label><input id="co-date" type="date"/></div>
+  <div class="fg"><label>OneDrive document link <span style="color:var(--text3);font-weight:400;">(optional)</span></label><input id="co-doc-url" placeholder="Paste OneDrive share link..."/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveChangeOrder()">Save</button></div>
+</div></div>
+<div class="modal-overlay" id="other-expense-modal"><div class="modal"><h3>Add other expense</h3>
+  <div class="fg"><label>Description</label><input id="oe-desc" placeholder="e.g. Permit fees, tool rental, dump fees..."/></div>
+  <div class="fg"><label>Amount ($)</label><input id="oe-amount" type="number" placeholder="e.g. 250"/></div>
+  <div class="fg"><label>Date</label><input id="oe-date" type="date"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveOtherExpense()">Save</button></div>
+</div></div>
+<div class="modal-overlay" id="job-doc-modal"><div class="modal"><h3>Add document link</h3>
+  <div class="fg"><label>Document name</label><input id="jd-name" placeholder="e.g. Signed Contract, Building Permit..."/></div>
+  <div class="fg"><label>Link (OneDrive, Google Drive, etc.)</label><input id="jd-url" placeholder="Paste link here"/></div>
+  <div class="fg"><label>Notes</label><input id="jd-notes" placeholder="Optional description"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveJobDoc()">Save</button></div>
+</div></div>
+<div class="modal-overlay" id="person-modal"><div class="modal"><h3>Add person</h3>
+  <div class="fg"><label>Role</label><select id="per-role"><option>Project Manager</option><option>Foreman</option><option>Subcontractor</option><option>Employee</option><option>Other</option></select></div>
+  <div class="fg"><label>Name</label><input id="per-name" placeholder="e.g. John Smith"/></div>
+  <div class="fg"><label>Phone</label><input id="per-phone" placeholder="e.g. 513-555-0100"/></div>
+  <div class="fg"><label>Email</label><input id="per-email" placeholder="e.g. john@email.com"/></div>
+  <div class="fg"><label>Notes</label><input id="per-notes" placeholder="e.g. Licensed electrician, lead carpenter..."/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="savePerson()">Add person</button></div>
+</div></div>
+<div class="modal-overlay" id="revenue-modal"><div class="modal"><h3>Revenue details</h3>
+  <div class="fg"><label>Contract value ($)</label><input id="rev-contract" type="number"/></div>
+  <div class="fg"><label>Amount invoiced ($)</label><input id="rev-invoiced" type="number"/></div>
+  <div class="fg"><label>Amount collected ($)</label><input id="rev-collected" type="number"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveRevenue()">Save</button></div>
+</div></div>
+<div class="modal-overlay" id="estimates-modal"><div class="modal"><h3>Set cost estimates</h3>
+  <p style="font-size:12px;color:var(--text2);margin-bottom:1rem;">Enter what you originally budgeted for each category. Actuals calculate automatically.</p>
+  <div class="fg"><label>Estimated labor ($)</label><input id="est-labor" type="number" placeholder="e.g. 8000"/></div>
+  <div class="fg"><label>Estimated materials ($)</label><input id="est-materials" type="number" placeholder="e.g. 12000"/></div>
+  <div class="fg"><label>Estimated subcontractors ($)</label><input id="est-subs" type="number" placeholder="e.g. 5000"/></div>
+  <div class="fg"><label>Estimated total cost ($)</label><input id="est-total" type="number" placeholder="e.g. 25000"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEstimates()">Save estimates</button></div>
+</div></div>
+<!-- Ordering supplier modal -->
+<div class="modal-overlay" id="ord-supplier-modal"><div class="modal"><h3>Add supplier</h3>
+  <div class="fg"><label>Company name</label><input id="ords-name" placeholder="e.g. ABC Lumber Co."/></div>
+  <div class="fg"><label>Phone</label><input id="ords-phone" placeholder="e.g. 513-555-0200"/></div>
+  <div class="fg"><label>Address</label><input id="ords-address" placeholder="e.g. 456 Industrial Dr, Cincinnati OH"/></div>
+  <div class="fg"><label>What they supply</label><input id="ords-supply" placeholder="e.g. Lumber, plywood, framing materials"/></div>
+  <div class="fg"><label>Notes</label><textarea id="ords-notes" rows="2" style="resize:vertical;" placeholder="e.g. Best prices on dimensional lumber, call ahead for large orders"></textarea></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveOrdSupplier()">Save supplier</button></div>
+</div></div>
 
 <script>
+
 const sb=supabase.createClient('https://vzaedlvhsduirqonixus.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ6YWVkbHZoc2R1aXJxb25peHVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzODkzMDgsImV4cCI6MjA4OTk2NTMwOH0.CmfK7FqF4HA0Ixhizum6bafnGMfX53d15i8Hi7eiI7c');
 const ACTIVE_LEAD_STAGES=['New Lead','Contacted','Quoted','Negotiating'];
 const INACTIVE_LEAD_STAGES=['Won','Lost'];
