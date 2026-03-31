@@ -231,6 +231,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ord-form-total{font-size:13px;font-weight:600;}
 @media print{body > *:not(#po-print-area){display:none!important;}#po-print-area{display:block!important;position:fixed;inset:0;background:white;padding:2rem;z-index:99999;}}
 #po-print-area{display:none;}
+
+@media print{body > *:not(#est-print-area){display:none!important;}#est-print-area{display:block!important;position:fixed;inset:0;background:white;padding:2rem;z-index:99999;font-family:-apple-system,sans-serif;}}
 </style>
 </head>
 <body>
@@ -315,9 +317,109 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <!-- ESTIMATING -->
 <div id="tab-estimating" style="display:none;">
-  <div class="hub-header"><div><div class="hub-title">Estimating & Proposals</div><div class="hub-sub">Build estimates, track proposal status, win jobs.</div></div><button class="btn-primary" onclick="openModal('est-modal')">+ New estimate</button></div>
-  <div class="grid3" style="margin-bottom:1.25rem;" id="est-stats"></div>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Client</th><th>Job description</th><th>Amount</th><th>Status</th><th>Sent</th><th>Follow-up</th></tr></thead><tbody id="est-tbl"></tbody></table></div>
+  <!-- Inner tabs -->
+  <div style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.25rem;width:fit-content;">
+    <button class="jh-tab active" id="est-tab-proposals" onclick="showEstTab('proposals')">📋 Proposals</button>
+    <button class="jh-tab" id="est-tab-estimator" onclick="showEstTab('estimator')">🔢 Unit Price Estimator</button>
+    <button class="jh-tab" id="est-tab-database" onclick="showEstTab('database')">📚 Price Database</button>
+  </div>
+
+  <!-- PROPOSALS -->
+  <div id="est-proposals">
+    <div class="hub-header"><div><div class="hub-title">Estimating & Proposals</div><div class="hub-sub">Build estimates, track proposal status, win jobs.</div></div><button class="btn-primary" onclick="openModal('est-modal')">+ New estimate</button></div>
+    <div class="grid3" style="margin-bottom:1.25rem;" id="est-stats"></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Client</th><th>Job description</th><th>Amount</th><th>Status</th><th>Sent</th><th>Follow-up</th></tr></thead><tbody id="est-tbl"></tbody></table></div>
+  </div>
+
+  <!-- UNIT PRICE ESTIMATOR -->
+  <div id="est-estimator" style="display:none;">
+    <div class="hub-header">
+      <div><div class="hub-title">Unit Price Estimator</div><div class="hub-sub">Search items, enter quantities, build a full estimate. Priced for Cincinnati / SW Ohio.</div></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-sm" onclick="clearEstimator()">Clear</button>
+        <button class="btn-primary" onclick="printEstimate()">🖨 Print estimate</button>
+      </div>
+    </div>
+    <!-- Client info bar -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;padding:12px 1rem;">
+        <div class="fg" style="margin:0;"><label>Client name</label><input id="ue-client" placeholder="e.g. Mike Johnson"/></div>
+        <div class="fg" style="margin:0;"><label>Project / Job</label><input id="ue-job" placeholder="e.g. Kitchen remodel"/></div>
+        <div class="fg" style="margin:0;"><label>Address</label><input id="ue-address" placeholder="e.g. 123 Main St"/></div>
+        <div class="fg" style="margin:0;"><label>Date</label><input id="ue-date" type="date"/></div>
+      </div>
+    </div>
+    <div class="grid2" style="gap:16px;">
+      <!-- Left: item picker -->
+      <div>
+        <div class="card" style="margin-bottom:1rem;">
+          <div class="card-header"><span class="card-title">Add items</span></div>
+          <div style="padding:10px 1rem;">
+            <input id="ue-search" placeholder="Search items (e.g. drywall, tile, paint, framing...)" style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:8px 12px;background:var(--bg2);color:var(--text);font-family:inherit;margin-bottom:8px;" oninput="renderUEItems()"/>
+            <select id="ue-trade-filter" style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:8px 12px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="renderUEItems()">
+              <option value="">All trades</option>
+              <option>Demo & Site Work</option>
+              <option>Concrete & Foundation</option>
+              <option>Framing</option>
+              <option>Roofing</option>
+              <option>Exterior</option>
+              <option>Insulation</option>
+              <option>Drywall</option>
+              <option>Interior Trim & Millwork</option>
+              <option>Flooring</option>
+              <option>Painting</option>
+              <option>Cabinets & Countertops</option>
+              <option>Tile</option>
+              <option>Plumbing</option>
+              <option>Electrical</option>
+              <option>HVAC</option>
+              <option>Decks & Outdoor</option>
+              <option>Doors & Windows</option>
+              <option>Specialties</option>
+            </select>
+          </div>
+          <div id="ue-item-list" style="max-height:500px;overflow-y:auto;"></div>
+        </div>
+      </div>
+      <!-- Right: estimate sheet -->
+      <div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Estimate sheet</span><span class="badge b-brand" id="ue-line-count">0 items</span></div>
+          <div id="ue-sheet">
+            <div class="empty" id="ue-empty">Click items on the left to add them to your estimate</div>
+          </div>
+          <div id="ue-totals" style="display:none;border-top:2px solid var(--border);padding:1rem;">
+            <div id="ue-trade-totals" style="margin-bottom:12px;"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:2px solid var(--text);margin-top:8px;">
+              <span style="font-size:16px;font-weight:700;">ESTIMATE TOTAL</span>
+              <span style="font-size:20px;font-weight:700;color:var(--brand);" id="ue-grand-total">$0</span>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:6px;">
+              <div style="flex:1;background:var(--green-bg);border-radius:8px;padding:8px 12px;text-align:center;"><div style="font-size:11px;color:var(--green-txt);">Materials</div><div style="font-size:15px;font-weight:700;color:var(--green-txt);" id="ue-mat-total">$0</div></div>
+              <div style="flex:1;background:var(--blue-bg);border-radius:8px;padding:8px 12px;text-align:center;"><div style="font-size:11px;color:var(--blue-txt);">Labor</div><div style="font-size:15px;font-weight:700;color:var(--blue-txt);" id="ue-lab-total">$0</div></div>
+              <div style="flex:1;background:var(--amber-bg);border-radius:8px;padding:8px 12px;text-align:center;"><div style="font-size:11px;color:var(--amber-txt);">Markup</div><input type="number" id="ue-markup" value="15" min="0" max="100" style="width:100%;font-size:14px;font-weight:700;color:var(--amber-txt);border:none;background:transparent;text-align:center;font-family:inherit;" oninput="recalcUE()"/><div style="font-size:10px;color:var(--amber-txt);">% overhead/profit</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICE DATABASE -->
+  <div id="est-database" style="display:none;">
+    <div class="hub-header">
+      <div><div class="hub-title">Unit Price Database</div><div class="hub-sub">Cincinnati / SW Ohio pricing. All prices are fully editable — click any price to update it.</div></div>
+      <button class="btn-primary" onclick="openModal('add-price-modal')">+ Add item</button>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:.75rem;">
+      <input id="db-price-search" placeholder="Search items..." style="flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="renderPriceDatabase()"/>
+      <select id="db-trade-filter" style="font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" onchange="renderPriceDatabase()">
+        <option value="">All trades</option>
+        <option>Demo & Site Work</option><option>Concrete & Foundation</option><option>Framing</option><option>Roofing</option><option>Exterior</option><option>Insulation</option><option>Drywall</option><option>Interior Trim & Millwork</option><option>Flooring</option><option>Painting</option><option>Cabinets & Countertops</option><option>Tile</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Decks & Outdoor</option><option>Doors & Windows</option><option>Specialties</option>
+      </select>
+    </div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Trade</th><th>Item</th><th>Unit</th><th>Material</th><th>Labor</th><th>Total/Unit</th><th></th></tr></thead><tbody id="price-db-tbl"></tbody></table></div>
+  </div>
 </div>
 
 <!-- PROJECTS -->
@@ -703,7 +805,7 @@ async function loadAll(){
     leadNotes={};(notes.data||[]).forEach(n=>{if(!leadNotes[n.lead_id])leadNotes[n.lead_id]=[];leadNotes[n.lead_id].push(n);});
     subHistory={};(hist.data||[]).forEach(h=>{if(!subHistory[h.sub_id])subHistory[h.sub_id]=[];subHistory[h.sub_id].push(h);});
     salesNotes=(sn&&sn.data)||[];salesTasks=(st&&st.data)||[];
-    setSync(true);await loadOrders();await backfillOrderForms();renderDash();
+    setSync(true);await loadOrders();await backfillOrderForms();await loadCustomPrices();allPrices=getAllPrices();renderDash();
     // Setup drag/drop on all doc textareas after load
     setupDocDragDrop();
   }catch(err){setSync(false);console.error(err);}
@@ -1878,7 +1980,573 @@ async function deleteOtherExpense(id){
 
 // ============================================================
 
+// ============================================================
+// UNIT PRICE ESTIMATOR
+// ============================================================
+
+// Built-in Cincinnati/SW Ohio price database
+const BUILTIN_PRICES = [
+// DEMO & SITE WORK
+{id:'d001',trade:'Demo & Site Work',item:'Selective demo - interior walls (per LF)',unit:'LF',mat:0.50,lab:4.50},
+{id:'d002',trade:'Demo & Site Work',item:'Demo & haul - drywall (per SF)',unit:'SF',mat:0,lab:0.75},
+{id:'d003',trade:'Demo & Site Work',item:'Demo - ceramic tile floor (per SF)',unit:'SF',mat:0,lab:1.25},
+{id:'d004',trade:'Demo & Site Work',item:'Demo - hardwood floor (per SF)',unit:'SF',mat:0,lab:1.00},
+{id:'d005',trade:'Demo & Site Work',item:'Demo - carpet & pad removal (per SF)',unit:'SF',mat:0,lab:0.35},
+{id:'d006',trade:'Demo & Site Work',item:'Demo - kitchen cabinets (per LF)',unit:'LF',mat:0,lab:12.00},
+{id:'d007',trade:'Demo & Site Work',item:'Demo - bathtub/shower unit (each)',unit:'EA',mat:0,lab:175.00},
+{id:'d008',trade:'Demo & Site Work',item:'Demo - toilet (each)',unit:'EA',mat:0,lab:65.00},
+{id:'d009',trade:'Demo & Site Work',item:'Demo - vanity & top (each)',unit:'EA',mat:0,lab:85.00},
+{id:'d010',trade:'Demo & Site Work',item:'Demo - window (each)',unit:'EA',mat:0,lab:95.00},
+{id:'d011',trade:'Demo & Site Work',item:'Demo - door & frame (each)',unit:'EA',mat:0,lab:75.00},
+{id:'d012',trade:'Demo & Site Work',item:'Dumpster rental 10yd (per haul)',unit:'EA',mat:375.00,lab:0},
+{id:'d013',trade:'Demo & Site Work',item:'Dumpster rental 20yd (per haul)',unit:'EA',mat:475.00,lab:0},
+{id:'d014',trade:'Demo & Site Work',item:'Demo - deck (per SF)',unit:'SF',mat:0,lab:2.50},
+{id:'d015',trade:'Demo & Site Work',item:'Demo - popcorn ceiling (per SF)',unit:'SF',mat:0,lab:0.85},
+{id:'d016',trade:'Demo & Site Work',item:'Demo - drop ceiling grid & tile (per SF)',unit:'SF',mat:0,lab:0.65},
+{id:'d017',trade:'Demo & Site Work',item:'Haul away debris (per load)',unit:'EA',mat:125.00,lab:85.00},
+// CONCRETE & FOUNDATION
+{id:'c001',trade:'Concrete & Foundation',item:'Concrete flatwork - 4" slab (per SF)',unit:'SF',mat:5.50,lab:4.00},
+{id:'c002',trade:'Concrete & Foundation',item:'Concrete flatwork - 6" slab (per SF)',unit:'SF',mat:7.00,lab:4.50},
+{id:'c003',trade:'Concrete & Foundation',item:'Concrete driveway - 4" (per SF)',unit:'SF',mat:6.00,lab:5.00},
+{id:'c004',trade:'Concrete & Foundation',item:'Concrete footings (per LF)',unit:'LF',mat:18.00,lab:14.00},
+{id:'c005',trade:'Concrete & Foundation',item:'Concrete block wall 8" (per SF)',unit:'SF',mat:8.00,lab:12.00},
+{id:'c006',trade:'Concrete & Foundation',item:'Rebar #4 (per LF)',unit:'LF',mat:0.55,lab:0.35},
+{id:'c007',trade:'Concrete & Foundation',item:'Wire mesh 6x6 (per SF)',unit:'SF',mat:0.45,lab:0.15},
+{id:'c008',trade:'Concrete & Foundation',item:'Concrete steps - precast (per EA)',unit:'EA',mat:185.00,lab:145.00},
+{id:'c009',trade:'Concrete & Foundation',item:'Crack repair - epoxy injection (per LF)',unit:'LF',mat:8.00,lab:12.00},
+{id:'c010',trade:'Concrete & Foundation',item:'Waterproofing - exterior foundation (per SF)',unit:'SF',mat:3.50,lab:3.00},
+{id:'c011',trade:'Concrete & Foundation',item:'Drain tile system (per LF)',unit:'LF',mat:4.50,lab:6.50},
+{id:'c012',trade:'Concrete & Foundation',item:'Concrete pump (per day)',unit:'EA',mat:750.00,lab:0},
+// FRAMING
+{id:'f001',trade:'Framing',item:'Wall framing - 2x4 16" OC (per LF)',unit:'LF',mat:4.50,lab:8.00},
+{id:'f002',trade:'Framing',item:'Wall framing - 2x6 16" OC (per LF)',unit:'LF',mat:6.50,lab:8.50},
+{id:'f003',trade:'Framing',item:'Floor joist - 2x10 16" OC (per SF)',unit:'SF',mat:3.25,lab:2.75},
+{id:'f004',trade:'Framing',item:'Floor joist - 2x12 16" OC (per SF)',unit:'SF',mat:4.00,lab:2.75},
+{id:'f005',trade:'Framing',item:'Subfloor - 3/4" OSB (per SF)',unit:'SF',mat:1.85,lab:1.25},
+{id:'f006',trade:'Framing',item:'Roof framing - trusses (per SF)',unit:'SF',mat:4.50,lab:3.50},
+{id:'f007',trade:'Framing',item:'Roof sheathing - 1/2" OSB (per SF)',unit:'SF',mat:1.25,lab:1.00},
+{id:'f008',trade:'Framing',item:'LVL beam 3.5"x9.25" (per LF)',unit:'LF',mat:18.00,lab:8.00},
+{id:'f009',trade:'Framing',item:'LVL beam 3.5"x11.25" (per LF)',unit:'LF',mat:22.00,lab:8.00},
+{id:'f010',trade:'Framing',item:'LVL beam 3.5"x14" (per LF)',unit:'LF',mat:28.00,lab:8.50},
+{id:'f011',trade:'Framing',item:'Header - doubled 2x10 (per LF)',unit:'LF',mat:6.00,lab:5.00},
+{id:'f012',trade:'Framing',item:'Header - doubled 2x12 (per LF)',unit:'LF',mat:7.50,lab:5.00},
+{id:'f013',trade:'Framing',item:'Steel column 3.5" (per EA)',unit:'EA',mat:85.00,lab:65.00},
+{id:'f014',trade:'Framing',item:'Blocking/bridging (per LF)',unit:'LF',mat:1.50,lab:2.50},
+{id:'f015',trade:'Framing',item:'Non-bearing wall removal incl beam (per EA)',unit:'EA',mat:250.00,lab:450.00},
+{id:'f016',trade:'Framing',item:'Furring strips 1x3 (per SF)',unit:'SF',mat:0.65,lab:0.85},
+// ROOFING
+{id:'r001',trade:'Roofing',item:'Asphalt shingles - 3-tab (per SQ)',unit:'SQ',mat:95.00,lab:85.00},
+{id:'r002',trade:'Roofing',item:'Asphalt shingles - architectural (per SQ)',unit:'SQ',mat:145.00,lab:90.00},
+{id:'r003',trade:'Roofing',item:'Asphalt shingles - premium/impact resist (per SQ)',unit:'SQ',mat:195.00,lab:95.00},
+{id:'r004',trade:'Roofing',item:'Felt underlayment 15# (per SQ)',unit:'SQ',mat:12.00,lab:8.00},
+{id:'r005',trade:'Roofing',item:'Synthetic underlayment (per SQ)',unit:'SQ',mat:22.00,lab:8.00},
+{id:'r006',trade:'Roofing',item:'Ice & water shield (per SQ)',unit:'SQ',mat:55.00,lab:10.00},
+{id:'r007',trade:'Roofing',item:'Ridge cap - shingle (per LF)',unit:'LF',mat:3.50,lab:2.50},
+{id:'r008',trade:'Roofing',item:'Drip edge aluminum (per LF)',unit:'LF',mat:1.25,lab:1.00},
+{id:'r009',trade:'Roofing',item:'Roof vent - box (per EA)',unit:'EA',mat:35.00,lab:45.00},
+{id:'r010',trade:'Roofing',item:'Ridge vent (per LF)',unit:'LF',mat:4.50,lab:3.50},
+{id:'r011',trade:'Roofing',item:'Pipe boot flashing (per EA)',unit:'EA',mat:18.00,lab:35.00},
+{id:'r012',trade:'Roofing',item:'Step flashing (per LF)',unit:'LF',mat:2.50,lab:3.00},
+{id:'r013',trade:'Roofing',item:'Valley flashing - open metal (per LF)',unit:'LF',mat:3.50,lab:3.50},
+{id:'r014',trade:'Roofing',item:'Gutters - 5" aluminum (per LF)',unit:'LF',mat:4.50,lab:4.00},
+{id:'r015',trade:'Roofing',item:'Downspout - aluminum (per LF)',unit:'LF',mat:3.00,lab:3.00},
+{id:'r016',trade:'Roofing',item:'Gutter guards (per LF)',unit:'LF',mat:6.00,lab:3.00},
+{id:'r017',trade:'Roofing',item:'Flat roof - TPO membrane (per SF)',unit:'SF',mat:4.50,lab:4.00},
+{id:'r018',trade:'Roofing',item:'Decking - replace sheathing (per SF)',unit:'SF',mat:1.85,lab:1.50},
+// EXTERIOR
+{id:'e001',trade:'Exterior',item:'Vinyl siding (per SF)',unit:'SF',mat:2.25,lab:2.50},
+{id:'e002',trade:'Exterior',item:'Fiber cement siding - Hardie (per SF)',unit:'SF',mat:3.50,lab:4.00},
+{id:'e003',trade:'Exterior',item:'Housewrap (per SF)',unit:'SF',mat:0.35,lab:0.25},
+{id:'e004',trade:'Exterior',item:'Exterior trim board PVC (per LF)',unit:'LF',mat:2.50,lab:2.00},
+{id:'e005',trade:'Exterior',item:'Soffit - aluminum vented (per SF)',unit:'SF',mat:2.00,lab:2.50},
+{id:'e006',trade:'Exterior',item:'Fascia - 1x6 PVC (per LF)',unit:'LF',mat:3.50,lab:2.50},
+{id:'e007',trade:'Exterior',item:'Brick veneer (per SF)',unit:'SF',mat:8.50,lab:12.00},
+// INSULATION
+{id:'i001',trade:'Insulation',item:'Batt insulation - R-13 wall (per SF)',unit:'SF',mat:0.55,lab:0.45},
+{id:'i002',trade:'Insulation',item:'Batt insulation - R-19 wall (per SF)',unit:'SF',mat:0.75,lab:0.50},
+{id:'i003',trade:'Insulation',item:'Batt insulation - R-30 attic (per SF)',unit:'SF',mat:1.10,lab:0.50},
+{id:'i004',trade:'Insulation',item:'Batt insulation - R-38 attic (per SF)',unit:'SF',mat:1.45,lab:0.55},
+{id:'i005',trade:'Insulation',item:'Blown-in cellulose - attic (per SF)',unit:'SF',mat:0.75,lab:0.65},
+{id:'i006',trade:'Insulation',item:'Spray foam - closed cell 2" (per SF)',unit:'SF',mat:2.25,lab:1.75},
+{id:'i007',trade:'Insulation',item:'Spray foam - open cell (per SF)',unit:'SF',mat:1.25,lab:1.00},
+{id:'i008',trade:'Insulation',item:'Rigid foam board - 1" (per SF)',unit:'SF',mat:0.65,lab:0.45},
+{id:'i009',trade:'Insulation',item:'Rigid foam board - 2" (per SF)',unit:'SF',mat:1.10,lab:0.50},
+{id:'i010',trade:'Insulation',item:'Vapor barrier - 6mil (per SF)',unit:'SF',mat:0.18,lab:0.12},
+// DRYWALL
+{id:'dw001',trade:'Drywall',item:'Drywall supply & install - 1/2" (per SF)',unit:'SF',mat:0.55,lab:1.10},
+{id:'dw002',trade:'Drywall',item:'Drywall supply & install - 5/8" type X (per SF)',unit:'SF',mat:0.70,lab:1.10},
+{id:'dw003',trade:'Drywall',item:'Drywall - tape & finish (per SF)',unit:'SF',mat:0.15,lab:0.85},
+{id:'dw004',trade:'Drywall',item:'Drywall - supply only 1/2" 4x8 (per EA)',unit:'EA',mat:14.00,lab:0},
+{id:'dw005',trade:'Drywall',item:'Corner bead - metal (per LF)',unit:'LF',mat:0.45,lab:0.55},
+{id:'dw006',trade:'Drywall',item:'Skim coat - existing walls (per SF)',unit:'SF',mat:0.25,lab:1.25},
+{id:'dw007',trade:'Drywall',item:'Drywall patch - small (per EA)',unit:'EA',mat:15.00,lab:85.00},
+{id:'dw008',trade:'Drywall',item:'Cement board - 1/2" (per SF)',unit:'SF',mat:1.10,lab:1.25},
+{id:'dw009',trade:'Drywall',item:'Green board moisture resist (per SF)',unit:'SF',mat:0.85,lab:1.10},
+// INTERIOR TRIM & MILLWORK
+{id:'t001',trade:'Interior Trim & Millwork',item:'Baseboard 3.5" colonial (per LF)',unit:'LF',mat:1.85,lab:2.50},
+{id:'t002',trade:'Interior Trim & Millwork',item:'Baseboard 5.5" craftsman (per LF)',unit:'LF',mat:3.25,lab:2.75},
+{id:'t003',trade:'Interior Trim & Millwork',item:'Door casing - per side (per EA)',unit:'EA',mat:18.00,lab:45.00},
+{id:'t004',trade:'Interior Trim & Millwork',item:'Window casing - per window (per EA)',unit:'EA',mat:22.00,lab:55.00},
+{id:'t005',trade:'Interior Trim & Millwork',item:'Crown molding - simple (per LF)',unit:'LF',mat:2.25,lab:4.50},
+{id:'t006',trade:'Interior Trim & Millwork',item:'Crown molding - complex (per LF)',unit:'LF',mat:4.50,lab:7.00},
+{id:'t007',trade:'Interior Trim & Millwork',item:'Chair rail (per LF)',unit:'LF',mat:1.65,lab:2.25},
+{id:'t008',trade:'Interior Trim & Millwork',item:'Wainscoting - beadboard (per SF)',unit:'SF',mat:4.50,lab:5.50},
+{id:'t009',trade:'Interior Trim & Millwork',item:'Built-in bookcase (per LF)',unit:'LF',mat:85.00,lab:95.00},
+{id:'t010',trade:'Interior Trim & Millwork',item:'Closet shelving - wire (per LF)',unit:'LF',mat:3.50,lab:4.50},
+{id:'t011',trade:'Interior Trim & Millwork',item:'Closet shelving - wood (per LF)',unit:'LF',mat:8.00,lab:6.00},
+{id:'t012',trade:'Interior Trim & Millwork',item:'Stair railing - wood (per LF)',unit:'LF',mat:22.00,lab:28.00},
+{id:'t013',trade:'Interior Trim & Millwork',item:'Stair railing - iron balusters (per LF)',unit:'LF',mat:35.00,lab:30.00},
+{id:'t014',trade:'Interior Trim & Millwork',item:'Stair treads - oak (per EA)',unit:'EA',mat:65.00,lab:55.00},
+{id:'t015',trade:'Interior Trim & Millwork',item:'Stair risers - paint grade (per EA)',unit:'EA',mat:18.00,lab:25.00},
+{id:'t016',trade:'Interior Trim & Millwork',item:'Newel post (per EA)',unit:'EA',mat:95.00,lab:85.00},
+{id:'t017',trade:'Interior Trim & Millwork',item:'Window stool & apron (per EA)',unit:'EA',mat:28.00,lab:45.00},
+{id:'t018',trade:'Interior Trim & Millwork',item:'Coffered ceiling - simple (per SF)',unit:'SF',mat:8.00,lab:12.00},
+// FLOORING
+{id:'fl001',trade:'Flooring',item:'Hardwood - 3/4" oak supply & install (per SF)',unit:'SF',mat:5.50,lab:4.50},
+{id:'fl002',trade:'Flooring',item:'Hardwood - engineered supply & install (per SF)',unit:'SF',mat:5.00,lab:3.50},
+{id:'fl003',trade:'Flooring',item:'Hardwood - sand & finish existing (per SF)',unit:'SF',mat:0.85,lab:2.75},
+{id:'fl004',trade:'Flooring',item:'LVP flooring supply & install (per SF)',unit:'SF',mat:3.25,lab:2.50},
+{id:'fl005',trade:'Flooring',item:'Laminate supply & install (per SF)',unit:'SF',mat:2.50,lab:2.25},
+{id:'fl006',trade:'Flooring',item:'Carpet - builder grade supply & install (per SF)',unit:'SF',mat:1.85,lab:1.25},
+{id:'fl007',trade:'Flooring',item:'Carpet - mid-grade supply & install (per SF)',unit:'SF',mat:3.25,lab:1.25},
+{id:'fl008',trade:'Flooring',item:'Carpet pad (per SF)',unit:'SF',mat:0.65,lab:0},
+{id:'fl009',trade:'Flooring',item:'Floor leveling compound (per SF)',unit:'SF',mat:0.85,lab:0.75},
+{id:'fl010',trade:'Flooring',item:'Transition strips (per EA)',unit:'EA',mat:18.00,lab:12.00},
+{id:'fl011',trade:'Flooring',item:'Schluter strip (per LF)',unit:'LF',mat:12.00,lab:8.00},
+{id:'fl012',trade:'Flooring',item:'Underlayment - foam (per SF)',unit:'SF',mat:0.35,lab:0},
+{id:'fl013',trade:'Flooring',item:'Radiant heat mat - under tile (per SF)',unit:'SF',mat:8.00,lab:3.00},
+// PAINTING
+{id:'p001',trade:'Painting',item:'Interior walls - paint 2 coats (per SF)',unit:'SF',mat:0.45,lab:0.85},
+{id:'p002',trade:'Painting',item:'Interior ceiling - paint 2 coats (per SF)',unit:'SF',mat:0.40,lab:0.75},
+{id:'p003',trade:'Painting',item:'Interior trim - paint (per LF)',unit:'LF',mat:0.25,lab:1.25},
+{id:'p004',trade:'Painting',item:'Interior door - paint both sides (per EA)',unit:'EA',mat:8.00,lab:65.00},
+{id:'p005',trade:'Painting',item:'Exterior siding - paint (per SF)',unit:'SF',mat:0.55,lab:1.10},
+{id:'p006',trade:'Painting',item:'Exterior trim - paint (per LF)',unit:'LF',mat:0.35,lab:1.50},
+{id:'p007',trade:'Painting',item:'Primer coat (per SF)',unit:'SF',mat:0.30,lab:0.55},
+{id:'p008',trade:'Painting',item:'Cabinet painting - per door/drawer (per EA)',unit:'EA',mat:5.00,lab:45.00},
+{id:'p009',trade:'Painting',item:'Cabinet painting - box (per LF)',unit:'LF',mat:4.00,lab:35.00},
+{id:'p010',trade:'Painting',item:'Stain & varnish - woodwork (per SF)',unit:'SF',mat:0.65,lab:1.50},
+{id:'p011',trade:'Painting',item:'Whole room painting - avg bedroom (per EA)',unit:'EA',mat:85.00,lab:275.00},
+{id:'p012',trade:'Painting',item:'Caulking - interior (per LF)',unit:'LF',mat:0.15,lab:0.75},
+// CABINETS & COUNTERTOPS
+{id:'cb001',trade:'Cabinets & Countertops',item:'Stock cabinets - base (per LF)',unit:'LF',mat:175.00,lab:85.00},
+{id:'cb002',trade:'Cabinets & Countertops',item:'Stock cabinets - wall (per LF)',unit:'LF',mat:145.00,lab:75.00},
+{id:'cb003',trade:'Cabinets & Countertops',item:'Semi-custom cabinets - base (per LF)',unit:'LF',mat:350.00,lab:95.00},
+{id:'cb004',trade:'Cabinets & Countertops',item:'Semi-custom cabinets - wall (per LF)',unit:'LF',mat:285.00,lab:85.00},
+{id:'cb005',trade:'Cabinets & Countertops',item:'Full custom cabinets - base (per LF)',unit:'LF',mat:650.00,lab:110.00},
+{id:'cb006',trade:'Cabinets & Countertops',item:'Full custom cabinets - wall (per LF)',unit:'LF',mat:525.00,lab:95.00},
+{id:'cb007',trade:'Cabinets & Countertops',item:'Laminate countertop (per LF)',unit:'LF',mat:35.00,lab:25.00},
+{id:'cb008',trade:'Cabinets & Countertops',item:'Granite countertop - supply & install (per SF)',unit:'SF',mat:55.00,lab:30.00},
+{id:'cb009',trade:'Cabinets & Countertops',item:'Quartz countertop - supply & install (per SF)',unit:'SF',mat:75.00,lab:30.00},
+{id:'cb010',trade:'Cabinets & Countertops',item:'Butcher block countertop (per SF)',unit:'SF',mat:45.00,lab:28.00},
+{id:'cb011',trade:'Cabinets & Countertops',item:'Marble countertop (per SF)',unit:'SF',mat:95.00,lab:35.00},
+{id:'cb012',trade:'Cabinets & Countertops',item:'Sink cutout (per EA)',unit:'EA',mat:0,lab:65.00},
+{id:'cb013',trade:'Cabinets & Countertops',item:'Cabinet hardware - knob (per EA)',unit:'EA',mat:4.50,lab:4.00},
+{id:'cb014',trade:'Cabinets & Countertops',item:'Cabinet hardware - pull 3" (per EA)',unit:'EA',mat:6.50,lab:4.00},
+{id:'cb015',trade:'Cabinets & Countertops',item:'Soft-close hinges (per pair)',unit:'EA',mat:4.00,lab:5.00},
+{id:'cb016',trade:'Cabinets & Countertops',item:'Bathroom vanity 30" (per EA)',unit:'EA',mat:285.00,lab:125.00},
+{id:'cb017',trade:'Cabinets & Countertops',item:'Bathroom vanity 48" (per EA)',unit:'EA',mat:425.00,lab:145.00},
+{id:'cb018',trade:'Cabinets & Countertops',item:'Bathroom vanity 60" double (per EA)',unit:'EA',mat:685.00,lab:165.00},
+// TILE
+{id:'ti001',trade:'Tile',item:'Ceramic floor tile 12x12 - install (per SF)',unit:'SF',mat:2.75,lab:5.50},
+{id:'ti002',trade:'Tile',item:'Porcelain tile 12x24 - install (per SF)',unit:'SF',mat:4.50,lab:6.50},
+{id:'ti003',trade:'Tile',item:'Large format tile 24x24 - install (per SF)',unit:'SF',mat:6.00,lab:8.50},
+{id:'ti004',trade:'Tile',item:'Subway tile 3x6 wall - install (per SF)',unit:'SF',mat:3.25,lab:7.00},
+{id:'ti005',trade:'Tile',item:'Mosaic tile - install (per SF)',unit:'SF',mat:8.00,lab:10.00},
+{id:'ti006',trade:'Tile',item:'Natural stone tile - install (per SF)',unit:'SF',mat:12.00,lab:9.00},
+{id:'ti007',trade:'Tile',item:'Tile - grout only (per SF)',unit:'SF',mat:0.55,lab:1.75},
+{id:'ti008',trade:'Tile',item:'Shower pan - mud set (per EA)',unit:'EA',mat:185.00,lab:325.00},
+{id:'ti009',trade:'Tile',item:'Shower walls - tile (per SF)',unit:'SF',mat:4.00,lab:8.00},
+{id:'ti010',trade:'Tile',item:'Shower niche (per EA)',unit:'EA',mat:95.00,lab:145.00},
+{id:'ti011',trade:'Tile',item:'Tile backer - Schluter system (per LF)',unit:'LF',mat:8.50,lab:5.00},
+{id:'ti012',trade:'Tile',item:'Backsplash tile - install (per SF)',unit:'SF',mat:5.00,lab:8.50},
+// PLUMBING
+{id:'pl001',trade:'Plumbing',item:'Kitchen sink - drop-in install (per EA)',unit:'EA',mat:185.00,lab:195.00},
+{id:'pl002',trade:'Plumbing',item:'Kitchen sink - undermount install (per EA)',unit:'EA',mat:225.00,lab:225.00},
+{id:'pl003',trade:'Plumbing',item:'Kitchen faucet - install (per EA)',unit:'EA',mat:145.00,lab:125.00},
+{id:'pl004',trade:'Plumbing',item:'Garbage disposal - install (per EA)',unit:'EA',mat:165.00,lab:145.00},
+{id:'pl005',trade:'Plumbing',item:'Dishwasher - install (per EA)',unit:'EA',mat:0,lab:195.00},
+{id:'pl006',trade:'Plumbing',item:'Bathroom sink - drop-in (per EA)',unit:'EA',mat:95.00,lab:145.00},
+{id:'pl007',trade:'Plumbing',item:'Bathroom sink - vessel (per EA)',unit:'EA',mat:145.00,lab:155.00},
+{id:'pl008',trade:'Plumbing',item:'Bathroom faucet (per EA)',unit:'EA',mat:95.00,lab:95.00},
+{id:'pl009',trade:'Plumbing',item:'Toilet - standard install (per EA)',unit:'EA',mat:225.00,lab:185.00},
+{id:'pl010',trade:'Plumbing',item:'Toilet - comfort height (per EA)',unit:'EA',mat:285.00,lab:185.00},
+{id:'pl011',trade:'Plumbing',item:'Bathtub - alcove (per EA)',unit:'EA',mat:395.00,lab:485.00},
+{id:'pl012',trade:'Plumbing',item:'Bathtub - freestanding (per EA)',unit:'EA',mat:850.00,lab:550.00},
+{id:'pl013',trade:'Plumbing',item:'Shower valve & trim (per EA)',unit:'EA',mat:225.00,lab:195.00},
+{id:'pl014',trade:'Plumbing',item:'Shower door - frameless (per EA)',unit:'EA',mat:750.00,lab:285.00},
+{id:'pl015',trade:'Plumbing',item:'Shower door - framed (per EA)',unit:'EA',mat:285.00,lab:195.00},
+{id:'pl016',trade:'Plumbing',item:'Supply line - copper (per LF)',unit:'LF',mat:4.50,lab:6.50},
+{id:'pl017',trade:'Plumbing',item:'Supply line - PEX (per LF)',unit:'LF',mat:1.85,lab:3.50},
+{id:'pl018',trade:'Plumbing',item:'Drain - ABS/PVC (per LF)',unit:'LF',mat:2.25,lab:5.50},
+{id:'pl019',trade:'Plumbing',item:'Water heater - 40gal tank (per EA)',unit:'EA',mat:685.00,lab:285.00},
+{id:'pl020',trade:'Plumbing',item:'Water heater - tankless (per EA)',unit:'EA',mat:1250.00,lab:450.00},
+{id:'pl021',trade:'Plumbing',item:'Shut-off valve (per EA)',unit:'EA',mat:18.00,lab:45.00},
+{id:'pl022',trade:'Plumbing',item:'Rough plumbing - new bath (per EA)',unit:'EA',mat:850.00,lab:2200.00},
+{id:'pl023',trade:'Plumbing',item:'Rough plumbing - half bath (per EA)',unit:'EA',mat:450.00,lab:1100.00},
+{id:'pl024',trade:'Plumbing',item:'Sump pump - submersible (per EA)',unit:'EA',mat:285.00,lab:225.00},
+{id:'pl025',trade:'Plumbing',item:'Hose bib (per EA)',unit:'EA',mat:45.00,lab:95.00},
+{id:'pl026',trade:'Plumbing',item:'Tub/shower combo surround - install (per EA)',unit:'EA',mat:285.00,lab:225.00},
+// ELECTRICAL
+{id:'el001',trade:'Electrical',item:'Outlet - 15A standard (per EA)',unit:'EA',mat:8.00,lab:55.00},
+{id:'el002',trade:'Electrical',item:'Outlet - 20A (per EA)',unit:'EA',mat:12.00,lab:65.00},
+{id:'el003',trade:'Electrical',item:'GFCI outlet (per EA)',unit:'EA',mat:18.00,lab:65.00},
+{id:'el004',trade:'Electrical',item:'AFCI outlet (per EA)',unit:'EA',mat:28.00,lab:65.00},
+{id:'el005',trade:'Electrical',item:'USB outlet (per EA)',unit:'EA',mat:22.00,lab:65.00},
+{id:'el006',trade:'Electrical',item:'Single pole switch (per EA)',unit:'EA',mat:6.00,lab:55.00},
+{id:'el007',trade:'Electrical',item:'3-way switch (per EA)',unit:'EA',mat:12.00,lab:65.00},
+{id:'el008',trade:'Electrical',item:'Dimmer switch (per EA)',unit:'EA',mat:18.00,lab:65.00},
+{id:'el009',trade:'Electrical',item:'Recessed light - 4" (per EA)',unit:'EA',mat:35.00,lab:65.00},
+{id:'el010',trade:'Electrical',item:'Recessed light - 6" (per EA)',unit:'EA',mat:45.00,lab:65.00},
+{id:'el011',trade:'Electrical',item:'Ceiling fan - install (per EA)',unit:'EA',mat:185.00,lab:125.00},
+{id:'el012',trade:'Electrical',item:'Light fixture - install (per EA)',unit:'EA',mat:0,lab:75.00},
+{id:'el013',trade:'Electrical',item:'Pendant light - install (per EA)',unit:'EA',mat:0,lab:95.00},
+{id:'el014',trade:'Electrical',item:'Under cabinet lighting (per LF)',unit:'LF',mat:18.00,lab:25.00},
+{id:'el015',trade:'Electrical',item:'Circuit breaker - 15A (per EA)',unit:'EA',mat:12.00,lab:85.00},
+{id:'el016',trade:'Electrical',item:'Circuit breaker - 20A (per EA)',unit:'EA',mat:14.00,lab:85.00},
+{id:'el017',trade:'Electrical',item:'Circuit breaker - 30A (per EA)',unit:'EA',mat:18.00,lab:95.00},
+{id:'el018',trade:'Electrical',item:'Panel upgrade - 200A (per EA)',unit:'EA',mat:850.00,lab:1450.00},
+{id:'el019',trade:'Electrical',item:'Romex 12-2 wire (per LF)',unit:'LF',mat:0.85,lab:1.25},
+{id:'el020',trade:'Electrical',item:'Romex 14-2 wire (per LF)',unit:'LF',mat:0.65,lab:1.25},
+{id:'el021',trade:'Electrical',item:'Smoke detector (per EA)',unit:'EA',mat:28.00,lab:55.00},
+{id:'el022',trade:'Electrical',item:'CO detector (per EA)',unit:'EA',mat:35.00,lab:55.00},
+{id:'el023',trade:'Electrical',item:'Exhaust fan - bath (per EA)',unit:'EA',mat:55.00,lab:95.00},
+{id:'el024',trade:'Electrical',item:'Exhaust fan w/light (per EA)',unit:'EA',mat:85.00,lab:110.00},
+{id:'el025',trade:'Electrical',item:'Range hood - ductless (per EA)',unit:'EA',mat:145.00,lab:125.00},
+{id:'el026',trade:'Electrical',item:'Range hood - ducted (per EA)',unit:'EA',mat:225.00,lab:185.00},
+{id:'el027',trade:'Electrical',item:'Dryer outlet - 240V (per EA)',unit:'EA',mat:35.00,lab:145.00},
+{id:'el028',trade:'Electrical',item:'EV charger outlet - 240V (per EA)',unit:'EA',mat:45.00,lab:165.00},
+{id:'el029',trade:'Electrical',item:'Rough-in wiring - per room (per EA)',unit:'EA',mat:125.00,lab:385.00},
+// HVAC
+{id:'hv001',trade:'HVAC',item:'Furnace replace - 80% efficiency (per EA)',unit:'EA',mat:1250.00,lab:850.00},
+{id:'hv002',trade:'HVAC',item:'Furnace replace - 96% high efficiency (per EA)',unit:'EA',mat:1850.00,lab:950.00},
+{id:'hv003',trade:'HVAC',item:'AC condenser - 3 ton (per EA)',unit:'EA',mat:1650.00,lab:750.00},
+{id:'hv004',trade:'HVAC',item:'AC condenser - 4 ton (per EA)',unit:'EA',mat:2050.00,lab:850.00},
+{id:'hv005',trade:'HVAC',item:'Air handler / coil (per EA)',unit:'EA',mat:850.00,lab:450.00},
+{id:'hv006',trade:'HVAC',item:'Ductwork - supply trunk (per LF)',unit:'LF',mat:8.50,lab:12.00},
+{id:'hv007',trade:'HVAC',item:'Ductwork - flex branch (per LF)',unit:'LF',mat:2.50,lab:4.50},
+{id:'hv008',trade:'HVAC',item:'Supply register - 6x10 (per EA)',unit:'EA',mat:12.00,lab:25.00},
+{id:'hv009',trade:'HVAC',item:'Return air grille (per EA)',unit:'EA',mat:18.00,lab:35.00},
+{id:'hv010',trade:'HVAC',item:'Thermostat - smart (per EA)',unit:'EA',mat:185.00,lab:85.00},
+{id:'hv011',trade:'HVAC',item:'Mini-split - 12000 BTU (per EA)',unit:'EA',mat:1250.00,lab:750.00},
+{id:'hv012',trade:'HVAC',item:'Mini-split - 18000 BTU (per EA)',unit:'EA',mat:1650.00,lab:850.00},
+{id:'hv013',trade:'HVAC',item:'HRV/ERV unit (per EA)',unit:'EA',mat:850.00,lab:550.00},
+{id:'hv014',trade:'HVAC',item:'Humidifier - whole house (per EA)',unit:'EA',mat:350.00,lab:285.00},
+{id:'hv015',trade:'HVAC',item:'Air purifier/UV system (per EA)',unit:'EA',mat:450.00,lab:185.00},
+// DECKS & OUTDOOR
+{id:'dk001',trade:'Decks & Outdoor',item:'Deck - pressure treated (per SF)',unit:'SF',mat:8.50,lab:9.00},
+{id:'dk002',trade:'Decks & Outdoor',item:'Deck - composite Trex (per SF)',unit:'SF',mat:18.00,lab:10.00},
+{id:'dk003',trade:'Decks & Outdoor',item:'Deck - cedar (per SF)',unit:'SF',mat:14.00,lab:9.50},
+{id:'dk004',trade:'Decks & Outdoor',item:'Deck footings - concrete (per EA)',unit:'EA',mat:45.00,lab:85.00},
+{id:'dk005',trade:'Decks & Outdoor',item:'Deck railing - wood (per LF)',unit:'LF',mat:18.00,lab:22.00},
+{id:'dk006',trade:'Decks & Outdoor',item:'Deck railing - aluminum (per LF)',unit:'LF',mat:28.00,lab:20.00},
+{id:'dk007',trade:'Decks & Outdoor',item:'Deck stairs - per step (per EA)',unit:'EA',mat:35.00,lab:55.00},
+{id:'dk008',trade:'Decks & Outdoor',item:'Pergola - 12x12 (per EA)',unit:'EA',mat:2500.00,lab:1800.00},
+{id:'dk009',trade:'Decks & Outdoor',item:'Fence - wood privacy 6ft (per LF)',unit:'LF',mat:14.00,lab:12.00},
+{id:'dk010',trade:'Decks & Outdoor',item:'Fence - aluminum (per LF)',unit:'LF',mat:22.00,lab:14.00},
+{id:'dk011',trade:'Decks & Outdoor',item:'Concrete patio (per SF)',unit:'SF',mat:6.00,lab:5.50},
+{id:'dk012',trade:'Decks & Outdoor',item:'Paver patio (per SF)',unit:'SF',mat:8.50,lab:9.00},
+// DOORS & WINDOWS
+{id:'dw001b',trade:'Doors & Windows',item:'Interior door - hollow core 2/8 (per EA)',unit:'EA',mat:95.00,lab:145.00},
+{id:'dw002b',trade:'Doors & Windows',item:'Interior door - solid core 2/8 (per EA)',unit:'EA',mat:175.00,lab:145.00},
+{id:'dw003b',trade:'Doors & Windows',item:'Interior door - pre-hung 2/8 (per EA)',unit:'EA',mat:145.00,lab:165.00},
+{id:'dw004b',trade:'Doors & Windows',item:'Closet door - bifold 2/0 (per EA)',unit:'EA',mat:85.00,lab:95.00},
+{id:'dw005b',trade:'Doors & Windows',item:'Closet door - bifold 4/0 (per EA)',unit:'EA',mat:125.00,lab:95.00},
+{id:'dw006b',trade:'Doors & Windows',item:'Exterior door - fiberglass (per EA)',unit:'EA',mat:650.00,lab:350.00},
+{id:'dw007b',trade:'Doors & Windows',item:'Exterior door - steel (per EA)',unit:'EA',mat:450.00,lab:325.00},
+{id:'dw008b',trade:'Doors & Windows',item:'Sliding patio door - 6ft (per EA)',unit:'EA',mat:950.00,lab:425.00},
+{id:'dw009b',trade:'Doors & Windows',item:'French doors - interior (per EA)',unit:'EA',mat:650.00,lab:325.00},
+{id:'dw010b',trade:'Doors & Windows',item:'Window - double hung vinyl (per EA)',unit:'EA',mat:285.00,lab:185.00},
+{id:'dw011b',trade:'Doors & Windows',item:'Window - casement vinyl (per EA)',unit:'EA',mat:365.00,lab:195.00},
+{id:'dw012b',trade:'Doors & Windows',item:'Window - bay/bow (per EA)',unit:'EA',mat:1250.00,lab:450.00},
+{id:'dw013b',trade:'Doors & Windows',item:'Window - egress (per EA)',unit:'EA',mat:485.00,lab:350.00},
+{id:'dw014b',trade:'Doors & Windows',item:'Door hardware - passage (per EA)',unit:'EA',mat:35.00,lab:25.00},
+{id:'dw015b',trade:'Doors & Windows',item:'Door hardware - privacy (per EA)',unit:'EA',mat:45.00,lab:25.00},
+{id:'dw016b',trade:'Doors & Windows',item:'Deadbolt (per EA)',unit:'EA',mat:55.00,lab:35.00},
+// SPECIALTIES
+{id:'sp001',trade:'Specialties',item:'Fireplace - gas insert (per EA)',unit:'EA',mat:2850.00,lab:950.00},
+{id:'sp002',trade:'Specialties',item:'Fireplace surround - tile (per EA)',unit:'EA',mat:450.00,lab:550.00},
+{id:'sp003',trade:'Specialties',item:'Fireplace mantel - stock (per EA)',unit:'EA',mat:350.00,lab:225.00},
+{id:'sp004',trade:'Specialties',item:'Medicine cabinet (per EA)',unit:'EA',mat:185.00,lab:125.00},
+{id:'sp005',trade:'Specialties',item:'Mirror - bathroom (per EA)',unit:'EA',mat:95.00,lab:65.00},
+{id:'sp006',trade:'Specialties',item:'Towel bar - 24" (per EA)',unit:'EA',mat:35.00,lab:25.00},
+{id:'sp007',trade:'Specialties',item:'Toilet paper holder (per EA)',unit:'EA',mat:22.00,lab:18.00},
+{id:'sp008',trade:'Specialties',item:'Grab bar (per EA)',unit:'EA',mat:45.00,lab:55.00},
+{id:'sp009',trade:'Specialties',item:'Whole house generator (per EA)',unit:'EA',mat:4500.00,lab:1800.00},
+{id:'sp010',trade:'Specialties',item:'Attic access - pull-down stairs (per EA)',unit:'EA',mat:185.00,lab:145.00},
+{id:'sp011',trade:'Specialties',item:'Laundry - washer hookup (per EA)',unit:'EA',mat:45.00,lab:125.00},
+{id:'sp012',trade:'Specialties',item:'Laundry - dryer hookup 240V (per EA)',unit:'EA',mat:55.00,lab:145.00},
+{id:'sp013',trade:'Specialties',item:'General contractor overhead (per %)',unit:'%',mat:0,lab:0},
+];
+
+let ueLines = []; // current estimate lines [{...item, qty, lineTotal}]
+let customPrices = []; // user-added or edited items
+let allPrices = [];
+
+function getAllPrices(){
+  // Merge builtin with custom (custom overrides by id)
+  const map = {};
+  BUILTIN_PRICES.forEach(function(p){map[p.id]=Object.assign({},p);});
+  customPrices.forEach(function(p){map[p.id]=Object.assign({},p);});
+  return Object.values(map).sort(function(a,b){return a.trade.localeCompare(b.trade)||a.item.localeCompare(b.item);});
+}
+
+async function loadCustomPrices(){
+  var res = await sb.from('custom_prices').select('*');
+  customPrices = res.data||[];
+  allPrices = getAllPrices();
+}
+
+function showEstTab(t){
+  ['proposals','estimator','database'].forEach(function(id){
+    document.getElementById('est-'+id).style.display = id===t?'block':'none';
+  });
+  ['proposals','estimator','database'].forEach(function(id){
+    var btn = document.getElementById('est-tab-'+id);
+    if(btn) btn.classList.toggle('active', id===t);
+  });
+  if(t==='estimator') renderUEItems();
+  if(t==='database') renderPriceDatabase();
+}
+
+// ── UNIT PRICE ESTIMATOR ──
+function renderUEItems(){
+  var q = (document.getElementById('ue-search')?.value||'').toLowerCase();
+  var tf = document.getElementById('ue-trade-filter')?.value||'';
+  var prices = getAllPrices().filter(function(p){
+    var mq = !q || p.item.toLowerCase().includes(q) || p.trade.toLowerCase().includes(q) || p.unit.toLowerCase().includes(q);
+    var mt = !tf || p.trade===tf;
+    return mq&&mt;
+  });
+  var grouped = {};
+  prices.forEach(function(p){
+    if(!grouped[p.trade]) grouped[p.trade]=[];
+    grouped[p.trade].push(p);
+  });
+  var html = '';
+  Object.keys(grouped).sort().forEach(function(trade){
+    html += '<div style="padding:6px 1rem 2px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;background:var(--bg2);border-bottom:1px solid var(--border);">'+trade+'</div>';
+    grouped[trade].forEach(function(p){
+      var tot = (p.mat+p.lab).toFixed(2);
+      html += '<div class="ue-item-row" onclick="addUELine(\''+p.id+'\')" style="padding:8px 1rem;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background 0.1s;" onmouseover="this.style.background=\'var(--bg2)\'" onmouseout="this.style.background=\'\'">'
+        +'<div style="flex:1;"><div style="font-size:12px;font-weight:500;">'+p.item+'</div><div style="font-size:11px;color:var(--text3);">Mat: $'+p.mat.toFixed(2)+' | Labor: $'+p.lab.toFixed(2)+' | <strong>$'+tot+'/'+p.unit+'</strong></div></div>'
+        +'<button style="background:var(--brand);color:white;border:none;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;flex-shrink:0;">+ Add</button>'
+        +'</div>';
+    });
+  });
+  if(!html) html='<div class="empty">No items match your search</div>';
+  document.getElementById('ue-item-list').innerHTML=html;
+}
+
+function addUELine(priceId){
+  var p = getAllPrices().find(function(x){return x.id===priceId;});
+  if(!p) return;
+  // If already in estimate, increment qty
+  var existing = ueLines.find(function(l){return l.id===priceId;});
+  if(existing){existing.qty++;recalcUE();renderUESheet();return;}
+  ueLines.push(Object.assign({},p,{qty:1,lineTotal:p.mat+p.lab}));
+  recalcUE();
+  renderUESheet();
+}
+
+function renderUESheet(){
+  var empty = document.getElementById('ue-empty');
+  var totels = document.getElementById('ue-totals');
+  if(!ueLines.length){
+    if(empty) empty.style.display='block';
+    if(totels) totels.style.display='none';
+    document.getElementById('ue-line-count').textContent='0 items';
+    return;
+  }
+  if(empty) empty.style.display='none';
+  if(totels) totels.style.display='block';
+  document.getElementById('ue-line-count').textContent=ueLines.length+' item'+(ueLines.length!==1?'s':'');
+  // Group by trade
+  var grouped={};
+  ueLines.forEach(function(l,i){if(!grouped[l.trade])grouped[l.trade]=[];grouped[l.trade].push({l:l,i:i});});
+  var html='';
+  Object.keys(grouped).sort().forEach(function(trade){
+    var tradeTotal=grouped[trade].reduce(function(s,x){return s+x.l.lineTotal;},0);
+    html+='<div style="padding:6px 1rem;background:var(--bg2);font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;display:flex;justify-content:space-between;"><span>'+trade+'</span><span>$'+tradeTotal.toFixed(2)+'</span></div>';
+    grouped[trade].forEach(function(x){
+      var l=x.l; var i=x.i;
+      html+='<div style="padding:8px 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">'
+        +'<div style="flex:1;font-size:12px;font-weight:500;">'+l.item+'</div>'
+        +'<div style="font-size:11px;color:var(--text3);">$'+(l.mat+l.lab).toFixed(2)+'/'+l.unit+'</div>'
+        +'<input type="number" value="'+l.qty+'" min="0" step="0.1" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:5px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;text-align:center;" oninput="updateUEQty('+i+',this.value)"/>'
+        +'<div style="font-size:12px;font-weight:700;color:var(--brand);min-width:70px;text-align:right;" id="ue-lt-'+i+'">$'+l.lineTotal.toFixed(2)+'</div>'
+        +'<button onclick="removeUELine('+i+')" style="background:none;border:none;cursor:pointer;color:var(--red-txt);font-size:16px;padding:0 4px;">✕</button>'
+        +'</div>';
+    });
+  });
+  document.getElementById('ue-sheet').innerHTML=html;
+}
+
+function updateUEQty(i, val){
+  var qty = parseFloat(val)||0;
+  var l = ueLines[i];
+  if(!l) return;
+  l.qty = qty;
+  l.lineTotal = qty*(l.mat+l.lab);
+  var lt = document.getElementById('ue-lt-'+i);
+  if(lt) lt.textContent='$'+l.lineTotal.toFixed(2);
+  recalcUE();
+}
+
+function removeUELine(i){
+  ueLines.splice(i,1);
+  recalcUE();
+  renderUESheet();
+}
+
+function clearEstimator(){
+  if(ueLines.length&&!confirm('Clear all items from this estimate?')) return;
+  ueLines=[];
+  renderUESheet();
+  recalcUE();
+}
+
+function recalcUE(){
+  var markup = (parseFloat(document.getElementById('ue-markup')?.value)||0)/100;
+  var matTotal = ueLines.reduce(function(s,l){return s+l.qty*l.mat;},0);
+  var labTotal = ueLines.reduce(function(s,l){return s+l.qty*l.lab;},0);
+  var sub = matTotal+labTotal;
+  var grand = sub*(1+markup);
+  var fmt2 = function(n){return '$'+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});};
+  var mt=document.getElementById('ue-mat-total');if(mt)mt.textContent=fmt2(matTotal);
+  var lt=document.getElementById('ue-lab-total');if(lt)lt.textContent=fmt2(labTotal);
+  var gt=document.getElementById('ue-grand-total');if(gt)gt.textContent=fmt2(grand);
+  // Trade totals
+  var tradeMap={};
+  ueLines.forEach(function(l){if(!tradeMap[l.trade])tradeMap[l.trade]=0;tradeMap[l.trade]+=l.lineTotal;});
+  var ttHtml=Object.keys(tradeMap).sort().map(function(t){return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;"><span style="color:var(--text2);">'+t+'</span><span style="font-weight:600;">$'+tradeMap[t].toFixed(2)+'</span></div>';}).join('');
+  var ttel=document.getElementById('ue-trade-totals');if(ttel)ttel.innerHTML=ttHtml;
+}
+
+function printEstimate(){
+  var client=document.getElementById('ue-client')?.value||'';
+  var job=document.getElementById('ue-job')?.value||'';
+  var addr=document.getElementById('ue-address')?.value||'';
+  var date=document.getElementById('ue-date')?.value||new Date().toLocaleDateString();
+  var markup=(parseFloat(document.getElementById('ue-markup')?.value)||0)/100;
+  var matTotal=ueLines.reduce(function(s,l){return s+l.qty*l.mat;},0);
+  var labTotal=ueLines.reduce(function(s,l){return s+l.qty*l.lab;},0);
+  var sub=matTotal+labTotal;
+  var grand=sub*(1+markup);
+  var fmt2=function(n){return '$'+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});};
+  var grouped={};
+  ueLines.forEach(function(l){if(!grouped[l.trade])grouped[l.trade]=[];grouped[l.trade].push(l);});
+  var rowsHtml='';
+  Object.keys(grouped).sort().forEach(function(trade){
+    rowsHtml+='<tr style="background:#F4F3F0;"><td colspan="5" style="padding:8px 12px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#6B6A66;">'+trade+'</td></tr>';
+    grouped[trade].forEach(function(l){
+      rowsHtml+='<tr><td style="padding:8px 12px;font-size:13px;">'+l.item+'</td><td style="padding:8px 12px;font-size:13px;text-align:center;">'+l.qty+'</td><td style="padding:8px 12px;font-size:13px;text-align:center;">'+l.unit+'</td><td style="padding:8px 12px;font-size:13px;text-align:right;">$'+(l.mat+l.lab).toFixed(2)+'</td><td style="padding:8px 12px;font-size:13px;text-align:right;font-weight:600;">$'+l.lineTotal.toFixed(2)+'</td></tr>';
+    });
+  });
+  var html='<div style="font-family:-apple-system,sans-serif;max-width:800px;margin:0 auto;color:#1A1A18;">'
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:2px solid #C8440A;">'
+    +'<div><div style="font-size:22px;font-weight:700;color:#C8440A;">JM Built</div><div style="font-size:12px;color:#6B6A66;margin-top:4px;">4421 Mount Carmel Tobasco Rd.<br>Cincinnati, OH 45244<br>513-604-3528</div></div>'
+    +'<div style="text-align:right;"><div style="font-size:28px;font-weight:700;color:#C8440A;">ESTIMATE</div><div style="font-size:12px;color:#6B6A66;margin-top:4px;"><strong>Client:</strong> '+(client||'—')+'<br><strong>Project:</strong> '+(job||'—')+'<br><strong>Address:</strong> '+(addr||'—')+'<br><strong>Date:</strong> '+date+'</div></div>'
+    +'</div>'
+    +'<table style="width:100%;border-collapse:collapse;margin-bottom:2rem;"><thead><tr style="border-bottom:2px solid #E0DDD8;"><th style="padding:8px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;color:#9E9C98;">Description</th><th style="padding:8px 12px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;color:#9E9C98;">Qty</th><th style="padding:8px 12px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;color:#9E9C98;">Unit</th><th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;color:#9E9C98;">Unit Price</th><th style="padding:8px 12px;text-align:right;font-size:11px;font-weight:700;text-transform:uppercase;color:#9E9C98;">Total</th></tr></thead><tbody>'+rowsHtml+'</tbody></table>'
+    +'<div style="display:flex;justify-content:flex-end;">'
+    +'<div style="min-width:280px;">'
+    +'<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#6B6A66;">Materials</span><span>'+fmt2(matTotal)+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#6B6A66;">Labor</span><span>'+fmt2(labTotal)+'</span></div>'
+    +'<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-top:1px solid #E0DDD8;margin-top:4px;"><span style="color:#6B6A66;">Subtotal</span><span>'+fmt2(sub)+'</span></div>'
+    +(markup>0?'<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#6B6A66;">Overhead & Profit ('+(markup*100).toFixed(0)+'%)</span><span>'+fmt2(grand-sub)+'</span></div>':'')
+    +'<div style="display:flex;justify-content:space-between;padding:10px 0;font-size:16px;font-weight:700;border-top:2px solid #1A1A18;margin-top:6px;"><span>TOTAL</span><span style="color:#C8440A;">'+fmt2(grand)+'</span></div>'
+    +'</div></div>'
+    +'<div style="margin-top:3rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;padding-top:1.5rem;border-top:1px solid #E0DDD8;">'
+    +'<div><div style="border-bottom:1px solid #1A1A18;height:40px;margin-bottom:6px;"></div><div style="font-size:11px;color:#9E9C98;">Client signature & date</div></div>'
+    +'<div><div style="border-bottom:1px solid #1A1A18;height:40px;margin-bottom:6px;"></div><div style="font-size:11px;color:#9E9C98;">JM Built representative</div></div>'
+    +'</div>'
+    +'<div style="margin-top:2rem;font-size:11px;color:#9E9C98;text-align:center;">This estimate is valid for 30 days. Prices subject to change based on final measurements and material selections.</div>'
+    +'</div>';
+  var pa = document.getElementById('est-print-area');
+  pa.innerHTML=html; pa.style.display='block';
+  window.print();
+  setTimeout(function(){pa.style.display='none';},1200);
+}
+
+// ── PRICE DATABASE ──
+function renderPriceDatabase(){
+  var q=(document.getElementById('db-price-search')?.value||'').toLowerCase();
+  var tf=document.getElementById('db-trade-filter')?.value||'';
+  var prices=getAllPrices().filter(function(p){
+    var mq=!q||p.item.toLowerCase().includes(q)||p.trade.toLowerCase().includes(q);
+    var mt=!tf||p.trade===tf;
+    return mq&&mt;
+  });
+  document.getElementById('price-db-tbl').innerHTML=prices.length
+    ? prices.map(function(p){
+        var tot=(p.mat+p.lab).toFixed(2);
+        var isCustom=customPrices.some(function(c){return c.id===p.id;});
+        return '<tr>'
+          +'<td><span class="badge b-gray" style="font-size:10px;">'+p.trade+'</span></td>'
+          +'<td style="font-weight:500;font-size:12px;">'+p.item+(isCustom?'<span class="badge b-brand" style="font-size:9px;margin-left:5px;">Custom</span>':'')+'</td>'
+          +'<td style="color:var(--text2);font-size:12px;">'+p.unit+'</td>'
+          +'<td><input type="number" value="'+p.mat.toFixed(2)+'" step="0.01" style="width:75px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'mat\',this.value)" /></td>'
+          +'<td><input type="number" value="'+p.lab.toFixed(2)+'" step="0.01" style="width:75px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'lab\',this.value)" /></td>'
+          +'<td style="font-weight:700;color:var(--brand);">$'+tot+'/'+p.unit+'</td>'
+          +'<td>'+(isCustom?'<button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteCustomPrice(\''+p.id+'\')">Delete</button>':'')+'</td>'
+          +'</tr>';
+      }).join('')
+    : '<tr><td colspan="7" class="empty">No items match</td></tr>';
+}
+
+async function updatePrice(id, field, val){
+  var num = parseFloat(val)||0;
+  // Check if custom price exists
+  var existing = customPrices.find(function(p){return p.id===id;});
+  var builtin = BUILTIN_PRICES.find(function(p){return p.id===id;});
+  if(existing){
+    existing[field]=num;
+    await sb.from('custom_prices').update({[field]:num}).eq('id',id);
+  } else if(builtin){
+    var newRec = Object.assign({},builtin,{[field]:num});
+    var res = await sb.from('custom_prices').insert(newRec).select();
+    if(res.data) customPrices.push(res.data[0]);
+  }
+  allPrices = getAllPrices();
+  renderPriceDatabase();
+}
+
+async function savePriceItem(){
+  var trade=document.getElementById('ap-trade').value;
+  var item=document.getElementById('ap-item').value.trim();if(!item)return;
+  var unit=document.getElementById('ap-unit').value.trim()||'EA';
+  var mat=parseFloat(document.getElementById('ap-mat').value)||0;
+  var lab=parseFloat(document.getElementById('ap-lab').value)||0;
+  var id='custom_'+Date.now();
+  var res=await sb.from('custom_prices').insert({id,trade,item,unit,mat,lab}).select();
+  if(res.data){customPrices.push(res.data[0]);allPrices=getAllPrices();}
+  closeModals();renderPriceDatabase();
+  ['ap-item','ap-unit','ap-mat','ap-lab'].forEach(function(id){document.getElementById(id).value='';});
+}
+
+async function deleteCustomPrice(id){
+  if(!confirm('Delete this custom price?'))return;
+  await sb.from('custom_prices').delete().eq('id',id);
+  customPrices=customPrices.filter(function(p){return p.id!==id;});
+  allPrices=getAllPrices();
+  renderPriceDatabase();
+}
+
 loadAll();
 </script>
+
+<!-- ADD PRICE ITEM MODAL -->
+<div class="modal-overlay" id="add-price-modal"><div class="modal"><h3>Add price item</h3>
+  <div class="fg"><label>Trade</label><select id="ap-trade"><option>Demo & Site Work</option><option>Concrete & Foundation</option><option>Framing</option><option>Roofing</option><option>Exterior</option><option>Insulation</option><option>Drywall</option><option>Interior Trim & Millwork</option><option>Flooring</option><option>Painting</option><option>Cabinets & Countertops</option><option>Tile</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Decks & Outdoor</option><option>Doors & Windows</option><option>Specialties</option></select></div>
+  <div class="fg"><label>Item description</label><input id="ap-item" placeholder="e.g. Install 12x12 ceramic floor tile"/></div>
+  <div class="fg"><label>Unit</label><input id="ap-unit" placeholder="e.g. SF, LF, EA, SQ, HR"/></div>
+  <div class="fg"><label>Material cost per unit ($)</label><input id="ap-mat" type="number" step="0.01" placeholder="e.g. 2.50"/></div>
+  <div class="fg"><label>Labor cost per unit ($)</label><input id="ap-lab" type="number" step="0.01" placeholder="e.g. 4.00"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="savePriceItem()">Add item</button></div>
+</div></div>
+
+<!-- ESTIMATE PRINT AREA -->
+<div id="est-print-area" style="display:none;"></div>
 </body>
 </html>
