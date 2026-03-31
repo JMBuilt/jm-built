@@ -391,13 +391,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <div id="ue-totals" style="display:none;border-top:2px solid var(--border);padding:1rem;">
             <div id="ue-trade-totals" style="margin-bottom:12px;"></div>
             <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:2px solid var(--text);margin-top:8px;">
-              <span style="font-size:16px;font-weight:700;">ESTIMATE TOTAL</span>
-              <span style="font-size:20px;font-weight:700;color:var(--brand);" id="ue-grand-total">$0</span>
+              <span style="font-size:16px;font-weight:700;">ESTIMATE RANGE</span>
+              <span style="font-size:18px;font-weight:700;color:var(--brand);"><span id="ue-grand-low">$0</span> – <span id="ue-grand-high">$0</span></span>
             </div>
             <div style="display:flex;gap:8px;margin-top:6px;">
-              <div style="flex:1;background:var(--green-bg);border-radius:8px;padding:8px 12px;text-align:center;"><div style="font-size:11px;color:var(--green-txt);">Materials</div><div style="font-size:15px;font-weight:700;color:var(--green-txt);" id="ue-mat-total">$0</div></div>
-              <div style="flex:1;background:var(--blue-bg);border-radius:8px;padding:8px 12px;text-align:center;"><div style="font-size:11px;color:var(--blue-txt);">Labor</div><div style="font-size:15px;font-weight:700;color:var(--blue-txt);" id="ue-lab-total">$0</div></div>
-              <div style="flex:1;background:var(--amber-bg);border-radius:8px;padding:8px 12px;text-align:center;"><div style="font-size:11px;color:var(--amber-txt);">Markup</div><input type="number" id="ue-markup" value="15" min="0" max="100" style="width:100%;font-size:14px;font-weight:700;color:var(--amber-txt);border:none;background:transparent;text-align:center;font-family:inherit;" oninput="recalcUE()"/><div style="font-size:10px;color:var(--amber-txt);">% overhead/profit</div></div>
+              <div style="flex:1;background:var(--green-bg);border-radius:8px;padding:8px 12px;text-align:center;"><div style="font-size:11px;color:var(--green-txt);">Materials low</div><div style="font-size:14px;font-weight:700;color:var(--green-txt);" id="ue-mat-total">$0</div></div>
+              <div style="flex:1;background:var(--green-bg);border-radius:8px;padding:8px 12px;text-align:center;"><div style="font-size:11px;color:var(--green-txt);">Materials high</div><div style="font-size:14px;font-weight:700;color:var(--green-txt);" id="ue-mat-high">$0</div></div>
+              <div style="flex:1;background:var(--blue-bg);border-radius:8px;padding:8px 12px;text-align:center;"><div style="font-size:11px;color:var(--blue-txt);">Labor low</div><div style="font-size:14px;font-weight:700;color:var(--blue-txt);" id="ue-lab-total">$0</div></div>
+              <div style="flex:1;background:var(--blue-bg);border-radius:8px;padding:8px 12px;text-align:center;"><div style="font-size:11px;color:var(--blue-txt);">Labor high</div><div style="font-size:14px;font-weight:700;color:var(--blue-txt);" id="ue-lab-high">$0</div></div>
             </div>
           </div>
         </div>
@@ -418,7 +419,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <option>Demo & Site Work</option><option>Concrete & Foundation</option><option>Framing</option><option>Roofing</option><option>Exterior</option><option>Insulation</option><option>Drywall</option><option>Interior Trim & Millwork</option><option>Flooring</option><option>Painting</option><option>Cabinets & Countertops</option><option>Tile</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Decks & Outdoor</option><option>Doors & Windows</option><option>Specialties</option>
       </select>
     </div>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Trade</th><th>Item</th><th>Unit</th><th>Material</th><th>Check</th><th>Labor</th><th>Total/Unit</th><th></th></tr></thead><tbody id="price-db-tbl"></tbody></table></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Trade</th><th>Item</th><th>Unit</th><th>Mat Low</th><th>Mat High</th><th>Check</th><th>Lab Low</th><th>Lab High</th><th>Range/Unit</th><th></th></tr></thead><tbody id="price-db-tbl"></tbody></table></div>
   </div>
 </div>
 
@@ -2284,11 +2285,15 @@ let customPrices = []; // user-added or edited items
 let allPrices = [];
 
 function getAllPrices(){
-  // Merge builtin with custom (custom overrides by id)
   const map = {};
   BUILTIN_PRICES.forEach(function(p){map[p.id]=Object.assign({},p);});
   customPrices.forEach(function(p){map[p.id]=Object.assign({},p);});
-  return Object.values(map).sort(function(a,b){return a.trade.localeCompare(b.trade)||a.item.localeCompare(b.item);});
+  // Ensure mat_high/lab_high default to mat/lab if not set
+  return Object.values(map).sort(function(a,b){return a.trade.localeCompare(b.trade)||a.item.localeCompare(b.item);}).map(function(p){
+    if(!p.mat_high||p.mat_high===0) p.mat_high=p.mat;
+    if(!p.lab_high||p.lab_high===0) p.lab_high=p.lab;
+    return p;
+  });
 }
 
 async function loadCustomPrices(){
@@ -2327,9 +2332,12 @@ function renderUEItems(){
   Object.keys(grouped).sort().forEach(function(trade){
     html += '<div style="padding:6px 1rem 2px;font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;background:var(--bg2);border-bottom:1px solid var(--border);">'+trade+'</div>';
     grouped[trade].forEach(function(p){
-      var tot = (p.mat+p.lab).toFixed(2);
-      html += '<div class="ue-item-row" onclick="addUELine(\''+p.id+'\')" style="padding:8px 1rem;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background 0.1s;" onmouseover="this.style.background=\'var(--bg2)\'" onmouseout="this.style.background=\'\'">'
-        +'<div style="flex:1;"><div style="font-size:12px;font-weight:500;">'+p.item+'</div><div style="font-size:11px;color:var(--text3);">Mat: $'+p.mat.toFixed(2)+' | Labor: $'+p.lab.toFixed(2)+' | <strong>$'+tot+'/'+p.unit+'</strong></div></div>'
+      var low=(p.mat+p.lab).toFixed(2);
+      var high=(p.mat_high+p.lab_high).toFixed(2);
+      var rangeStr=low===high?'$'+low+'/'+p.unit:'$'+low+' – $'+high+'/'+p.unit;
+      html+='<div class="ue-item-row" onclick="addUELine(\''+p.id+'\')" style="padding:8px 1rem;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:center;gap:10px;transition:background 0.1s;" onmouseover="this.style.background=\'var(--bg2)\'" onmouseout="this.style.background=\'\'">'
+        +'<div style="flex:1;"><div style="font-size:12px;font-weight:500;">'+p.item+'</div>'
+        +'<div style="font-size:11px;color:var(--text3);">Mat: $'+p.mat.toFixed(2)+(p.mat_high>p.mat?' – $'+p.mat_high.toFixed(2):'')+' | Labor: $'+p.lab.toFixed(2)+(p.lab_high>p.lab?' – $'+p.lab_high.toFixed(2):'')+' | <strong>'+rangeStr+'</strong></div></div>'
         +'<button style="background:var(--brand);color:white;border:none;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;flex-shrink:0;">+ Add</button>'
         +'</div>';
     });
@@ -2343,8 +2351,8 @@ function addUELine(priceId){
   if(!p) return;
   // If already in estimate, increment qty
   var existing = ueLines.find(function(l){return l.id===priceId;});
-  if(existing){existing.qty++;recalcUE();renderUESheet();return;}
-  ueLines.push(Object.assign({},p,{qty:1,lineTotal:p.mat+p.lab}));
+  if(existing){existing.qty++;existing.lineLow=(existing.mat+existing.lab)*existing.qty;existing.lineHigh=(existing.mat_high+existing.lab_high)*existing.qty;recalcUE();renderUESheet();return;}
+  ueLines.push(Object.assign({},p,{qty:1,lineLow:p.mat+p.lab,lineHigh:p.mat_high+p.lab_high}));
   recalcUE();
   renderUESheet();
 }
@@ -2387,9 +2395,10 @@ function updateUEQty(i, val){
   var l = ueLines[i];
   if(!l) return;
   l.qty = qty;
-  l.lineTotal = qty*(l.mat+l.lab);
+  l.lineLow = qty*(l.mat+l.lab);
+  l.lineHigh = qty*(l.mat_high+l.lab_high);
   var lt = document.getElementById('ue-lt-'+i);
-  if(lt) lt.textContent='$'+l.lineTotal.toFixed(2);
+  if(lt) lt.textContent='$'+l.lineLow.toFixed(2)+(l.lineHigh>l.lineLow?' – $'+l.lineHigh.toFixed(2):'');
   recalcUE();
 }
 
@@ -2407,19 +2416,31 @@ function clearEstimator(){
 }
 
 function recalcUE(){
-  var markup = (parseFloat(document.getElementById('ue-markup')?.value)||0)/100;
-  var matTotal = ueLines.reduce(function(s,l){return s+l.qty*l.mat;},0);
-  var labTotal = ueLines.reduce(function(s,l){return s+l.qty*l.lab;},0);
-  var sub = matTotal+labTotal;
-  var grand = sub*(1+markup);
-  var fmt2 = function(n){return '$'+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});};
-  var mt=document.getElementById('ue-mat-total');if(mt)mt.textContent=fmt2(matTotal);
-  var lt=document.getElementById('ue-lab-total');if(lt)lt.textContent=fmt2(labTotal);
-  var gt=document.getElementById('ue-grand-total');if(gt)gt.textContent=fmt2(grand);
-  // Trade totals
-  var tradeMap={};
-  ueLines.forEach(function(l){if(!tradeMap[l.trade])tradeMap[l.trade]=0;tradeMap[l.trade]+=l.lineTotal;});
-  var ttHtml=Object.keys(tradeMap).sort().map(function(t){return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;"><span style="color:var(--text2);">'+t+'</span><span style="font-weight:600;">$'+tradeMap[t].toFixed(2)+'</span></div>';}).join('');
+  var matLow=ueLines.reduce(function(s,l){return s+l.qty*l.mat;},0);
+  var matHigh=ueLines.reduce(function(s,l){return s+l.qty*(l.mat_high||l.mat);},0);
+  var labLow=ueLines.reduce(function(s,l){return s+l.qty*l.lab;},0);
+  var labHigh=ueLines.reduce(function(s,l){return s+l.qty*(l.lab_high||l.lab);},0);
+  var grandLow=matLow+labLow;
+  var grandHigh=matHigh+labHigh;
+  var fmt2=function(n){return '$'+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});};
+  var e=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+  e('ue-mat-total',fmt2(matLow));
+  e('ue-mat-high',fmt2(matHigh));
+  e('ue-lab-total',fmt2(labLow));
+  e('ue-lab-high',fmt2(labHigh));
+  e('ue-grand-low',fmt2(grandLow));
+  e('ue-grand-high',grandLow===grandHigh?fmt2(grandHigh):fmt2(grandHigh));
+  // Trade totals with range
+  var tradeLow={},tradeHigh={};
+  ueLines.forEach(function(l){
+    if(!tradeLow[l.trade]){tradeLow[l.trade]=0;tradeHigh[l.trade]=0;}
+    tradeLow[l.trade]+=l.lineLow;
+    tradeHigh[l.trade]+=l.lineHigh;
+  });
+  var ttHtml=Object.keys(tradeLow).sort().map(function(t){
+    var lo=tradeLow[t],hi=tradeHigh[t];
+    return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0;"><span style="color:var(--text2);">'+t+'</span><span style="font-weight:600;">'+(lo===hi?fmt2(lo):fmt2(lo)+' – '+fmt2(hi))+'</span></div>';
+  }).join('');
   var ttel=document.getElementById('ue-trade-totals');if(ttel)ttel.innerHTML=ttHtml;
 }
 
@@ -2428,11 +2449,14 @@ function printEstimate(){
   var job=document.getElementById('ue-job')?.value||'';
   var addr=document.getElementById('ue-address')?.value||'';
   var date=document.getElementById('ue-date')?.value||new Date().toLocaleDateString();
-  var markup=(parseFloat(document.getElementById('ue-markup')?.value)||0)/100;
+  var markup=0;
   var matTotal=ueLines.reduce(function(s,l){return s+l.qty*l.mat;},0);
   var labTotal=ueLines.reduce(function(s,l){return s+l.qty*l.lab;},0);
   var sub=matTotal+labTotal;
-  var grand=sub*(1+markup);
+  var grandLow=sub;
+  var subHigh=ueLines.reduce(function(s,l){return s+l.lineHigh;},0);
+  var grandHigh=subHigh;
+  var grand=grandLow;
   var fmt2=function(n){return '$'+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});};
   var grouped={};
   ueLines.forEach(function(l){if(!grouped[l.trade])grouped[l.trade]=[];grouped[l.trade].push(l);});
@@ -2454,8 +2478,8 @@ function printEstimate(){
     +'<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#6B6A66;">Materials</span><span>'+fmt2(matTotal)+'</span></div>'
     +'<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#6B6A66;">Labor</span><span>'+fmt2(labTotal)+'</span></div>'
     +'<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-top:1px solid #E0DDD8;margin-top:4px;"><span style="color:#6B6A66;">Subtotal</span><span>'+fmt2(sub)+'</span></div>'
-    +(markup>0?'<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;"><span style="color:#6B6A66;">Overhead & Profit ('+(markup*100).toFixed(0)+'%)</span><span>'+fmt2(grand-sub)+'</span></div>':'')
-    +'<div style="display:flex;justify-content:space-between;padding:10px 0;font-size:16px;font-weight:700;border-top:2px solid #1A1A18;margin-top:6px;"><span>TOTAL</span><span style="color:#C8440A;">'+fmt2(grand)+'</span></div>'
+    +(grandHigh>grandLow?'<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px;font-weight:700;"><span>Estimate Range</span><span style="color:#C8440A;">'+fmt2(grandLow)+' – '+fmt2(grandHigh)+'</span></div>':'')
+    +'<div style="display:flex;justify-content:space-between;padding:10px 0;font-size:16px;font-weight:700;border-top:2px solid #1A1A18;margin-top:6px;"><span>TOTAL</span><span style="color:#C8440A;">'+(grandHigh>grandLow?fmt2(grandLow)+' – '+fmt2(grandHigh):fmt2(grandLow))+'</span></div>'
     +'</div></div>'
     +'<div style="margin-top:3rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;padding-top:1.5rem;border-top:1px solid #E0DDD8;">'
     +'<div><div style="border-bottom:1px solid #1A1A18;height:40px;margin-bottom:6px;"></div><div style="font-size:11px;color:#9E9C98;">Client signature & date</div></div>'
@@ -2509,10 +2533,12 @@ function renderPriceDatabase(){
           +'<td><span class="badge b-gray" style="font-size:10px;">'+p.trade+'</span></td>'
           +'<td style="font-weight:500;font-size:12px;">'+p.item+(isCustom?'<span class="badge b-brand" style="font-size:9px;margin-left:5px;">Custom</span>':'')+'</td>'
           +'<td style="color:var(--text2);font-size:12px;">'+p.unit+'</td>'
-          +'<td><input type="number" value="'+p.mat.toFixed(2)+'" step="0.01" style="width:75px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'mat\',this.value)" /></td>'
+          +'<td><input type="number" value="'+p.mat.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'mat\',this.value)" /></td>'
+          +'<td><input type="number" value="'+p.mat_high.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'mat_high\',this.value)" /></td>'
           +'<td>'+checkPriceBtn(p)+'</td>'
-          +'<td><input type="number" value="'+p.lab.toFixed(2)+'" step="0.01" style="width:75px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'lab\',this.value)" /></td>'
-          +'<td style="font-weight:700;color:var(--brand);">$'+tot+'/'+p.unit+'</td>'
+          +'<td><input type="number" value="'+p.lab.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'lab\',this.value)" /></td>'
+          +'<td><input type="number" value="'+p.lab_high.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'lab_high\',this.value)" /></td>'
+          +'<td style="font-weight:700;color:var(--brand);white-space:nowrap;">$'+(p.mat+p.lab).toFixed(2)+(p.mat_high+p.lab_high>p.mat+p.lab?' – $'+(p.mat_high+p.lab_high).toFixed(2):'')+'/'+p.unit+'</td>'
           +'<td>'+(isCustom?'<button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteCustomPrice(\''+p.id+'\')">Delete</button>':'')+'</td>'
           +'</tr>';
       }).join('')
@@ -2543,10 +2569,12 @@ async function savePriceItem(){
   var mat=parseFloat(document.getElementById('ap-mat').value)||0;
   var lab=parseFloat(document.getElementById('ap-lab').value)||0;
   var id='custom_'+Date.now();
-  var res=await sb.from('custom_prices').insert({id,trade,item,unit,mat,lab}).select();
+  var mat_high=parseFloat(document.getElementById('ap-mat-high')?.value)||mat;
+  var lab_high=parseFloat(document.getElementById('ap-lab-high')?.value)||lab;
+  var res=await sb.from('custom_prices').insert({id,trade,item,unit,mat,mat_high,lab,lab_high}).select();
   if(res.data){customPrices.push(res.data[0]);allPrices=getAllPrices();}
   closeModals();renderPriceDatabase();
-  ['ap-item','ap-unit','ap-mat','ap-lab'].forEach(function(id){document.getElementById(id).value='';});
+  ['ap-item','ap-unit','ap-mat','ap-mat-high','ap-lab','ap-lab-high'].forEach(function(id){document.getElementById(id).value='';}); 
 }
 
 async function deleteCustomPrice(id){
@@ -2565,8 +2593,12 @@ loadAll();
   <div class="fg"><label>Trade</label><select id="ap-trade"><option>Demo & Site Work</option><option>Concrete & Foundation</option><option>Framing</option><option>Roofing</option><option>Exterior</option><option>Insulation</option><option>Drywall</option><option>Interior Trim & Millwork</option><option>Flooring</option><option>Painting</option><option>Cabinets & Countertops</option><option>Tile</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Decks & Outdoor</option><option>Doors & Windows</option><option>Specialties</option></select></div>
   <div class="fg"><label>Item description</label><input id="ap-item" placeholder="e.g. Install 12x12 ceramic floor tile"/></div>
   <div class="fg"><label>Unit</label><input id="ap-unit" placeholder="e.g. SF, LF, EA, SQ, HR"/></div>
-  <div class="fg"><label>Material cost per unit ($)</label><input id="ap-mat" type="number" step="0.01" placeholder="e.g. 2.50"/></div>
-  <div class="fg"><label>Labor cost per unit ($)</label><input id="ap-lab" type="number" step="0.01" placeholder="e.g. 4.00"/></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="fg"><label>Material low ($)</label><input id="ap-mat" type="number" step="0.01" placeholder="e.g. 2.50"/></div>
+    <div class="fg"><label>Material high ($)</label><input id="ap-mat-high" type="number" step="0.01" placeholder="e.g. 3.50"/></div>
+    <div class="fg"><label>Labor low ($)</label><input id="ap-lab" type="number" step="0.01" placeholder="e.g. 4.00"/></div>
+    <div class="fg"><label>Labor high ($)</label><input id="ap-lab-high" type="number" step="0.01" placeholder="e.g. 6.00"/></div>
+  </div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="savePriceItem()">Add item</button></div>
 </div></div>
 
