@@ -369,8 +369,8 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
     <button class="jh-tab active" id="est-tab-proposals" onclick="showEstTab('proposals')">📋 Proposals</button>
     <button class="jh-tab" id="est-tab-estimator" onclick="showEstTab('estimator')">🔢 Unit Price Estimator</button>
     <button class="jh-tab" id="est-tab-database" onclick="showEstTab('database')">📚 Price Database</button>
-    <button class="jh-tab" id="est-tab-time" onclick="showEstTab('time')">⏱ Time Tracker</button>
-    <button class="jh-tab" id="est-tab-price" onclick="showEstTab('price')">💵 Price Tracker</button>
+    <button class="jh-tab" id="est-tab-time" onclick="openTrackerTab('time')">⏱ Time Tracker</button>
+    <button class="jh-tab" id="est-tab-price" onclick="openTrackerTab('price')">💵 Price Tracker</button>
   </div>
 
   <!-- PROPOSALS -->
@@ -3012,6 +3012,33 @@ async function deleteCustomPrice(id){
   customPrices=customPrices.filter(function(p){return p.id!==id;});
   allPrices=getAllPrices();
   renderPriceDatabase();
+}
+
+function openTrackerTab(which){
+  // Hide all est-* sections
+  ['proposals','estimator','database','time','price'].forEach(function(id){
+    var el = document.getElementById('est-'+id);
+    if(el) el.style.display = 'none';
+  });
+  // Update tab button highlights
+  ['proposals','estimator','database','time','price'].forEach(function(id){
+    var btn = document.getElementById('est-tab-'+id);
+    if(btn) btn.classList.toggle('active', id===which);
+  });
+  // Show the target tab
+  var target = document.getElementById('est-'+which);
+  if(target){
+    target.style.display = 'block';
+  }
+  // Render content
+  if(which==='time'){
+    try{ populateItemSelects(); renderTimeEntries(); }
+    catch(e){ if(target) target.querySelector('#est-time-debug').textContent = 'Error: '+e.message; }
+  }
+  if(which==='price'){
+    try{ populateItemSelects(); renderPriceEntries(); }
+    catch(e){ if(target) target.innerHTML = '<div style="padding:2rem;color:red;">Error: '+e.message+'</div>'; }
+  }
 }
 
 // ============================================================
