@@ -922,7 +922,7 @@ async function loadAll(){
     leadNotes={};(notes.data||[]).forEach(n=>{if(!leadNotes[n.lead_id])leadNotes[n.lead_id]=[];leadNotes[n.lead_id].push(n);});
     subHistory={};(hist.data||[]).forEach(h=>{if(!subHistory[h.sub_id])subHistory[h.sub_id]=[];subHistory[h.sub_id].push(h);});
     salesNotes=(sn&&sn.data)||[];salesTasks=(st&&st.data)||[];
-    setSync(true);await loadOrders();await backfillOrderForms();await loadCustomPrices();allPrices=getAllPrices();await loadTrackerData();renderDash();
+    setSync(true);await loadOrders();await backfillOrderForms();await loadCustomPrices();allPrices=getAllPrices();try{await loadTrackers();}catch(e){console.warn('Tracker tables not ready:',e);}renderDash();
     // Setup drag/drop on all doc textareas after load
     setupDocDragDrop();
   }catch(err){setSync(false);console.error(err);}
@@ -1450,9 +1450,10 @@ function renderTimeEntries(){
     itemAvgs[e.price_item_id].totalHpu+=e.hrs_per_unit;
   });
 
-  document.getElementById('time-entries-tbl').innerHTML = filtered.length
+  var ttbl=document.getElementById('time-entries-tbl');if(!ttbl)return;
+  ttbl.innerHTML = filtered.length
     ? filtered.map(function(e){
-        var avg = itemAvgs[e.price_item_id];
+        var avg = itemAvgs[e.price_item_id]||{count:0,totalHpu:0,unit:e.unit};
         var avgHpuVal = avg ? (avg.totalHpu/avg.count).toFixed(3) : '—';
         var dateStr = e.date ? new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
         return '<tr>'
@@ -1581,10 +1582,11 @@ function renderPriceEntries(){
     itemAvgs[e.price_item_id].totalPpu+=e.price_per_unit;
   });
 
-  document.getElementById('price-entries-tbl').innerHTML = filtered.length
+  var ptbl=document.getElementById('price-entries-tbl');if(!ptbl)return;
+  ptbl.innerHTML = filtered.length
     ? filtered.map(function(e){
-        var avg = itemAvgs[e.price_item_id];
-        var avgPpu = avg ? '$'+(avg.totalPpu/avg.count).toFixed(2) : '—';
+        var avg = itemAvgs[e.price_item_id]||{count:0,totalPpu:0};
+        var avgPpu = avg.count ? '$'+(avg.totalPpu/avg.count).toFixed(2) : '—';
         var diff = e.db_price>0 ? e.price_per_unit-e.db_price : null;
         var diffBadge = diff!==null
           ? '<span class="badge '+(diff>=0?'b-green':'b-red')+'">'+(diff>=0?'+':'')+('$'+diff.toFixed(2))+'</span>'
