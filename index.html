@@ -463,7 +463,7 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
     </div>
     <!-- Price check store settings -->
     <div class="card" style="margin-bottom:1rem;">
-      <div class="card-header"><span class="card-title">Price check stores</span><button class="btn-sm" onclick="openModal('store-modal')">+ Add custom store</button></div>
+      <div class="card-header"><span class="card-title">Price check stores</span><span style="font-size:12px;color:var(--text2);">Toggle global stores · Assign per-item suppliers in the table below</span></div>
       <div style="padding:10px 1rem;display:flex;flex-wrap:wrap;gap:8px;align-items:center;" id="store-settings-row"></div>
     </div>
     <div style="display:flex;gap:10px;margin-bottom:.75rem;">
@@ -473,7 +473,7 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
         <option>Demo & Site Work</option><option>Concrete & Foundation</option><option>Framing</option><option>Roofing</option><option>Exterior</option><option>Insulation</option><option>Drywall</option><option>Interior Trim & Millwork</option><option>Flooring</option><option>Painting</option><option>Cabinets & Countertops</option><option>Tile</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Decks & Outdoor</option><option>Doors & Windows</option><option>Specialties</option>
       </select>
     </div>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Trade</th><th>Item</th><th>Unit</th><th>Mat Low</th><th>Mat High</th><th>Check</th><th>Lab Low</th><th>Lab High</th><th>Range/Unit</th><th></th></tr></thead><tbody id="price-db-tbl"></tbody></table></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Trade</th><th>Item</th><th>Unit</th><th>Mat Low</th><th>Mat High</th><th>Check</th><th>My Supplier</th><th>Lab Low</th><th>Lab High</th><th>Range/Unit</th><th></th></tr></thead><tbody id="price-db-tbl"></tbody></table></div>
 
   <!-- TIME TRACKER -->
   <!-- ALWAYS VISIBLE TRACKER SECTION -->
@@ -1687,11 +1687,12 @@ function renderOrdSuppliers(){
           '<td style="color:var(--text2);">'+(s.phone||'—')+'</td>'+
           '<td style="color:var(--text2);font-size:12px;">'+(s.address||'—')+'</td>'+
           '<td style="color:var(--text2);font-size:12px;">'+(s.supply||'—')+'</td>'+
+          '<td style="font-size:12px;">'+(s.website?'<a href="'+s.website+'" target="_blank" style="color:var(--blue-txt);font-weight:600;font-size:11px;">Visit site</a>':'—')+'</td>'+
           '<td style="color:var(--text2);font-size:12px;">'+(s.notes||'—')+'</td>'+
           '<td><button class="btn-danger" style="padding:3px 8px;font-size:10px;" onclick="deleteOrdSupplier(this.dataset.sid)" data-sid="'+s.id+'">Delete</button></td>'+
           '</tr>';
       }).join('')
-    : '<tr><td colspan="6" class="empty">No suppliers yet</td></tr>';
+    : '<tr><td colspan="7" class="empty">No suppliers yet</td></tr>';
 }
 
 async function saveOrdSupplier(){
@@ -2910,7 +2911,46 @@ function checkPriceBtn(p){
       +'<button style="background:'+s.color+';color:white;border:none;border-radius:4px;padding:3px 7px;font-size:10px;font-weight:600;cursor:pointer;margin:1px;">'+s.short+'</button>'
       +'</a>';
   }).join('');
+  // Also show assigned supplier button if it has a website
+  var cp = customPrices.find(function(c){return c.id===p.id;});
+  var suppId = cp ? cp.supplier_id : null;
+  if(suppId){
+    var supp = ordSuppliers.find(function(s){return s.id===suppId;});
+    if(supp && supp.website){
+      btns += '<a href="'+supp.website+encodeURIComponent(search)+'" target="_blank" style="text-decoration:none;">'
+        +'<button style="background:var(--green-txt);color:white;border:none;border-radius:4px;padding:3px 7px;font-size:10px;font-weight:600;cursor:pointer;margin:1px;">'+supp.name.slice(0,10)+'</button>'
+        +'</a>';
+    }
+  }
   return btns||'<span style="color:var(--text3);font-size:11px;">None selected</span>';
+}
+
+function supplierDropdown(p){
+  // Get assigned supplier for this item (stored in custom_prices.supplier_id)
+  var cp = customPrices.find(function(c){return c.id===p.id;});
+  var assigned = cp ? cp.supplier_id||'' : '';
+  var opts = '<option value="">— None —</option>'
+    + ordSuppliers.map(function(s){
+        return '<option value="'+s.id+'"'+(s.id===assigned?' selected':'')+'>'+s.name+'</option>';
+      }).join('');
+  return '<select style="font-size:11px;border:1px solid var(--border);border-radius:4px;padding:2px 4px;background:var(--bg2);color:var(--text);font-family:inherit;max-width:120px;" data-pid="'+p.id+'" onchange="assignSupplier(this.dataset.pid,this.value)">'+opts+'</select>';
+}
+
+async function assignSupplier(priceId, supplierId){
+  var cp = customPrices.find(function(c){return c.id===priceId;});
+  if(cp){
+    cp.supplier_id = supplierId;
+    await sb.from('custom_prices').update({supplier_id:supplierId||null}).eq('id',priceId);
+  } else {
+    // Create custom price entry just to store supplier assignment
+    var builtin = BUILTIN_PRICES.find(function(b){return b.id===priceId;});
+    if(!builtin) return;
+    var newRec = Object.assign({},builtin,{supplier_id:supplierId||null});
+    var res = await sb.from('custom_prices').insert(newRec).select();
+    if(res.data) customPrices.push(res.data[0]);
+  }
+  allPrices = getAllPrices();
+  renderPriceDatabase();
 }
 
 function renderPriceDatabase(){
@@ -2933,6 +2973,7 @@ function renderPriceDatabase(){
           +'<td><input type="number" value="'+p.mat.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'mat\',this.value)" /></td>'
           +'<td><input type="number" value="'+p.mat_high.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'mat_high\',this.value)" /></td>'
           +'<td>'+checkPriceBtn(p)+'</td>'
+          +'<td>'+supplierDropdown(p)+'</td>'
           +'<td><input type="number" value="'+p.lab.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'lab\',this.value)" /></td>'
           +'<td><input type="number" value="'+p.lab_high.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'lab_high\',this.value)" /></td>'
           +'<td style="font-weight:700;color:var(--brand);white-space:nowrap;">$'+(p.mat+p.lab).toFixed(2)+(p.mat_high+p.lab_high>p.mat+p.lab?' – $'+(p.mat_high+p.lab_high).toFixed(2):'')+'/'+p.unit+'</td>'
