@@ -2598,7 +2598,15 @@ function showEstTab(t){
   // TEMP DEBUG: force time tab visible as fixed overlay
   if(t==='time'){
     var el=document.getElementById('est-time');
-    alert('est-time: '+(el?'FOUND':'NULL')+' | est-price: '+(document.getElementById('est-price')?'FOUND':'NULL'));
+    // Create brand new element injected into body
+    var test=document.createElement('div');
+    test.id='tt-test-overlay';
+    test.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;background:red;color:white;font-size:50px;font-weight:bold;z-index:999999;display:flex;align-items:center;justify-content:center;';
+    test.innerHTML='<div>TIME TRACKER<br>WORKS</div>';
+    var old=document.getElementById('tt-test-overlay');
+    if(old)old.remove();
+    document.body.appendChild(test);
+    setTimeout(function(){var o=document.getElementById('tt-test-overlay');if(o)o.remove();},3000);
     if(el){
       el.style.cssText='display:block!important;position:fixed!important;top:60px!important;left:0!important;right:0!important;bottom:0!important;z-index:9999!important;background:white!important;overflow-y:auto!important;padding:1rem!important;';
     }
