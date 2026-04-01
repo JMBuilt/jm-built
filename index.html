@@ -3223,44 +3223,6 @@ function filterTEItems(){buildItemDropdown('te-item-search','te-item-dropdown','
 function filterPEItems(){buildItemDropdown('pe-item-search','pe-item-dropdown','pe-item-id','pe-item-name','pe-item-trade','pe-item-unit','pe-selected-item','pe-db-price');}
 
 // ── TIME TRACKER ─────────────────────────────────────────────────────────────
-function renderTimeEntries(){
-  var q=(document.getElementById('time-search')?.value||'').toLowerCase();
-  var tf=document.getElementById('time-trade-filter')?.value||'';
-  var filtered=timeEntries.filter(function(e){
-    var mq=!q||e.item_name.toLowerCase().includes(q)||(e.job||'').toLowerCase().includes(q);
-    var mt=!tf||e.trade===tf;
-    return mq&&mt;
-  });
-  var totalEntries=timeEntries.length;
-  var totalHrs=timeEntries.reduce(function(s,e){return s+(parseFloat(e.hours)||0);},0);
-  var avgHrsUnit=timeEntries.length?timeEntries.reduce(function(s,e){return s+(parseFloat(e.hrs_per_unit)||0);},0)/timeEntries.length:0;
-  var trades=new Set(timeEntries.map(function(e){return e.trade;})).size;
-  statCards('time-stats',[
-    {label:'Total entries',value:totalEntries,sub:'All logged'},
-    {label:'Total hours logged',value:totalHrs.toFixed(1)+'h',sub:'Across all jobs'},
-    {label:'Avg hrs/unit',value:avgHrsUnit.toFixed(2)+'h',sub:'All line items'},
-    {label:'Trades tracked',value:trades,sub:'Different categories'},
-  ]);
-  document.getElementById('time-entries-tbl').innerHTML=filtered.length
-    ? filtered.map(function(e){
-        var hpu=parseFloat(e.hrs_per_unit)||0;
-        return '<tr>'
-          +'<td style="font-weight:500;font-size:12px;">'+e.item_name+'</td>'
-          +'<td><span class="badge b-gray" style="font-size:10px;">'+e.trade+'</span></td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+(e.job||'—')+'</td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+(e.phase||'—')+'</td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+(e.crew||'—')+'</td>'
-          +'<td style="font-size:12px;">'+(e.qty||'—')+'</td>'
-          +'<td style="color:var(--text3);font-size:11px;">'+e.unit+'</td>'
-          +'<td style="font-weight:600;color:var(--blue-txt);">'+(parseFloat(e.hours)||0).toFixed(2)+'h</td>'
-          +'<td style="font-weight:700;color:var(--brand);">'+hpu.toFixed(3)+'h</td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+(e.date||'—')+'</td>'
-          +'<td style="color:var(--text2);font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+(e.notes||'')+'">'+(e.notes||'—')+'</td>'
-          +'<td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteTimeEntry(this.dataset.eid)" data-eid="'+e.id+'">✕</button></td>'
-          +'</tr>';
-      }).join('')
-    : '<tr><td colspan="12" class="empty">No time entries yet — start logging how long things take</td></tr>';
-}
 
 async function saveTimeEntry(){
   var itemId=document.getElementById('te-item-id').value;
@@ -3303,48 +3265,6 @@ async function deleteTimeEntry(id){
 }
 
 // ── PRICE TRACKER ────────────────────────────────────────────────────────────
-function renderPriceEntries(){
-  var q=(document.getElementById('price-track-search')?.value||'').toLowerCase();
-  var tf=document.getElementById('price-trade-filter')?.value||'';
-  var filtered=priceEntries.filter(function(e){
-    var mq=!q||e.item_name.toLowerCase().includes(q)||(e.job||'').toLowerCase().includes(q);
-    var mt=!tf||e.trade===tf;
-    return mq&&mt;
-  });
-  var totalEntries=priceEntries.length;
-  var totalCharged=priceEntries.reduce(function(s,e){return s+(parseFloat(e.total_charged)||0);},0);
-  var avgVariance=priceEntries.filter(function(e){return e.variance_pct;}).length
-    ? priceEntries.reduce(function(s,e){return s+(parseFloat(e.variance_pct)||0);},0)/priceEntries.filter(function(e){return e.variance_pct;}).length : 0;
-  var trades=new Set(priceEntries.map(function(e){return e.trade;})).size;
-  statCards('price-tracker-stats',[
-    {label:'Total entries',value:totalEntries,sub:'All logged'},
-    {label:'Total revenue tracked',value:'$'+Math.round(totalCharged).toLocaleString(),sub:'Across all entries'},
-    {label:'Avg vs DB price',value:(avgVariance>=0?'+':'')+avgVariance.toFixed(1)+'%',sub:avgVariance>=0?'Above database':'Below database'},
-    {label:'Trades tracked',value:trades,sub:'Different categories'},
-  ]);
-  document.getElementById('price-entries-tbl').innerHTML=filtered.length
-    ? filtered.map(function(e){
-        var ppu=parseFloat(e.price_per_unit)||0;
-        var dbp=parseFloat(e.db_price)||0;
-        var varPct=parseFloat(e.variance_pct)||0;
-        var varColor=varPct>=0?'var(--green-txt)':'var(--red-txt)';
-        return '<tr>'
-          +'<td style="font-weight:500;font-size:12px;">'+e.item_name+'</td>'
-          +'<td><span class="badge b-gray" style="font-size:10px;">'+e.trade+'</span></td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+(e.job||'—')+'</td>'
-          +'<td style="font-size:12px;">'+(e.qty||'—')+'</td>'
-          +'<td style="color:var(--text3);font-size:11px;">'+e.unit+'</td>'
-          +'<td style="font-weight:700;color:var(--brand);">$'+(parseFloat(e.total_charged)||0).toFixed(2)+'</td>'
-          +'<td style="font-weight:600;">$'+ppu.toFixed(2)+'/'+e.unit+'</td>'
-          +'<td style="color:var(--text2);">'+(dbp?'$'+dbp.toFixed(2)+'/'+e.unit:'—')+'</td>'
-          +'<td style="font-weight:700;color:'+varColor+';">'+(dbp?(varPct>=0?'+':'')+varPct.toFixed(1)+'%':'—')+'</td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+(e.date||'—')+'</td>'
-          +'<td style="color:var(--text2);font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+(e.notes||'')+'">'+(e.notes||'—')+'</td>'
-          +'<td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deletePriceEntry(this.dataset.eid)" data-eid="'+e.id+'">✕</button></td>'
-          +'</tr>';
-      }).join('')
-    : '<tr><td colspan="12" class="empty">No price entries yet — start logging what you charge</td></tr>';
-}
 
 async function savePriceEntry(){
   var itemName=document.getElementById('pe-item-name').value.trim();
