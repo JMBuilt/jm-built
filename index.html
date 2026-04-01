@@ -3230,6 +3230,43 @@ function renderPriceDatabase(){
     : '<tr><td colspan="7" class="empty">No items match</td></tr>';
 }
 
+function openEditPrice(id){
+  var p = getAllPrices().find(function(x){return x.id===id;});
+  if(!p) return;
+  document.getElementById('ep-id').value = id;
+  document.getElementById('ep-trade').value = p.trade;
+  document.getElementById('ep-item').value = p.item;
+  document.getElementById('ep-unit').value = p.unit;
+  document.getElementById('ep-mat').value = p.mat.toFixed(2);
+  document.getElementById('ep-mat-high').value = (p.mat_high||p.mat).toFixed(2);
+  document.getElementById('ep-lab').value = p.lab.toFixed(2);
+  document.getElementById('ep-lab-high').value = (p.lab_high||p.lab).toFixed(2);
+  openModal('edit-price-modal');
+}
+
+async function saveEditPrice(){
+  var id = document.getElementById('ep-id').value;
+  var trade = document.getElementById('ep-trade').value;
+  var item = document.getElementById('ep-item').value.trim(); if(!item) return;
+  var unit = document.getElementById('ep-unit').value.trim()||'EA';
+  var mat = parseFloat(document.getElementById('ep-mat').value)||0;
+  var mat_high = parseFloat(document.getElementById('ep-mat-high').value)||mat;
+  var lab = parseFloat(document.getElementById('ep-lab').value)||0;
+  var lab_high = parseFloat(document.getElementById('ep-lab-high').value)||lab;
+  var data = {id, trade, item, unit, mat, mat_high, lab, lab_high};
+  var existing = customPrices.find(function(p){return p.id===id;});
+  if(existing){
+    await sb.from('custom_prices').update(data).eq('id',id);
+    Object.assign(existing, data);
+  } else {
+    var res = await sb.from('custom_prices').insert(data).select();
+    if(res.data) customPrices.push(res.data[0]);
+  }
+  allPrices = getAllPrices();
+  closeModals();
+  renderPriceDatabase();
+}
+
 async function deleteAnyPrice(id){
   if(!confirm('Delete this item from your price database?')) return;
   var isCustom = customPrices.some(function(p){return p.id===id;});
@@ -3774,6 +3811,21 @@ async function deletePriceEntry(id){
   <div class="fg"><label>Paste URL</label><input id="link-modal-input" placeholder="https://www.homedepot.com/p/specific-product..."/></div>
   <p style="font-size:12px;color:var(--text2);margin-top:-6px;">Paste the exact URL for this item on any website. It will appear as a 🔗 button in the Check column.</p>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-danger" onclick="removeLinkModal()">Remove link</button><button class="btn-primary" onclick="saveLinkModal()">Save</button></div>
+</div></div>
+
+<!-- EDIT PRICE MODAL -->
+<div class="modal-overlay" id="edit-price-modal"><div class="modal"><h3>Edit price item</h3>
+  <input type="hidden" id="ep-id"/>
+  <div class="fg"><label>Trade</label><select id="ep-trade"><option>Demo & Site Work</option><option>Concrete & Foundation</option><option>Framing</option><option>Roofing</option><option>Exterior</option><option>Insulation</option><option>Drywall</option><option>Interior Trim & Millwork</option><option>Flooring</option><option>Painting</option><option>Cabinets & Countertops</option><option>Tile</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Decks & Outdoor</option><option>Doors & Windows</option><option>Specialties</option></select></div>
+  <div class="fg"><label>Item description</label><input id="ep-item" placeholder="e.g. Install 12x12 ceramic floor tile"/></div>
+  <div class="fg"><label>Unit</label><input id="ep-unit" placeholder="e.g. SF, LF, EA, SQ, HR"/></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="fg"><label>Material low ($)</label><input id="ep-mat" type="number" step="0.01"/></div>
+    <div class="fg"><label>Material high ($)</label><input id="ep-mat-high" type="number" step="0.01"/></div>
+    <div class="fg"><label>Labor low ($)</label><input id="ep-lab" type="number" step="0.01"/></div>
+    <div class="fg"><label>Labor high ($)</label><input id="ep-lab-high" type="number" step="0.01"/></div>
+  </div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEditPrice()">Save changes</button></div>
 </div></div>
 </body>
 </html>
