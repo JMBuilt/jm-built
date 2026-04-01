@@ -233,22 +233,69 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 #po-print-area{display:none;}
 
 @media print{body > *:not(#est-print-area){display:none!important;}#est-print-area{display:block!important;position:fixed;inset:0;background:white;padding:2rem;z-index:99999;font-family:-apple-system,sans-serif;}}
+
+/* AUTH */
+#login-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;}
+#login-screen.hidden{display:none;}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2.5rem;width:380px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,0.15);}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:1.75rem;}
+.login-logo-icon{width:38px;height:38px;background:var(--brand);border-radius:9px;display:flex;align-items:center;justify-content:center;}
+.login-logo-icon svg{width:20px;height:20px;fill:white;}
+.login-logo-text{font-size:20px;font-weight:700;}
+.login-title{font-size:15px;font-weight:600;margin-bottom:4px;}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:1.5rem;}
+.login-error{background:var(--red-bg);color:var(--red-txt);border:1px solid var(--red-txt);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:1rem;display:none;}
+.login-footer{margin-top:1.25rem;font-size:11px;color:var(--text3);text-align:center;}
+/* Admin tab */
+.admin-user-row{display:flex;align-items:center;gap:12px;padding:12px 1rem;border-bottom:1px solid var(--border);}
+.admin-user-row:last-child{border-bottom:none;}
+.role-badge-Admin{background:#EDE9FE;color:#4C1D95;}
+.role-badge-Manager{background:var(--blue-bg);color:var(--blue-txt);}
+.role-badge-Sales{background:var(--green-bg);color:var(--green-txt);}
+.role-badge-Field{background:var(--amber-bg);color:var(--amber-txt);}
+.role-badge-Office{background:var(--bg2);color:var(--text2);}
+.role-badge-View{background:var(--bg2);color:var(--text3);}
+/* View-only mode */
+body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onclick*="openModal"],body.view-only button[onclick*="save"],body.view-only button[onclick*="add"],body.view-only button[onclick*="delete"],body.view-only button[onclick*="Archive"]{display:none!important;}
 </style>
 </head>
 <body>
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon"><svg viewBox="0 0 16 16"><path d="M2 12h12v2H2zm1-5h10l1 5H2l1-5zm2-4h6l1 2H4L5 3z"/></svg></div>
+      <div class="login-logo-text">JM Built</div>
+    </div>
+    <div class="login-title">Welcome back</div>
+    <div class="login-sub">Sign in to access your business hub.</div>
+    <div class="login-error" id="login-error">Incorrect username or password.</div>
+    <div class="fg"><label>Username</label><input id="login-username" placeholder="Enter your username" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('login-password').focus()"/></div>
+    <div class="fg"><label>Password</label><input id="login-password" type="password" placeholder="Enter your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')attemptLogin()"/></div>
+    <button class="btn-primary" style="width:100%;padding:11px;" onclick="attemptLogin()">Sign in</button>
+    <div class="login-footer">JM Built · Business Management</div>
+  </div>
+</div>
 <div class="topbar">
   <div class="logo"><div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M2 12h12v2H2zm1-5h10l1 5H2l1-5zm2-4h6l1 2H4L5 3z"/></svg></div>JM Built</div>
-  <div class="sync-status"><div class="sync-dot" id="sync-dot"></div><span id="sync-label">Connecting...</span></div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="sync-status"><div class="sync-dot" id="sync-dot"></div><span id="sync-label">Connecting...</span></div>
+    <div id="topbar-user" style="display:none;align-items:center;gap:8px;font-size:12px;">
+      <span id="topbar-username" style="font-weight:600;color:var(--text2);"></span>
+      <span id="topbar-role" class="badge b-gray" style="font-size:10px;"></span>
+      <button onclick="logout()" style="background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--text2);font-family:inherit;">Sign out</button>
+    </div>
+  </div>
 </div>
-<div class="tabbar">
-  <button class="tab-btn active" onclick="showTab('dash')">Dashboard</button>
-  <button class="tab-btn" onclick="showTab('sales')">Sales</button>
-  <button class="tab-btn" onclick="showTab('estimating')">Estimating</button>
-  <button class="tab-btn" onclick="showTab('projects')">Project Mgmt</button>
-  <button class="tab-btn" onclick="showTab('field')">Field Mgmt</button>
-  <button class="tab-btn" onclick="showTab('office')">Office Mgmt</button>
-  <button class="tab-btn" onclick="showTab('marketing')">Marketing</button>
-  <button class="tab-btn" onclick="showTab('ceo')" style="color:var(--brand);font-weight:600;">CEO</button>
+<div class="tabbar" id="main-tabbar">
+  <button class="tab-btn active" data-tab="dash" onclick="showTab('dash')">Dashboard</button>
+  <button class="tab-btn" data-tab="sales" onclick="showTab('sales')">Sales</button>
+  <button class="tab-btn" data-tab="estimating" onclick="showTab('estimating')">Estimating</button>
+  <button class="tab-btn" data-tab="projects" onclick="showTab('projects')">Project Mgmt</button>
+  <button class="tab-btn" data-tab="field" onclick="showTab('field')">Field Mgmt</button>
+  <button class="tab-btn" data-tab="office" onclick="showTab('office')">Office Mgmt</button>
+  <button class="tab-btn" data-tab="marketing" onclick="showTab('marketing')">Marketing</button>
+  <button class="tab-btn" data-tab="ceo" onclick="showTab('ceo')" style="color:var(--brand);font-weight:600;">CEO</button>
+  <button class="tab-btn" data-tab="admin" id="admin-tab-btn" onclick="showTab('admin')" style="display:none;color:#4C1D95;font-weight:600;">⚙ Admin</button>
 </div>
 <div class="subtabbar" id="sales-subtabbar" style="display:none;">
   <button class="subtab-btn active" onclick="showSalesSubtab('pipeline')">Pipeline</button>
@@ -581,6 +628,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<!-- ADMIN -->
+<div id="tab-admin" style="display:none;">
+  <div class="hub-header">
+    <div><div class="hub-title">Admin</div><div class="hub-sub">Manage users, roles, and access permissions.</div></div>
+    <button class="btn-primary" onclick="openModal('add-user-modal')">+ Add user</button>
+  </div>
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-header"><span class="card-title">Users</span><span class="badge b-brand" id="user-count">0</span></div>
+    <table class="tbl"><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>Last login</th><th></th></tr></thead><tbody id="users-tbl"></tbody></table>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Role permissions</span></div>
+    <table class="tbl"><thead><tr><th>Role</th><th>Tabs accessible</th><th>Can edit</th></tr></thead><tbody>
+      <tr><td><span class="badge" style="background:#EDE9FE;color:#4C1D95;">Admin</span></td><td style="color:var(--text2);font-size:12px;">All tabs + Admin</td><td><span class="badge b-green">Full access</span></td></tr>
+      <tr><td><span class="badge b-blue">Manager</span></td><td style="color:var(--text2);font-size:12px;">Dashboard, Sales, Projects, Estimating, Field, Marketing</td><td><span class="badge b-green">Full access</span></td></tr>
+      <tr><td><span class="badge b-green">Sales</span></td><td style="color:var(--text2);font-size:12px;">Dashboard, Sales, Estimating, Marketing</td><td><span class="badge b-green">Full access</span></td></tr>
+      <tr><td><span class="badge b-amber">Field</span></td><td style="color:var(--text2);font-size:12px;">Dashboard, Field, Projects</td><td><span class="badge b-green">Full access</span></td></tr>
+      <tr><td><span class="badge b-gray">Office</span></td><td style="color:var(--text2);font-size:12px;">Dashboard, Office, Projects</td><td><span class="badge b-green">Full access</span></td></tr>
+      <tr><td><span class="badge b-gray">View Only</span></td><td style="color:var(--text2);font-size:12px;">All tabs (no Admin)</td><td><span class="badge b-red">Read only</span></td></tr>
+    </tbody></table>
+  </div>
+</div>
+
 </div><!-- end content -->
 <div id="po-print-area"></div>
 
@@ -831,13 +901,15 @@ function handleDocImport(type,input){
 }
 function setupDocDragDrop(){/* file picker used instead */}
 
-const MAIN_TABS=['dash','sales','estimating','projects','field','office','marketing','ceo'];
+const MAIN_TABS=['dash','sales','estimating','projects','field','office','marketing','ceo','admin'];
 function showTab(t){
-  MAIN_TABS.forEach(id=>document.getElementById('tab-'+id).style.display=id===t?'block':'none');
-  document.querySelectorAll('.tabbar .tab-btn').forEach((b,i)=>b.classList.toggle('active',MAIN_TABS[i]===t));
+  var allowed = currentUser ? (ROLE_TABS[currentUser.role]||[]) : [];
+  if(currentUser && !allowed.includes(t)) return;
+  MAIN_TABS.forEach(id=>{var el=document.getElementById('tab-'+id);if(el)el.style.display=id===t?'block':'none';});
+  document.querySelectorAll('#main-tabbar .tab-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tab===t);});
   document.getElementById('sales-subtabbar').style.display=t==='sales'?'flex':'none';
   document.getElementById('proj-subtabbar').style.display=t==='projects'?'flex':'none';
-  ({dash:renderDash,sales:renderSalesPipeline,estimating:renderEst,projects:renderProj,field:renderField,office:renderOffice,marketing:renderMkt,ceo:renderCeo})[t]?.();
+  ({dash:renderDash,sales:renderSalesPipeline,estimating:renderEst,projects:renderProj,field:renderField,office:renderOffice,marketing:renderMkt,ceo:renderCeo,admin:function(){loadAppUsers().then(renderUsers);}})[ t]?.();
 }
 const SALES_SUBTABS=['pipeline','database','sop','scripts'];
 function showSalesSubtab(t){
@@ -2585,7 +2657,161 @@ async function deleteCustomPrice(id){
   renderPriceDatabase();
 }
 
-loadAll();
+// ============================================================
+// AUTH SYSTEM
+// ============================================================
+let currentUser = null;
+
+const ROLE_TABS = {
+  'Admin':   ['dash','sales','estimating','projects','field','office','marketing','ceo','admin'],
+  'Manager': ['dash','sales','estimating','projects','field','marketing'],
+  'Sales':   ['dash','sales','estimating','marketing'],
+  'Field':   ['dash','field','projects'],
+  'Office':  ['dash','office','projects'],
+  'View Only':['dash','sales','estimating','projects','field','office','marketing','ceo'],
+};
+
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function attemptLogin(){
+  var username = document.getElementById('login-username').value.trim().toLowerCase();
+  var password = document.getElementById('login-password').value;
+  var errEl = document.getElementById('login-error');
+  errEl.style.display='none';
+  if(!username||!password){errEl.textContent='Please enter your username and password.';errEl.style.display='block';return;}
+  var hash = await sha256(password);
+  var res = await sb.from('app_users').select('*').eq('username',username).eq('password_hash',hash).eq('active',true).single();
+  if(!res.data){errEl.textContent='Incorrect username or password.';errEl.style.display='block';return;}
+  // Update last login
+  await sb.from('app_users').update({last_login:new Date().toISOString()}).eq('id',res.data.id);
+  sessionStorage.setItem('jmbuilt_session', JSON.stringify({id:res.data.id,name:res.data.name,username:res.data.username,role:res.data.role}));
+  initSession(res.data);
+}
+
+function initSession(user){
+  currentUser = user;
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('topbar-user').style.display='flex';
+  document.getElementById('topbar-username').textContent=user.name||user.username;
+  document.getElementById('topbar-role').textContent=user.role;
+  // Show/hide tabs based on role
+  var allowed = ROLE_TABS[user.role]||ROLE_TABS['View Only'];
+  document.querySelectorAll('#main-tabbar .tab-btn').forEach(function(btn){
+    var tab = btn.dataset.tab;
+    btn.style.display = allowed.includes(tab)?'':'none';
+  });
+  // Show admin tab for admins
+  if(user.role==='Admin') document.getElementById('admin-tab-btn').style.display='';
+  // View-only body class
+  if(user.role==='View Only') document.body.classList.add('view-only');
+  else document.body.classList.remove('view-only');
+  // Load app
+  loadAll();
+}
+
+function checkSession(){
+  var sess = sessionStorage.getItem('jmbuilt_session');
+  if(sess){
+    try{
+      var user = JSON.parse(sess);
+      if(user&&user.id&&user.role) return user;
+    }catch(e){}
+  }
+  return null;
+}
+
+function logout(){
+  sessionStorage.removeItem('jmbuilt_session');
+  currentUser=null;
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('topbar-user').style.display='none';
+  document.getElementById('login-username').value='';
+  document.getElementById('login-password').value='';
+  document.getElementById('login-error').style.display='none';
+}
+
+// ── USER MANAGEMENT ──────────────────────────────────────────────────────────
+let appUsers = [];
+
+async function loadAppUsers(){
+  var res = await sb.from('app_users').select('id,name,username,role,active,last_login').order('created_at',{ascending:true});
+  appUsers = res.data||[];
+}
+
+function renderUsers(){
+  document.getElementById('user-count').textContent = appUsers.length;
+  var roleCls = {'Admin':'role-badge-Admin','Manager':'role-badge-Manager','Sales':'role-badge-Sales','Field':'role-badge-Field','Office':'role-badge-Office','View Only':'role-badge-View'};
+  document.getElementById('users-tbl').innerHTML = appUsers.length
+    ? appUsers.map(function(u){
+        var isMe = currentUser && u.id===currentUser.id;
+        var lastLogin = u.last_login ? new Date(u.last_login).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'Never';
+        return '<tr>'
+          +'<td style="font-weight:600;">'+u.name+(isMe?' <span style="font-size:10px;color:var(--text3);">(you)</span>':'')+'</td>'
+          +'<td style="color:var(--text2);font-family:monospace;font-size:12px;">'+u.username+'</td>'
+          +'<td><span class="badge '+(roleCls[u.role]||'b-gray')+'">'+u.role+'</span></td>'
+          +'<td><span class="badge '+(u.active?'b-green':'b-red')+'">'+(u.active?'Active':'Deactivated')+'</span></td>'
+          +'<td style="color:var(--text2);font-size:12px;">'+lastLogin+'</td>'
+          +'<td><button class="btn-sm" onclick="openEditUser(this.dataset.uid)" data-uid="'+u.id+'">Edit</button></td>'
+          +'</tr>';
+      }).join('')
+    : '<tr><td colspan="6" class="empty">No users yet</td></tr>';
+}
+
+async function saveNewUser(){
+  var name = document.getElementById('au-name').value.trim();
+  var username = document.getElementById('au-username').value.trim().toLowerCase().replace(/\s+/g,'');
+  var password = document.getElementById('au-password').value;
+  var role = document.getElementById('au-role').value;
+  if(!name||!username||!password){alert('Please fill in all fields.');return;}
+  // Check username not taken
+  if(appUsers.find(function(u){return u.username===username;})){alert('That username is already taken.');return;}
+  var hash = await sha256(password);
+  var res = await sb.from('app_users').insert({name,username,password_hash:hash,role,active:true}).select();
+  if(res.data) appUsers.push(res.data[0]);
+  closeModals();renderUsers();
+  ['au-name','au-username','au-password'].forEach(function(id){document.getElementById(id).value='';});
+}
+
+function openEditUser(id){
+  var u = appUsers.find(function(x){return x.id===id;});
+  if(!u) return;
+  document.getElementById('eu-id').value=u.id;
+  document.getElementById('eu-name').value=u.name;
+  document.getElementById('eu-username').value=u.username;
+  document.getElementById('eu-password').value='';
+  document.getElementById('eu-role').value=u.role;
+  document.getElementById('eu-active').value=String(u.active);
+  openModal('edit-user-modal');
+}
+
+async function updateUser(){
+  var id = document.getElementById('eu-id').value;
+  var name = document.getElementById('eu-name').value.trim();
+  var username = document.getElementById('eu-username').value.trim().toLowerCase().replace(/\s+/g,'');
+  var password = document.getElementById('eu-password').value;
+  var role = document.getElementById('eu-role').value;
+  var active = document.getElementById('eu-active').value==='true';
+  if(!name||!username){alert('Name and username are required.');return;}
+  var data = {name,username,role,active};
+  if(password) data.password_hash = await sha256(password);
+  await sb.from('app_users').update(data).eq('id',id);
+  var u = appUsers.find(function(x){return x.id===id;});
+  if(u) Object.assign(u,data);
+  closeModals();renderUsers();
+}
+
+// Check for existing session on page load
+(function(){
+  var sess = checkSession();
+  if(sess){
+    initSession(sess);
+  }
+  // else login screen stays visible, loadAll fires after login
+})();
+
 </script>
 
 <!-- ADD PRICE ITEM MODAL -->
@@ -2604,5 +2830,48 @@ loadAll();
 
 <!-- ESTIMATE PRINT AREA -->
 <div id="est-print-area" style="display:none;"></div>
+
+<!-- ADD USER MODAL -->
+<div class="modal-overlay" id="add-user-modal"><div class="modal"><h3>Add user</h3>
+  <div class="fg"><label>Full name</label><input id="au-name" placeholder="e.g. Mike Johnson"/></div>
+  <div class="fg"><label>Username</label><input id="au-username" placeholder="e.g. mikej (no spaces)"/></div>
+  <div class="fg"><label>Password</label><input id="au-password" type="password" placeholder="Create a password"/></div>
+  <div class="fg"><label>Role</label>
+    <select id="au-role">
+      <option>Admin</option>
+      <option selected>Manager</option>
+      <option>Sales</option>
+      <option>Field</option>
+      <option>Office</option>
+      <option>View Only</option>
+    </select>
+  </div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveNewUser()">Add user</button></div>
+</div></div>
+
+<!-- EDIT USER MODAL -->
+<div class="modal-overlay" id="edit-user-modal"><div class="modal"><h3>Edit user</h3>
+  <input type="hidden" id="eu-id"/>
+  <div class="fg"><label>Full name</label><input id="eu-name"/></div>
+  <div class="fg"><label>Username</label><input id="eu-username"/></div>
+  <div class="fg"><label>New password <span style="color:var(--text3);font-weight:400;">(leave blank to keep current)</span></label><input id="eu-password" type="password" placeholder="Enter new password to change"/></div>
+  <div class="fg"><label>Role</label>
+    <select id="eu-role">
+      <option>Admin</option>
+      <option>Manager</option>
+      <option>Sales</option>
+      <option>Field</option>
+      <option>Office</option>
+      <option>View Only</option>
+    </select>
+  </div>
+  <div class="fg"><label>Status</label>
+    <select id="eu-active">
+      <option value="true">Active</option>
+      <option value="false">Deactivated</option>
+    </select>
+  </div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="updateUser()">Save changes</button></div>
+</div></div>
 </body>
 </html>
