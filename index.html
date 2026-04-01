@@ -473,7 +473,7 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
         <option>Demo & Site Work</option><option>Concrete & Foundation</option><option>Framing</option><option>Roofing</option><option>Exterior</option><option>Insulation</option><option>Drywall</option><option>Interior Trim & Millwork</option><option>Flooring</option><option>Painting</option><option>Cabinets & Countertops</option><option>Tile</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Decks & Outdoor</option><option>Doors & Windows</option><option>Specialties</option>
       </select>
     </div>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Trade</th><th>Item</th><th>Unit</th><th>Mat Low</th><th>Mat High</th><th>Check</th><th>My Supplier</th><th>Lab Low</th><th>Lab High</th><th>Range/Unit</th><th></th></tr></thead><tbody id="price-db-tbl"></tbody></table></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Trade</th><th>Item</th><th>Unit</th><th>Mat Low</th><th>Mat High</th><th>Check</th><th>My Supplier</th><th>Direct Link</th><th>Lab Low</th><th>Lab High</th><th>Range/Unit</th><th></th></tr></thead><tbody id="price-db-tbl"></tbody></table></div>
 
   <!-- TIME TRACKER -->
   <!-- ALWAYS VISIBLE TRACKER SECTION -->
@@ -2953,6 +2953,43 @@ async function assignSupplier(priceId, supplierId){
   renderPriceDatabase();
 }
 
+function directLinkCell(p){
+  var cp = customPrices.find(function(c){return c.id===p.id;});
+  var link = cp ? (cp.direct_link||'') : '';
+  if(link){
+    return '<div style="display:flex;align-items:center;gap:4px;">'
+      +'<a href="'+link+'" target="_blank"><button style="background:var(--green-txt);color:white;border:none;border-radius:4px;padding:3px 7px;font-size:10px;font-weight:600;cursor:pointer;">View</button></a>'
+      +'<button data-pid="'+p.id+'" onclick="clearDirectLink(this.dataset.pid)" style="background:none;border:none;cursor:pointer;color:var(--red-txt);font-size:12px;" title="Remove link">✕</button>'
+      +'</div>';
+  }
+  return '<input placeholder="Paste URL..." data-pid="'+p.id+'" style="width:90px;font-size:11px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onblur="saveDirectLink(this.dataset.pid,this.value)"/>';
+}
+
+async function saveDirectLink(id, url){
+  if(!url.trim()) return;
+  var cp = customPrices.find(function(c){return c.id===id;});
+  if(cp){
+    cp.direct_link = url;
+    await sb.from('custom_prices').update({direct_link:url}).eq('id',id);
+  } else {
+    var builtin = BUILTIN_PRICES.find(function(b){return b.id===id;});
+    if(!builtin) return;
+    var newRec = Object.assign({},builtin,{direct_link:url});
+    var res = await sb.from('custom_prices').insert(newRec).select();
+    if(res.data){customPrices.push(res.data[0]);allPrices=getAllPrices();}
+  }
+  renderPriceDatabase();
+}
+
+async function clearDirectLink(id){
+  var cp = customPrices.find(function(c){return c.id===id;});
+  if(cp){
+    cp.direct_link = '';
+    await sb.from('custom_prices').update({direct_link:''}).eq('id',id);
+    renderPriceDatabase();
+  }
+}
+
 function renderPriceDatabase(){
   renderStoreSettings();
   var q=(document.getElementById('db-price-search')?.value||'').toLowerCase();
@@ -2974,6 +3011,7 @@ function renderPriceDatabase(){
           +'<td><input type="number" value="'+p.mat_high.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'mat_high\',this.value)" /></td>'
           +'<td>'+checkPriceBtn(p)+'</td>'
           +'<td>'+supplierDropdown(p)+'</td>'
+          +'<td>'+directLinkCell(p)+'</td>'
           +'<td><input type="number" value="'+p.lab.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'lab\',this.value)" /></td>'
           +'<td><input type="number" value="'+p.lab_high.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'lab_high\',this.value)" /></td>'
           +'<td style="font-weight:700;color:var(--brand);white-space:nowrap;">$'+(p.mat+p.lab).toFixed(2)+(p.mat_high+p.lab_high>p.mat+p.lab?' – $'+(p.mat_high+p.lab_high).toFixed(2):'')+'/'+p.unit+'</td>'
