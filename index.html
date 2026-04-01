@@ -1347,6 +1347,174 @@ async function ttSave(){
   ['tt-job','tt-phase','tt-crew','tt-qty','tt-hrs','tt-notes'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
 }
 
+// ── TRACKER VIEW TOGGLES ─────────────────────────────────────────────────────
+function switchTTView(v){
+  var log=document.getElementById('tt-log-view');
+  var db=document.getElementById('tt-db-view');
+  var btnL=document.getElementById('tt-view-log');
+  var btnD=document.getElementById('tt-view-db');
+  if(!log) return;
+  log.style.display=v==='log'?'block':'none';
+  db.style.display=v==='db'?'block':'none';
+  if(btnL) btnL.classList.toggle('active',v==='log');
+  if(btnD) btnD.classList.toggle('active',v==='db');
+  if(v==='db') drawTimeDB();
+}
+
+function switchPTView(v){
+  var log=document.getElementById('pt-log-view');
+  var db=document.getElementById('pt-db-view');
+  var btnL=document.getElementById('pt-view-log');
+  var btnD=document.getElementById('pt-view-db');
+  if(!log) return;
+  log.style.display=v==='log'?'block':'none';
+  db.style.display=v==='db'?'block':'none';
+  if(btnL) btnL.classList.toggle('active',v==='log');
+  if(btnD) btnD.classList.toggle('active',v==='db');
+  if(v==='db') drawPriceDB();
+}
+
+// ── TIME MY DATABASE VIEW ─────────────────────────────────────────────────────
+var ttExpanded={};
+function drawTimeDB(){
+  var q=(document.getElementById('tt-db-search')?.value||'').toLowerCase();
+  // Group entries by price_item_id
+  var groups={};
+  ttEntries.forEach(function(e){
+    var id=e.price_item_id||e.item_name;
+    if(!groups[id]) groups[id]={id:id,item:e.item_name,trade:e.trade,unit:e.unit,entries:[]};
+    groups[id].entries.push(e);
+  });
+  var items=Object.values(groups).filter(function(g){
+    return !q||g.item.toLowerCase().includes(q)||g.trade.toLowerCase().includes(q);
+  }).sort(function(a,b){return a.trade.localeCompare(b.trade)||a.item.localeCompare(b.item);});
+
+  var cont=document.getElementById('tt-db-content');
+  if(!cont) return;
+  if(!items.length){cont.innerHTML='<div class="empty">No time entries yet — log jobs to build your database.</div>';return;}
+
+  cont.innerHTML=items.map(function(g){
+    var n=g.entries.length;
+    var avgHpu=g.entries.reduce(function(s,e){return s+(parseFloat(e.hrs_per_unit)||0);},0)/n;
+    var jobs=new Set(g.entries.map(function(e){return e.job_name;}).filter(Boolean)).size;
+    var lastDate=g.entries.map(function(e){return e.date||'';}).filter(Boolean).sort().pop()||'—';
+    var isOpen=ttExpanded[g.id];
+
+    // Individual entries with delta
+    var entryRows=g.entries.map(function(e){
+      var hpu=parseFloat(e.hrs_per_unit)||0;
+      var delta=hpu-avgHpu;
+      var deltaStr=(delta>=0?'+':'')+delta.toFixed(3)+' h/'+g.unit;
+      var deltaColor=delta<=0?'var(--green-txt)':'var(--red-txt)';
+      var dt=e.date?new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'—';
+      return '<tr style="background:var(--bg2);">'
+        +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+(e.job_name||'—')+'</td>'
+        +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+(e.phase||'—')+'</td>'
+        +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+(e.crew||'—')+'</td>'
+        +'<td style="padding:8px 13px;font-size:12px;">'+e.qty+' '+g.unit+'</td>'
+        +'<td style="padding:8px 13px;font-size:12px;">'+e.hours+'h</td>'
+        +'<td style="padding:8px 13px;font-size:12px;font-weight:600;color:var(--brand);">'+hpu.toFixed(3)+' h/'+g.unit+'</td>'
+        +'<td style="padding:8px 13px;font-size:12px;font-weight:600;color:'+deltaColor+';">'+deltaStr+'</td>'
+        +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+dt+'</td>'
+        +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+(e.notes||'—')+'</td>'
+        +'</tr>';
+    }).join('');
+
+    return '<div class="card" style="margin-bottom:8px;">'
+      +'<div style="display:flex;align-items:center;gap:12px;padding:12px 1rem;cursor:pointer;" data-gid="'+g.id+'" onclick="ttExpanded[this.dataset.gid]=!ttExpanded[this.dataset.gid];drawTimeDB();">'
+        +'<div style="flex:1;">'
+          +'<div style="font-size:13px;font-weight:600;">'+g.item+'</div>'
+          +'<div style="font-size:11px;color:var(--text3);margin-top:2px;">'+g.trade+'</div>'
+        +'</div>'
+        +'<div style="display:flex;gap:20px;align-items:center;">'
+          +'<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">Avg hrs/'+g.unit+'</div><div style="font-size:15px;font-weight:700;color:var(--brand);">'+avgHpu.toFixed(3)+'</div></div>'
+          +'<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">Entries</div><div style="font-size:15px;font-weight:700;">'+n+'</div></div>'
+          +'<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">Jobs</div><div style="font-size:15px;font-weight:700;">'+jobs+'</div></div>'
+          +'<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">Last done</div><div style="font-size:12px;font-weight:600;">'+lastDate+'</div></div>'
+          +'<div style="font-size:20px;color:var(--text3);">'+(isOpen?'▲':'▼')+'</div>'
+        +'</div>'
+      +'</div>'
+      +(isOpen?
+        '<div style="border-top:1px solid var(--border);overflow-x:auto;">'
+        +'<table class="tbl"><thead><tr>'
+        +'<th>Job</th><th>Phase</th><th>Crew</th><th>Qty</th><th>Hours</th><th>Hrs/Unit</th><th>Delta vs avg</th><th>Date</th><th>Notes</th>'
+        +'</tr></thead><tbody>'+entryRows+'</tbody></table></div>'
+      :'')
+      +'</div>';
+  }).join('');
+}
+
+// ── PRICE MY DATABASE VIEW ────────────────────────────────────────────────────
+var ptExpanded={};
+function drawPriceDB(){
+  var q=(document.getElementById('pt-db-search')?.value||'').toLowerCase();
+  var groups={};
+  ptEntries.forEach(function(e){
+    var id=e.price_item_id||e.item_name;
+    if(!groups[id]) groups[id]={id:id,item:e.item_name,trade:e.trade,unit:e.unit,entries:[],dbPrice:e.db_price||0};
+    groups[id].entries.push(e);
+  });
+  var items=Object.values(groups).filter(function(g){
+    return !q||g.item.toLowerCase().includes(q)||g.trade.toLowerCase().includes(q);
+  }).sort(function(a,b){return a.trade.localeCompare(b.trade)||a.item.localeCompare(b.item);});
+
+  var cont=document.getElementById('pt-db-content');
+  if(!cont) return;
+  if(!items.length){cont.innerHTML='<div class="empty">No price entries yet — log jobs to build your database.</div>';return;}
+
+  cont.innerHTML=items.map(function(g){
+    var n=g.entries.length;
+    var avgPpu=g.entries.reduce(function(s,e){return s+(parseFloat(e.price_per_unit)||0);},0)/n;
+    var jobs=new Set(g.entries.map(function(e){return e.job_name;}).filter(Boolean)).size;
+    var lastDate=g.entries.map(function(e){return e.date||'';}).filter(Boolean).sort().pop()||'—';
+    var dbP=g.dbPrice;
+    var vsDb=dbP>0?((avgPpu-dbP)/dbP*100).toFixed(1)+'%':'—';
+    var vsDbColor=dbP>0?(avgPpu>=dbP?'var(--green-txt)':'var(--red-txt)'):'var(--text3)';
+    var isOpen=ptExpanded[g.id];
+
+    var entryRows=g.entries.map(function(e){
+      var ppu=parseFloat(e.price_per_unit)||0;
+      var delta=ppu-avgPpu;
+      var deltaStr='$'+(delta>=0?'+':'')+delta.toFixed(2)+'/'+g.unit;
+      var deltaColor=delta>=0?'var(--green-txt)':'var(--red-txt)';
+      var dt=e.date?new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'—';
+      return '<tr style="background:var(--bg2);">'
+        +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+(e.job_name||'—')+'</td>'
+        +'<td style="padding:8px 13px;font-size:12px;">'+e.qty+' '+g.unit+'</td>'
+        +'<td style="padding:8px 13px;font-size:12px;font-weight:600;color:var(--brand);">$'+parseFloat(e.total_charged).toFixed(2)+'</td>'
+        +'<td style="padding:8px 13px;font-size:12px;font-weight:600;color:var(--brand);">$'+ppu.toFixed(2)+'/'+g.unit+'</td>'
+        +'<td style="padding:8px 13px;font-size:12px;font-weight:600;color:'+deltaColor+';">'+deltaStr+'</td>'
+        +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+dt+'</td>'
+        +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+(e.notes||'—')+'</td>'
+        +'</tr>';
+    }).join('');
+
+    return '<div class="card" style="margin-bottom:8px;">'
+      +'<div style="display:flex;align-items:center;gap:12px;padding:12px 1rem;cursor:pointer;" data-gid="'+g.id+'" onclick="ptExpanded[this.dataset.gid]=!ptExpanded[this.dataset.gid];drawPriceDB();">'
+        +'<div style="flex:1;">'
+          +'<div style="font-size:13px;font-weight:600;">'+g.item+'</div>'
+          +'<div style="font-size:11px;color:var(--text3);margin-top:2px;">'+g.trade+'</div>'
+        +'</div>'
+        +'<div style="display:flex;gap:20px;align-items:center;">'
+          +'<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">My avg $/'+g.unit+'</div><div style="font-size:15px;font-weight:700;color:var(--brand);">$'+avgPpu.toFixed(2)+'</div></div>'
+          +'<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">DB price/'+g.unit+'</div><div style="font-size:13px;font-weight:600;color:var(--text2);">'+(dbP>0?'$'+dbP.toFixed(2):'—')+'</div></div>'
+          +'<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">vs DB</div><div style="font-size:13px;font-weight:700;color:'+vsDbColor+';">'+vsDb+'</div></div>'
+          +'<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">Entries</div><div style="font-size:15px;font-weight:700;">'+n+'</div></div>'
+          +'<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">Jobs</div><div style="font-size:15px;font-weight:700;">'+jobs+'</div></div>'
+          +'<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">Last done</div><div style="font-size:12px;font-weight:600;">'+lastDate+'</div></div>'
+          +'<div style="font-size:20px;color:var(--text3);">'+(isOpen?'▲':'▼')+'</div>'
+        +'</div>'
+      +'</div>'
+      +(isOpen?
+        '<div style="border-top:1px solid var(--border);overflow-x:auto;">'
+        +'<table class="tbl"><thead><tr>'
+        +'<th>Job</th><th>Qty</th><th>Total charged</th><th>$/Unit</th><th>Delta vs my avg</th><th>Date</th><th>Notes</th>'
+        +'</tr></thead><tbody>'+entryRows+'</tbody></table></div>'
+      :'')
+      +'</div>';
+  }).join('');
+}
+
 function drawTimeTable(){
   var q=(document.getElementById('tt-search')?.value||'').toLowerCase();
   var rows=ttEntries.filter(function(e){return !q||e.item_name.toLowerCase().includes(q)||(e.job_name||'').toLowerCase().includes(q);});
@@ -2611,16 +2779,26 @@ function getTimeTrackerHTML(){
   var tabsClone=document.getElementById('est-tabs-row');
   var tabsHTML=tabsClone?tabsClone.outerHTML:'';
   return '<div style="padding:1.5rem;"><div style="max-width:1400px;margin:0 auto;">'+tabsHTML
-    +'<div class="hub-header"><div><div class="hub-title">⏱ Time Tracker</div><div class="hub-sub">Log how long each line item actually takes.</div></div>'
+    +'<div class="hub-header"><div><div class="hub-title">⏱ Time Tracker</div><div class="hub-sub">Log how long each line item takes. Build your real labor hour database.</div></div>'
     +'<button class="btn-primary" onclick="openTimeModal()">+ Log time</button></div>'
+    +'<div style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.25rem;width:fit-content;">'
+    +'<button id="tt-view-log" class="jh-tab active" onclick="switchTTView(\'log\')">📋 Log entries</button>'
+    +'<button id="tt-view-db" class="jh-tab" onclick="switchTTView(\'db\')">📊 My Database</button>'
+    +'</div>'
     +'<div class="grid4" style="margin-bottom:1rem;">'
     +'<div class="stat-card"><div class="stat-label">Total entries</div><div class="stat-value" id="tt-s1">0</div></div>'
     +'<div class="stat-card"><div class="stat-label">Items tracked</div><div class="stat-value" id="tt-s2">0</div></div>'
     +'<div class="stat-card"><div class="stat-label">Total hours</div><div class="stat-value" id="tt-s3">0h</div></div>'
     +'<div class="stat-card"><div class="stat-label">Jobs covered</div><div class="stat-value" id="tt-s4">0</div></div>'
     +'</div>'
+    +'<div id="tt-log-view">'
     +'<div style="margin-bottom:.75rem;"><input id="tt-search" placeholder="Search by item or job..." style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawTimeTable()"/></div>'
-    +'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Phase</th><th>Crew</th><th>Qty</th><th>Hours</th><th>Hrs/Unit</th><th>My avg</th><th>Date</th><th>Notes</th><th></th></tr></thead><tbody id="tt-tbody"></tbody></table></div>'
+    +'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Phase</th><th>Crew</th><th>Qty</th><th>Hours</th><th>Hrs/Unit</th><th>Delta</th><th>Date</th><th>Notes</th><th></th></tr></thead><tbody id="tt-tbody"></tbody></table></div>'
+    +'</div>'
+    +'<div id="tt-db-view" style="display:none;">'
+    +'<div style="margin-bottom:.75rem;"><input id="tt-db-search" placeholder="Search items..." style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawTimeDB()"/></div>'
+    +'<div id="tt-db-content"></div>'
+    +'</div>'
     +'</div></div>';
 }
 
@@ -2628,16 +2806,26 @@ function getPriceTrackerHTML(){
   var tabsClone=document.getElementById('est-tabs-row');
   var tabsHTML=tabsClone?tabsClone.outerHTML:'';
   return '<div style="padding:1.5rem;"><div style="max-width:1400px;margin:0 auto;">'+tabsHTML
-    +'<div class="hub-header"><div><div class="hub-title">💲 Price Tracker</div><div class="hub-sub">Log what you actually charge per line item.</div></div>'
+    +'<div class="hub-header"><div><div class="hub-title">💲 Price Tracker</div><div class="hub-sub">Log what you charge. Build your real market pricing database.</div></div>'
     +'<button class="btn-primary" onclick="openPriceModal()">+ Log price</button></div>'
+    +'<div style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.25rem;width:fit-content;">'
+    +'<button id="pt-view-log" class="jh-tab active" onclick="switchPTView(\'log\')">📋 Log entries</button>'
+    +'<button id="pt-view-db" class="jh-tab" onclick="switchPTView(\'db\')">📊 My Database</button>'
+    +'</div>'
     +'<div class="grid4" style="margin-bottom:1rem;">'
     +'<div class="stat-card"><div class="stat-label">Total entries</div><div class="stat-value" id="pt-s1">0</div></div>'
     +'<div class="stat-card"><div class="stat-label">Items tracked</div><div class="stat-value" id="pt-s2">0</div></div>'
     +'<div class="stat-card"><div class="stat-label">Revenue logged</div><div class="stat-value" id="pt-s3">$0</div></div>'
     +'<div class="stat-card"><div class="stat-label">Jobs covered</div><div class="stat-value" id="pt-s4">0</div></div>'
     +'</div>'
+    +'<div id="pt-log-view">'
     +'<div style="margin-bottom:.75rem;"><input id="pt-search" placeholder="Search by item or job..." style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawPriceTable()"/></div>'
-    +'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Qty</th><th>Total charged</th><th>Your $/unit</th><th>DB price</th><th>My avg $/unit</th><th>Date</th><th>Notes</th><th></th></tr></thead><tbody id="pt-tbody"></tbody></table></div>'
+    +'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Qty</th><th>Total charged</th><th>Your $/unit</th><th>My avg</th><th>Delta</th><th>Date</th><th>Notes</th><th></th></tr></thead><tbody id="pt-tbody"></tbody></table></div>'
+    +'</div>'
+    +'<div id="pt-db-view" style="display:none;">'
+    +'<div style="margin-bottom:.75rem;"><input id="pt-db-search" placeholder="Search items..." style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawPriceDB()"/></div>'
+    +'<div id="pt-db-content"></div>'
+    +'</div>'
     +'</div>';
 }
 
