@@ -369,7 +369,7 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
     <button class="jh-tab active" id="est-tab-proposals" onclick="showEstTab('proposals')">📋 Proposals</button>
     <button class="jh-tab" id="est-tab-estimator" onclick="showEstTab('estimator')">🔢 Unit Price Estimator</button>
     <button class="jh-tab" id="est-tab-database" onclick="showEstTab('database')">📚 Price Database</button>
-    <button class="jh-tab" id="est-tab-time" onclick="var x=document.getElementById('est-time');alert('el found: '+(x?'YES parent='+x.parentElement.id:'NO'));if(x){x.style.cssText='display:block!important';}showEstTab('time');">⏱ Time Tracker</button>
+    <button class="jh-tab" id="est-tab-time" onclick="showEstTab('time')">⏱ Time Tracker</button>
     <button class="jh-tab" id="est-tab-price" onclick="showEstTab('price')">💵 Price Tracker</button>
   </div>
 
@@ -471,7 +471,7 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Trade</th><th>Item</th><th>Unit</th><th>Mat Low</th><th>Mat High</th><th>Check</th><th>Lab Low</th><th>Lab High</th><th>Range/Unit</th><th></th></tr></thead><tbody id="price-db-tbl"></tbody></table></div>
 
   <!-- TIME TRACKER -->
-  <div id="est-time" style="display:none;">
+  <div id="est-time" style="display:none;min-height:400px;">
     <div class="hub-header">
       <div><div class="hub-title">⏱ Time Tracker</div><div class="hub-sub">Log how long each line item actually takes. Builds your real labor hour database over time.</div></div>
       <button class="btn-primary" onclick="openTimeModal()">+ Log time</button>
@@ -493,7 +493,7 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
     </div>
   </div>
 
-  <div id="est-price" style="display:none;">
+  <div id="est-price" style="display:none;min-height:400px;">
     <div class="hub-header">
       <div><div class="hub-title">💲 Price Tracker</div><div class="hub-sub">Log what you actually charge. Builds your real market pricing database over time.</div></div>
       <button class="btn-primary" onclick="openPriceModal()">+ Log price</button>
@@ -2601,21 +2601,27 @@ async function loadCustomPrices(){
 }
 
 function showEstTab(t){
-  var found=document.getElementById('est-'+t);
-  alert('Looking for est-'+t+': '+(found?'FOUND, display was='+found.style.display:'NOT FOUND'));
-  if(found){found.style.display='block';alert('Set to block. Current display='+found.style.display+' offsetHeight='+found.offsetHeight);}
+  // Show/hide tabs
   ['proposals','estimator','database','time','price'].forEach(function(id){
     var el=document.getElementById('est-'+id);
     if(el) el.style.display=id===t?'block':'none';
   });
+  // Update active button
   ['proposals','estimator','database','time','price'].forEach(function(id){
-    var btn = document.getElementById('est-tab-'+id);
-    if(btn) btn.classList.toggle('active', id===t);
+    var btn=document.getElementById('est-tab-'+id);
+    if(btn) btn.classList.toggle('active',id===t);
   });
-  if(t==='estimator') renderUEItems();
-  if(t==='database') renderPriceDatabase();
-  if(t==='time') drawTimeTable();
-  if(t==='price') drawPriceTable();
+  // Force reflow then render — setTimeout lets browser paint the div first
+  var target=document.getElementById('est-'+t);
+  if(target){
+    void target.offsetHeight; // force layout
+  }
+  setTimeout(function(){
+    if(t==='estimator') renderUEItems();
+    if(t==='database') renderPriceDatabase();
+    if(t==='time') drawTimeTable();
+    if(t==='price') drawPriceTable();
+  },0);
 }
 
 // ── UNIT PRICE ESTIMATOR ──
