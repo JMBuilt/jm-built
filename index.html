@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>JM Built</title>
+<title>JM Built v2</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <style>
@@ -276,7 +276,7 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
   </div>
 </div>
 <div class="topbar">
-  <div class="logo"><div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M2 12h12v2H2zm1-5h10l1 5H2l1-5zm2-4h6l1 2H4L5 3z"/></svg></div>JM Built</div>
+  <div class="logo"><div style="font-size:9px;color:var(--text3);position:absolute;top:2px;left:52px;">v2</div><div class="logo-icon"><svg viewBox="0 0 16 16"><path d="M2 12h12v2H2zm1-5h10l1 5H2l1-5zm2-4h6l1 2H4L5 3z"/></svg></div>JM Built</div>
   <div style="display:flex;align-items:center;gap:12px;">
     <div class="sync-status"><div class="sync-dot" id="sync-dot"></div><span id="sync-label">Connecting...</span></div>
     <div id="topbar-user" style="display:none;align-items:center;gap:8px;font-size:12px;">
@@ -2600,7 +2600,8 @@ async function loadCustomPrices(){
 
 function showEstTab(t){
   ['proposals','estimator','database','time','price'].forEach(function(id){
-    document.getElementById('est-'+id).style.display = id===t?'block':'none';
+    var el=document.getElementById('est-'+id);
+    if(el) el.style.display=id===t?'block':'none';
   });
   ['proposals','estimator','database','time','price'].forEach(function(id){
     var btn = document.getElementById('est-tab-'+id);
