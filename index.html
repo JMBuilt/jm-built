@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>JM Built v11</title>
+<title>JM Built v12</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <style>
@@ -2584,7 +2584,10 @@ function showEstTab(t){
   if(t==='time'||t==='price'){
     // Build tracker as a fresh injected div
     trackerOverlay=document.createElement('div');
-    trackerOverlay.style.cssText='position:fixed;top:103px;left:0;right:0;bottom:0;background:var(--bg);z-index:100;overflow-y:auto;padding:1.5rem;';
+    trackerOverlay.style.cssText='position:fixed;top:103px;left:0;right:0;bottom:0;background:var(--bg);z-index:100;overflow-y:auto;';
+    // Add tab buttons at top of overlay so they stay visible
+    var tabsClone=document.getElementById('est-tabs-row');
+    var tabsHTML=tabsClone?tabsClone.outerHTML:'';
     if(t==='time'){
       trackerOverlay.innerHTML=getTimeTrackerHTML();
       document.body.appendChild(trackerOverlay);
@@ -2598,7 +2601,9 @@ function showEstTab(t){
 }
 
 function getTimeTrackerHTML(){
-  return '<div style="max-width:1400px;margin:0 auto;">'
+  var tabsClone=document.getElementById('est-tabs-row');
+  var tabsHTML=tabsClone?tabsClone.outerHTML:'';
+  return '<div style="padding:1.5rem;"><div style="max-width:1400px;margin:0 auto;">'+tabsHTML
     +'<div class="hub-header"><div><div class="hub-title">⏱ Time Tracker</div><div class="hub-sub">Log how long each line item actually takes.</div></div>'
     +'<button class="btn-primary" onclick="openTimeModal()">+ Log time</button></div>'
     +'<div class="grid4" style="margin-bottom:1rem;">'
@@ -2609,11 +2614,13 @@ function getTimeTrackerHTML(){
     +'</div>'
     +'<div style="margin-bottom:.75rem;"><input id="tt-search" placeholder="Search by item or job..." style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawTimeTable()"/></div>'
     +'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Phase</th><th>Crew</th><th>Qty</th><th>Hours</th><th>Hrs/Unit</th><th>My avg</th><th>Date</th><th>Notes</th><th></th></tr></thead><tbody id="tt-tbody"></tbody></table></div>'
-    +'</div>';
+    +'</div></div>';
 }
 
 function getPriceTrackerHTML(){
-  return '<div style="max-width:1400px;margin:0 auto;">'
+  var tabsClone=document.getElementById('est-tabs-row');
+  var tabsHTML=tabsClone?tabsClone.outerHTML:'';
+  return '<div style="padding:1.5rem;"><div style="max-width:1400px;margin:0 auto;">'+tabsHTML
     +'<div class="hub-header"><div><div class="hub-title">💲 Price Tracker</div><div class="hub-sub">Log what you actually charge per line item.</div></div>'
     +'<button class="btn-primary" onclick="openPriceModal()">+ Log price</button></div>'
     +'<div class="grid4" style="margin-bottom:1rem;">'
