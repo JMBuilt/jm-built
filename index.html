@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>JM Built v9</title>
+<title>JM Built v10</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <style>
@@ -365,12 +365,12 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
 <!-- ESTIMATING -->
 <div id="tab-estimating" style="display:none;">
   <!-- Inner tabs -->
-  <div style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.25rem;width:fit-content;">
-    <button class="jh-tab active" id="est-tab-proposals" onclick="showEstTab('proposals')">📋 Proposals</button>
-    <button class="jh-tab" id="est-tab-estimator" onclick="showEstTab('estimator')">🔢 Unit Price Estimator</button>
-    <button class="jh-tab" id="est-tab-database" onclick="showEstTab('database')">📚 Price Database</button>
-    <button class="jh-tab" id="est-tab-time" onclick="showEstTab('time')">⏱ Time Tracker</button>
-    <button class="jh-tab" id="est-tab-price" onclick="showEstTab('price')">💵 Price Tracker</button>
+  <div id="est-tabs-row" style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.25rem;width:fit-content;">
+    <button class="jh-tab active" data-tab="proposals" onclick="showEstTab('proposals')">📋 Proposals</button>
+    <button class="jh-tab" data-tab="estimator" onclick="showEstTab('estimator')">🔢 Unit Price Estimator</button>
+    <button class="jh-tab" data-tab="database" onclick="showEstTab('database')">📚 Price Database</button>
+    <button class="jh-tab" data-tab="time" onclick="showEstTab('time')">⏱ Time Tracker</button>
+    <button class="jh-tab" data-tab="price" onclick="showEstTab('price')">💵 Price Tracker</button>
   </div>
 
   <!-- PROPOSALS -->
@@ -472,14 +472,9 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
 
   <!-- TIME TRACKER -->
   <!-- ALWAYS VISIBLE TRACKER SECTION -->
-  <div id="est-tracker-section" style="height:0;overflow:hidden;margin:0;padding:0;">
-    <!-- Toggle buttons -->
-    <div style="display:flex;gap:8px;margin-top:1.5rem;margin-bottom:1rem;border-top:2px solid var(--border);padding-top:1.25rem;">
-      <button id="tt-btn" class="btn-primary" onclick="switchTracker('time')" style="font-size:13px;">⏱ Time Tracker</button>
-      <button id="pt-btn" class="btn-sm" onclick="switchTracker('price')" style="font-size:13px;">💲 Price Tracker</button>
-    </div>
-    <!-- Time Tracker content - always rendered, just shown/hidden -->
-    <div id="est-time">
+  
+
+    <div id="est-time" style="display:none;">
       <div class="hub-header">
         <div><div class="hub-title">⏱ Time Tracker</div><div class="hub-sub">Log how long each line item actually takes. Builds your real labor hour database over time.</div></div>
         <button class="btn-primary" onclick="openTimeModal()">+ Log time</button>
@@ -523,7 +518,6 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
       </div>
     </div>
   </div>
-</div>
 </div>
 
 <!-- PROJECTS -->
@@ -1229,7 +1223,7 @@ async function updateProfitable(id,val){await sb.from('projects').update({profit
 function openEditProj(id){const p=projects.find(x=>x.id===id);if(!p)return;document.getElementById('ep-id').value=id;document.getElementById('ep-name').value=p.name||'';document.getElementById('ep-client').value=p.client||'';document.getElementById('ep-customer-id').value=p.customer_id||'';document.getElementById('ep-val').value=p.val||'';document.getElementById('ep-status').value=p.status||'Preconstruction';document.getElementById('ep-start').value=p.start_date||'';document.getElementById('ep-due').value=p.due_date||'';openModal('edit-proj-modal');}
 async function updateProj(){const id=document.getElementById('ep-id').value;const updates={name:document.getElementById('ep-name').value,client:document.getElementById('ep-client').value,customer_id:document.getElementById('ep-customer-id').value,val:document.getElementById('ep-val').value,status:document.getElementById('ep-status').value,start_date:document.getElementById('ep-start').value,due_date:document.getElementById('ep-due').value};await sb.from('projects').update(updates).eq('id',id);const p=projects.find(x=>x.id===id);if(p)Object.assign(p,updates);closeModals();renderProj();renderDash();}
 
-function renderEst(){try{drawTimeTable();}catch(e){}try{drawPriceTable();}catch(e){}statCards('est-stats',[{label:'Total estimates',value:estimates.length},{label:'Pending value',value:fmt(estimates.filter(e=>e.status==='Sent'||e.status==='Draft').reduce((s,e)=>s+toNum(e.amt),0)),sub:'Awaiting'},{label:'Approved',value:estimates.filter(e=>e.status==='Approved').length,sub:'Won'}]);document.getElementById('est-tbl').innerHTML=estimates.map(e=>'<tr><td style="font-weight:600;">'+e.client+'</td><td style="color:var(--text2);">'+e.description+'</td><td style="color:var(--brand);font-weight:600;">'+e.amt+'</td><td>'+badge(e.status)+'</td><td style="color:var(--text2);">'+(e.sent||'—')+'</td><td style="color:var(--text2);">'+(e.follow_up||'—')+'</td></tr>').join('')||'<tr><td colspan="6" class="empty">No estimates yet</td></tr>';}
+function renderEst(){statCards('est-stats',[{label:'Total estimates',value:estimates.length},{label:'Pending value',value:fmt(estimates.filter(e=>e.status==='Sent'||e.status==='Draft').reduce((s,e)=>s+toNum(e.amt),0)),sub:'Awaiting'},{label:'Approved',value:estimates.filter(e=>e.status==='Approved').length,sub:'Won'}]);document.getElementById('est-tbl').innerHTML=estimates.map(e=>'<tr><td style="font-weight:600;">'+e.client+'</td><td style="color:var(--text2);">'+e.description+'</td><td style="color:var(--brand);font-weight:600;">'+e.amt+'</td><td>'+badge(e.status)+'</td><td style="color:var(--text2);">'+(e.sent||'—')+'</td><td style="color:var(--text2);">'+(e.follow_up||'—')+'</td></tr>').join('')||'<tr><td colspan="6" class="empty">No estimates yet</td></tr>';}
 function renderField(){
   document.getElementById('field-count').textContent=tasks.filter(t=>!t.done).length;
   document.getElementById('field-today').innerHTML=tasks.map(t=>'<div class="todo-item"><div class="chk'+(t.done?' done':'')+'" onclick="toggleTask(\''+t.id+'\','+!t.done+')"></div><div style="flex:1"><div class="todo-label'+(t.done?' striked':'')+'">'+t.text+'</div><div class="todo-meta">'+t.project+(t.priority==='High'?' · <span style="color:var(--brand)">High priority</span>':'')+'</div></div></div>').join('')||'<div class="empty">No tasks yet</div>';
@@ -2609,37 +2603,25 @@ async function loadCustomPrices(){
   allPrices = getAllPrices();
 }
 
+var estRendered={};
 function showEstTab(t){
-  var mainTabs=['proposals','estimator','database'];
-  var trackerSection=document.getElementById('est-tracker-section');
-  if(t==='time'||t==='price'){
-    // Hide main tabs with display:none (these work fine)
-    mainTabs.forEach(function(id){var el=document.getElementById('est-'+id);if(el)el.style.display='none';});
-    // Show tracker section by removing height restriction
-    if(trackerSection){
-      trackerSection.style.height='';
-      trackerSection.style.overflow='';
-      trackerSection.style.margin='';
-      trackerSection.style.padding='';
-    }
-    switchTracker(t);
-  } else {
-    // Show main tab
-    mainTabs.forEach(function(id){var el=document.getElementById('est-'+id);if(el)el.style.display=id===t?'block':'none';});
-    // Hide tracker section
-    if(trackerSection){
-      trackerSection.style.height='0';
-      trackerSection.style.overflow='hidden';
-      trackerSection.style.margin='0';
-      trackerSection.style.padding='0';
-    }
+  ['proposals','estimator','database','time','price'].forEach(function(id){
+    var el=document.getElementById('est-'+id);
+    if(el) el.style.display=id===t?'block':'none';
+  });
+  document.querySelectorAll('#est-tabs-row .jh-tab').forEach(function(btn){
+    btn.classList.toggle('active', btn.dataset.tab===t);
+  });
+  if(!estRendered[t]){
     if(t==='estimator') renderUEItems();
     if(t==='database') renderPriceDatabase();
+    if(t==='time') drawTimeTable();
+    if(t==='price') drawPriceTable();
+    estRendered[t]=true;
+  } else {
+    if(t==='time') drawTimeTable();
+    if(t==='price') drawPriceTable();
   }
-  ['proposals','estimator','database','time','price'].forEach(function(id){
-    var btn=document.getElementById('est-tab-'+id);
-    if(btn) btn.classList.toggle('active',id===t);
-  });
 }
 
 // ── UNIT PRICE ESTIMATOR ──
