@@ -2677,18 +2677,28 @@ async function sha256(str){
 }
 
 async function attemptLogin(){
-  var username = document.getElementById('login-username').value.trim().toLowerCase();
+  var usernameRaw = document.getElementById('login-username').value;
+  var username = usernameRaw.trim().toLowerCase();
   var password = document.getElementById('login-password').value;
   var errEl = document.getElementById('login-error');
   errEl.style.display='none';
   if(!username||!password){errEl.textContent='Please enter your username and password.';errEl.style.display='block';return;}
+  // Step 1: find user by username only
+  var userRes = await sb.from('app_users').select('*').ilike('username',username);
+  if(!userRes.data||userRes.data.length===0){
+    errEl.textContent='Username not found. Check spelling and try again.';errEl.style.display='block';return;
+  }
+  var user = userRes.data[0];
+  if(!user.active){errEl.textContent='This account has been deactivated.';errEl.style.display='block';return;}
+  // Step 2: compare hash
   var hash = await sha256(password);
-  var res = await sb.from('app_users').select('*').eq('username',username).eq('password_hash',hash).eq('active',true).single();
-  if(!res.data){errEl.textContent='Incorrect username or password.';errEl.style.display='block';return;}
-  // Update last login
-  await sb.from('app_users').update({last_login:new Date().toISOString()}).eq('id',res.data.id);
-  sessionStorage.setItem('jmbuilt_session', JSON.stringify({id:res.data.id,name:res.data.name,username:res.data.username,role:res.data.role}));
-  initSession(res.data);
+  if(user.password_hash.trim()!==hash.trim()){
+    errEl.textContent='Incorrect password.';errEl.style.display='block';return;
+  }
+  // Success
+  await sb.from('app_users').update({last_login:new Date().toISOString()}).eq('id',user.id);
+  sessionStorage.setItem('jmbuilt_session', JSON.stringify({id:user.id,name:user.name,username:user.username,role:user.role}));
+  initSession(user);
 }
 
 function initSession(user){
