@@ -1377,6 +1377,12 @@ function switchPTView(v){
 // ── TIME MY DATABASE VIEW ─────────────────────────────────────────────────────
 var ttExpanded={};
 function drawTimeDB(){
+  // Update stat cards
+  var e2=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+  e2('tt-s1',ttEntries.length);
+  e2('tt-s2',new Set(ttEntries.map(function(e){return e.price_item_id;})).size);
+  e2('tt-s3',ttEntries.reduce(function(s,e){return s+(parseFloat(e.hours)||0);},0).toFixed(1)+'h');
+  e2('tt-s4',new Set(ttEntries.map(function(e){return e.job_name;}).filter(Boolean)).size);
   var q=(document.getElementById('tt-db-search')?.value||'').toLowerCase();
   // Group entries by price_item_id
   var groups={};
@@ -1447,6 +1453,12 @@ function drawTimeDB(){
 // ── PRICE MY DATABASE VIEW ────────────────────────────────────────────────────
 var ptExpanded={};
 function drawPriceDB(){
+  var e2=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+  var totalRev=ptEntries.reduce(function(s,e){return s+(parseFloat(e.total_charged)||0);},0);
+  e2('pt-s1',ptEntries.length);
+  e2('pt-s2',new Set(ptEntries.map(function(e){return e.price_item_id;})).size);
+  e2('pt-s3','$'+Math.round(totalRev).toLocaleString());
+  e2('pt-s4',new Set(ptEntries.map(function(e){return e.job_name;}).filter(Boolean)).size);
   var q=(document.getElementById('pt-db-search')?.value||'').toLowerCase();
   var groups={};
   ptEntries.forEach(function(e){
@@ -2766,11 +2778,11 @@ function showEstTab(t){
     if(t==='time'){
       trackerOverlay.innerHTML=getTimeTrackerHTML();
       document.body.appendChild(trackerOverlay);
-      drawTimeTable();
+      drawTimeDB();
     } else {
       trackerOverlay.innerHTML=getPriceTrackerHTML();
       document.body.appendChild(trackerOverlay);
-      drawPriceTable();
+      drawPriceDB();
     }
   }
 }
@@ -2779,26 +2791,16 @@ function getTimeTrackerHTML(){
   var tabsClone=document.getElementById('est-tabs-row');
   var tabsHTML=tabsClone?tabsClone.outerHTML:'';
   return '<div style="padding:1.5rem;"><div style="max-width:1400px;margin:0 auto;">'+tabsHTML
-    +'<div class="hub-header"><div><div class="hub-title">⏱ Time Tracker</div><div class="hub-sub">Log how long each line item takes. Build your real labor hour database.</div></div>'
+    +'<div class="hub-header"><div><div class="hub-title">⏱ Time Tracker</div><div class="hub-sub">Your real labor hour database — built from actual jobs.</div></div>'
     +'<button class="btn-primary" onclick="openTimeModal()">+ Log time</button></div>'
-    +'<div style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.25rem;width:fit-content;">'
-    +'<button id="tt-view-log" class="jh-tab active" onclick="switchTTView(\'log\')">📋 Log entries</button>'
-    +'<button id="tt-view-db" class="jh-tab" onclick="switchTTView(\'db\')">📊 My Database</button>'
-    +'</div>'
     +'<div class="grid4" style="margin-bottom:1rem;">'
     +'<div class="stat-card"><div class="stat-label">Total entries</div><div class="stat-value" id="tt-s1">0</div></div>'
     +'<div class="stat-card"><div class="stat-label">Items tracked</div><div class="stat-value" id="tt-s2">0</div></div>'
     +'<div class="stat-card"><div class="stat-label">Total hours</div><div class="stat-value" id="tt-s3">0h</div></div>'
     +'<div class="stat-card"><div class="stat-label">Jobs covered</div><div class="stat-value" id="tt-s4">0</div></div>'
     +'</div>'
-    +'<div id="tt-log-view">'
-    +'<div style="margin-bottom:.75rem;"><input id="tt-search" placeholder="Search by item or job..." style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawTimeTable()"/></div>'
-    +'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Phase</th><th>Crew</th><th>Qty</th><th>Hours</th><th>Hrs/Unit</th><th>Delta</th><th>Date</th><th>Notes</th><th></th></tr></thead><tbody id="tt-tbody"></tbody></table></div>'
-    +'</div>'
-    +'<div id="tt-db-view" style="display:none;">'
     +'<div style="margin-bottom:.75rem;"><input id="tt-db-search" placeholder="Search items..." style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawTimeDB()"/></div>'
     +'<div id="tt-db-content"></div>'
-    +'</div>'
     +'</div></div>';
 }
 
@@ -2806,26 +2808,16 @@ function getPriceTrackerHTML(){
   var tabsClone=document.getElementById('est-tabs-row');
   var tabsHTML=tabsClone?tabsClone.outerHTML:'';
   return '<div style="padding:1.5rem;"><div style="max-width:1400px;margin:0 auto;">'+tabsHTML
-    +'<div class="hub-header"><div><div class="hub-title">💲 Price Tracker</div><div class="hub-sub">Log what you charge. Build your real market pricing database.</div></div>'
+    +'<div class="hub-header"><div><div class="hub-title">💲 Price Tracker</div><div class="hub-sub">Your real market pricing database — built from actual jobs.</div></div>'
     +'<button class="btn-primary" onclick="openPriceModal()">+ Log price</button></div>'
-    +'<div style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.25rem;width:fit-content;">'
-    +'<button id="pt-view-log" class="jh-tab active" onclick="switchPTView(\'log\')">📋 Log entries</button>'
-    +'<button id="pt-view-db" class="jh-tab" onclick="switchPTView(\'db\')">📊 My Database</button>'
-    +'</div>'
     +'<div class="grid4" style="margin-bottom:1rem;">'
     +'<div class="stat-card"><div class="stat-label">Total entries</div><div class="stat-value" id="pt-s1">0</div></div>'
     +'<div class="stat-card"><div class="stat-label">Items tracked</div><div class="stat-value" id="pt-s2">0</div></div>'
     +'<div class="stat-card"><div class="stat-label">Revenue logged</div><div class="stat-value" id="pt-s3">$0</div></div>'
     +'<div class="stat-card"><div class="stat-label">Jobs covered</div><div class="stat-value" id="pt-s4">0</div></div>'
     +'</div>'
-    +'<div id="pt-log-view">'
-    +'<div style="margin-bottom:.75rem;"><input id="pt-search" placeholder="Search by item or job..." style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawPriceTable()"/></div>'
-    +'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Qty</th><th>Total charged</th><th>Your $/unit</th><th>My avg</th><th>Delta</th><th>Date</th><th>Notes</th><th></th></tr></thead><tbody id="pt-tbody"></tbody></table></div>'
-    +'</div>'
-    +'<div id="pt-db-view" style="display:none;">'
     +'<div style="margin-bottom:.75rem;"><input id="pt-db-search" placeholder="Search items..." style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawPriceDB()"/></div>'
     +'<div id="pt-db-content"></div>'
-    +'</div>'
     +'</div>';
 }
 
