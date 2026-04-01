@@ -369,7 +369,7 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
     <button class="jh-tab active" id="est-tab-proposals" onclick="showEstTab('proposals')">📋 Proposals</button>
     <button class="jh-tab" id="est-tab-estimator" onclick="showEstTab('estimator')">🔢 Unit Price Estimator</button>
     <button class="jh-tab" id="est-tab-database" onclick="showEstTab('database')">📚 Price Database</button>
-    <button class="jh-tab" id="est-tab-time" onclick="alert('button clicked');showEstTab('time')">⏱ Time Tracker</button>
+    <button class="jh-tab" id="est-tab-time" onclick="var x=document.getElementById('est-time');alert('el found: '+(x?'YES parent='+x.parentElement.id:'NO'));if(x){x.style.cssText='display:block!important';}showEstTab('time');">⏱ Time Tracker</button>
     <button class="jh-tab" id="est-tab-price" onclick="showEstTab('price')">💵 Price Tracker</button>
   </div>
 
@@ -2601,6 +2601,9 @@ async function loadCustomPrices(){
 }
 
 function showEstTab(t){
+  var found=document.getElementById('est-'+t);
+  alert('Looking for est-'+t+': '+(found?'FOUND, display was='+found.style.display:'NOT FOUND'));
+  if(found){found.style.display='block';alert('Set to block. Current display='+found.style.display+' offsetHeight='+found.offsetHeight);}
   ['proposals','estimator','database','time','price'].forEach(function(id){
     var el=document.getElementById('est-'+id);
     if(el) el.style.display=id===t?'block':'none';
