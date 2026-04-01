@@ -2726,8 +2726,20 @@ function showEstTab(t){
   });
   if(t==='estimator') renderUEItems();
   if(t==='database') renderPriceDatabase();
-  if(t==='time'){populateItemSelects();renderTimeEntries();}
-  if(t==='price'){populateItemSelects();renderPriceEntries();}
+  if(t==='time'){
+    try{populateItemSelects();renderTimeEntries();}
+    catch(err){
+      var el=document.getElementById('est-time');
+      if(el)el.innerHTML='<div style="padding:2rem;background:#FCEBEB;border-radius:12px;color:#791F1F;font-size:13px;margin-top:1rem;"><strong>Debug error:</strong><br>'+err.message+'<br><br><pre style="font-size:11px;white-space:pre-wrap;">'+err.stack+'</pre></div>';
+    }
+  }
+  if(t==='price'){
+    try{populateItemSelects();renderPriceEntries();}
+    catch(err){
+      var el2=document.getElementById('est-price');
+      if(el2)el2.innerHTML='<div style="padding:2rem;background:#FCEBEB;border-radius:12px;color:#791F1F;font-size:13px;margin-top:1rem;"><strong>Debug error:</strong><br>'+err.message+'<br><br><pre style="font-size:11px;white-space:pre-wrap;">'+err.stack+'</pre></div>';
+    }
+  }
 }
 
 // ── UNIT PRICE ESTIMATOR ──
