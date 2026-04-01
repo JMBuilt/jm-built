@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>JM Built v7</title>
+<title>JM Built v8</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <style>
@@ -471,47 +471,56 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Trade</th><th>Item</th><th>Unit</th><th>Mat Low</th><th>Mat High</th><th>Check</th><th>Lab Low</th><th>Lab High</th><th>Range/Unit</th><th></th></tr></thead><tbody id="price-db-tbl"></tbody></table></div>
 
   <!-- TIME TRACKER -->
-  <div id="est-time" style="display:none;">
-    <div class="hub-header">
-      <div><div class="hub-title">⏱ Time Tracker</div><div class="hub-sub">Log how long each line item actually takes. Builds your real labor hour database over time.</div></div>
-      <button class="btn-primary" onclick="openTimeModal()">+ Log time</button>
+  <!-- ALWAYS VISIBLE TRACKER SECTION -->
+  <div id="est-tracker-section" style="display:none;">
+    <!-- Toggle buttons -->
+    <div style="display:flex;gap:8px;margin-top:1.5rem;margin-bottom:1rem;border-top:2px solid var(--border);padding-top:1.25rem;">
+      <button id="tt-btn" class="btn-primary" onclick="switchTracker('time')" style="font-size:13px;">⏱ Time Tracker</button>
+      <button id="pt-btn" class="btn-sm" onclick="switchTracker('price')" style="font-size:13px;">💲 Price Tracker</button>
     </div>
-    <div class="grid4" style="margin-bottom:1rem;" id="tt-stats">
-      <div class="stat-card"><div class="stat-label">Total entries</div><div class="stat-value" id="tt-s1">0</div></div>
-      <div class="stat-card"><div class="stat-label">Line items tracked</div><div class="stat-value" id="tt-s2">0</div></div>
-      <div class="stat-card"><div class="stat-label">Total hours logged</div><div class="stat-value" id="tt-s3">0</div></div>
-      <div class="stat-card"><div class="stat-label">Jobs covered</div><div class="stat-value" id="tt-s4">0</div></div>
+    <!-- Time Tracker content - always rendered, just shown/hidden -->
+    <div id="est-time">
+      <div class="hub-header">
+        <div><div class="hub-title">⏱ Time Tracker</div><div class="hub-sub">Log how long each line item actually takes. Builds your real labor hour database over time.</div></div>
+        <button class="btn-primary" onclick="openTimeModal()">+ Log time</button>
+      </div>
+      <div class="grid4" style="margin-bottom:1rem;">
+        <div class="stat-card"><div class="stat-label">Total entries</div><div class="stat-value" id="tt-s1">0</div></div>
+        <div class="stat-card"><div class="stat-label">Line items tracked</div><div class="stat-value" id="tt-s2">0</div></div>
+        <div class="stat-card"><div class="stat-label">Total hours logged</div><div class="stat-value" id="tt-s3">0</div></div>
+        <div class="stat-card"><div class="stat-label">Jobs covered</div><div class="stat-value" id="tt-s4">0</div></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:.75rem;">
+        <input id="tt-search" placeholder="Search by item or job..." style="flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawTimeTable()"/>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Phase</th><th>Crew</th><th>Qty</th><th>Hours</th><th>Hrs/Unit</th><th>My avg</th><th>Date</th><th>Notes</th><th></th></tr></thead>
+          <tbody id="tt-tbody"></tbody>
+        </table>
+      </div>
     </div>
-    <div style="display:flex;gap:10px;margin-bottom:.75rem;">
-      <input id="tt-search" placeholder="Search by item or job..." style="flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawTimeTable()"/>
-    </div>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Phase</th><th>Crew</th><th>Qty</th><th>Hours</th><th>Hrs/Unit</th><th>My avg</th><th>Date</th><th>Notes</th><th></th></tr></thead>
-        <tbody id="tt-tbody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div id="est-price" style="display:none;">
-    <div class="hub-header">
-      <div><div class="hub-title">💲 Price Tracker</div><div class="hub-sub">Log what you actually charge. Builds your real market pricing database over time.</div></div>
-      <button class="btn-primary" onclick="openPriceModal()">+ Log price</button>
-    </div>
-    <div class="grid4" style="margin-bottom:1rem;" id="pt-stats">
-      <div class="stat-card"><div class="stat-label">Total entries</div><div class="stat-value" id="pt-s1">0</div></div>
-      <div class="stat-card"><div class="stat-label">Line items tracked</div><div class="stat-value" id="pt-s2">0</div></div>
-      <div class="stat-card"><div class="stat-label">Revenue logged</div><div class="stat-value" id="pt-s3">$0</div></div>
-      <div class="stat-card"><div class="stat-label">Jobs covered</div><div class="stat-value" id="pt-s4">0</div></div>
-    </div>
-    <div style="display:flex;gap:10px;margin-bottom:.75rem;">
-      <input id="pt-search" placeholder="Search by item or job..." style="flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawPriceTable()"/>
-    </div>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Qty</th><th>Total charged</th><th>Your $/unit</th><th>DB price</th><th>My avg $/unit</th><th>Date</th><th>Notes</th><th></th></tr></thead>
-        <tbody id="pt-tbody"></tbody>
-      </table>
+    <!-- Price Tracker content -->
+    <div id="est-price" style="display:none;">
+      <div class="hub-header">
+        <div><div class="hub-title">💲 Price Tracker</div><div class="hub-sub">Log what you actually charge. Builds your real market pricing database over time.</div></div>
+        <button class="btn-primary" onclick="openPriceModal()">+ Log price</button>
+      </div>
+      <div class="grid4" style="margin-bottom:1rem;">
+        <div class="stat-card"><div class="stat-label">Total entries</div><div class="stat-value" id="pt-s1">0</div></div>
+        <div class="stat-card"><div class="stat-label">Line items tracked</div><div class="stat-value" id="pt-s2">0</div></div>
+        <div class="stat-card"><div class="stat-label">Revenue logged</div><div class="stat-value" id="pt-s3">$0</div></div>
+        <div class="stat-card"><div class="stat-label">Jobs covered</div><div class="stat-value" id="pt-s4">0</div></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:.75rem;">
+        <input id="pt-search" placeholder="Search by item or job..." style="flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawPriceTable()"/>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Qty</th><th>Total charged</th><th>Your $/unit</th><th>DB price</th><th>My avg $/unit</th><th>Date</th><th>Notes</th><th></th></tr></thead>
+          <tbody id="pt-tbody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -1220,7 +1229,7 @@ async function updateProfitable(id,val){await sb.from('projects').update({profit
 function openEditProj(id){const p=projects.find(x=>x.id===id);if(!p)return;document.getElementById('ep-id').value=id;document.getElementById('ep-name').value=p.name||'';document.getElementById('ep-client').value=p.client||'';document.getElementById('ep-customer-id').value=p.customer_id||'';document.getElementById('ep-val').value=p.val||'';document.getElementById('ep-status').value=p.status||'Preconstruction';document.getElementById('ep-start').value=p.start_date||'';document.getElementById('ep-due').value=p.due_date||'';openModal('edit-proj-modal');}
 async function updateProj(){const id=document.getElementById('ep-id').value;const updates={name:document.getElementById('ep-name').value,client:document.getElementById('ep-client').value,customer_id:document.getElementById('ep-customer-id').value,val:document.getElementById('ep-val').value,status:document.getElementById('ep-status').value,start_date:document.getElementById('ep-start').value,due_date:document.getElementById('ep-due').value};await sb.from('projects').update(updates).eq('id',id);const p=projects.find(x=>x.id===id);if(p)Object.assign(p,updates);closeModals();renderProj();renderDash();}
 
-function renderEst(){try{drawTimeTable();}catch(e){}try{drawPriceTable();}catch(e){}statCards('est-stats',[{label:'Total estimates',value:estimates.length},{label:'Pending value',value:fmt(estimates.filter(e=>e.status==='Sent'||e.status==='Draft').reduce((s,e)=>s+toNum(e.amt),0)),sub:'Awaiting'},{label:'Approved',value:estimates.filter(e=>e.status==='Approved').length,sub:'Won'}]);document.getElementById('est-tbl').innerHTML=estimates.map(e=>'<tr><td style="font-weight:600;">'+e.client+'</td><td style="color:var(--text2);">'+e.description+'</td><td style="color:var(--brand);font-weight:600;">'+e.amt+'</td><td>'+badge(e.status)+'</td><td style="color:var(--text2);">'+(e.sent||'—')+'</td><td style="color:var(--text2);">'+(e.follow_up||'—')+'</td></tr>').join('')||'<tr><td colspan="6" class="empty">No estimates yet</td></tr>';}
+function renderEst(){statCards('est-stats',[{label:'Total estimates',value:estimates.length},{label:'Pending value',value:fmt(estimates.filter(e=>e.status==='Sent'||e.status==='Draft').reduce((s,e)=>s+toNum(e.amt),0)),sub:'Awaiting'},{label:'Approved',value:estimates.filter(e=>e.status==='Approved').length,sub:'Won'}]);document.getElementById('est-tbl').innerHTML=estimates.map(e=>'<tr><td style="font-weight:600;">'+e.client+'</td><td style="color:var(--text2);">'+e.description+'</td><td style="color:var(--brand);font-weight:600;">'+e.amt+'</td><td>'+badge(e.status)+'</td><td style="color:var(--text2);">'+(e.sent||'—')+'</td><td style="color:var(--text2);">'+(e.follow_up||'—')+'</td></tr>').join('')||'<tr><td colspan="6" class="empty">No estimates yet</td></tr>';}
 function renderField(){
   document.getElementById('field-count').textContent=tasks.filter(t=>!t.done).length;
   document.getElementById('field-today').innerHTML=tasks.map(t=>'<div class="todo-item"><div class="chk'+(t.done?' done':'')+'" onclick="toggleTask(\''+t.id+'\','+!t.done+')"></div><div style="flex:1"><div class="todo-label'+(t.done?' striked':'')+'">'+t.text+'</div><div class="todo-meta">'+t.project+(t.priority==='High'?' · <span style="color:var(--brand)">High priority</span>':'')+'</div></div></div>').join('')||'<div class="empty">No tasks yet</div>';
@@ -2601,18 +2610,36 @@ async function loadCustomPrices(){
 }
 
 function showEstTab(t){
-  ['proposals','estimator','database','time','price'].forEach(function(id){
-    var el=document.getElementById('est-'+id);
-    if(el) el.style.display=id===t?'block':'none';
-  });
+  var mainTabs=['proposals','estimator','database'];
+  var trackerSection=document.getElementById('est-tracker-section');
+  if(t==='time'||t==='price'){
+    // Show tracker section, hide main tabs
+    mainTabs.forEach(function(id){var el=document.getElementById('est-'+id);if(el)el.style.display='none';});
+    if(trackerSection) trackerSection.style.display='block';
+    switchTracker(t);
+  } else {
+    // Show main tab, hide tracker section
+    mainTabs.forEach(function(id){var el=document.getElementById('est-'+id);if(el)el.style.display=id===t?'block':'none';});
+    if(trackerSection) trackerSection.style.display='none';
+    if(t==='estimator') renderUEItems();
+    if(t==='database') renderPriceDatabase();
+  }
+  // Update all tab button highlights
   ['proposals','estimator','database','time','price'].forEach(function(id){
     var btn=document.getElementById('est-tab-'+id);
     if(btn) btn.classList.toggle('active',id===t);
   });
-  if(t==='estimator') renderUEItems();
-  if(t==='database') renderPriceDatabase();
-  if(t==='time') drawTimeTable();
-  if(t==='price') drawPriceTable();
+}
+
+function switchTracker(which){
+  document.getElementById('est-time').style.display=which==='time'?'block':'none';
+  document.getElementById('est-price').style.display=which==='price'?'block':'none';
+  var ttBtn=document.getElementById('tt-btn');
+  var ptBtn=document.getElementById('pt-btn');
+  if(ttBtn){ttBtn.className=which==='time'?'btn-primary':'btn-sm';ttBtn.style.fontSize='13px';}
+  if(ptBtn){ptBtn.className=which==='price'?'btn-primary':'btn-sm';ptBtn.style.fontSize='13px';}
+  if(which==='time') drawTimeTable();
+  if(which==='price') drawPriceTable();
 }
 
 // ── UNIT PRICE ESTIMATOR ──
