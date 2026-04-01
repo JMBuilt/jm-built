@@ -2595,6 +2595,15 @@ function showEstTab(t){
   document.querySelectorAll('#est-tabs-row .jh-tab').forEach(function(btn){
     btn.classList.toggle('active', btn.dataset.tab===t);
   });
+  // TEMP DEBUG: force time tab visible as fixed overlay
+  if(t==='time'){
+    var el=document.getElementById('est-time');
+    if(el){
+      el.style.cssText='display:block!important;position:fixed!important;top:60px!important;left:0!important;right:0!important;bottom:0!important;z-index:9999!important;background:white!important;overflow-y:auto!important;padding:1rem!important;';
+    }
+    drawTimeTable();
+    return;
+  }
   if(!estRendered[t]){
     if(t==='estimator') renderUEItems();
     if(t==='database') renderPriceDatabase();
