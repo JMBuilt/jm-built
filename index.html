@@ -369,8 +369,8 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
     <button class="jh-tab active" id="est-tab-proposals" onclick="showEstTab('proposals')">📋 Proposals</button>
     <button class="jh-tab" id="est-tab-estimator" onclick="showEstTab('estimator')">🔢 Unit Price Estimator</button>
     <button class="jh-tab" id="est-tab-database" onclick="showEstTab('database')">📚 Price Database</button>
-    <button class="jh-tab" id="est-tab-time" onclick="openTrackerTab('time')">⏱ Time Tracker</button>
-    <button class="jh-tab" id="est-tab-price" onclick="openTrackerTab('price')">💵 Price Tracker</button>
+    <button class="jh-tab" id="est-tab-time" onclick="showEstTab('time')">⏱ Time Tracker</button>
+    <button class="jh-tab" id="est-tab-price" onclick="showEstTab('price')">💵 Price Tracker</button>
   </div>
 
   <!-- PROPOSALS -->
@@ -472,50 +472,48 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
 
   <!-- TIME TRACKER -->
   <div id="est-time" style="display:none;">
-    <div id="est-time-debug" style="padding:1rem;background:#C8440A;color:white;font-size:16px;font-weight:700;border-radius:8px;margin-bottom:1rem;">✓ Time Tracker tab is loading</div>
     <div class="hub-header">
-      <div><div class="hub-title">Time Tracker</div><div class="hub-sub">Log how long each line item actually takes. Build your real labor hour database over time.</div></div>
-      <button class="btn-primary" onclick="openModal('time-entry-modal')">+ Log time</button>
+      <div><div class="hub-title">⏱ Time Tracker</div><div class="hub-sub">Log how long each line item actually takes. Builds your real labor hour database over time.</div></div>
+      <button class="btn-primary" onclick="openTimeModal()">+ Log time</button>
     </div>
-    <div class="grid4" style="margin-bottom:1.25rem;" id="time-stats"></div>
-    <div style="display:flex;gap:10px;margin-bottom:.75rem;flex-wrap:wrap;">
-      <input id="time-search" placeholder="Search by line item or job..." style="flex:1;min-width:200px;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="renderTimeEntries()"/>
-      <select id="time-trade-filter" style="font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" onchange="renderTimeEntries()">
-        <option value="">All trades</option>
-        <option>Demo & Site Work</option><option>Concrete & Foundation</option><option>Framing</option><option>Roofing</option><option>Exterior</option><option>Insulation</option><option>Drywall</option><option>Interior Trim & Millwork</option><option>Flooring</option><option>Painting</option><option>Cabinets & Countertops</option><option>Tile</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Decks & Outdoor</option><option>Doors & Windows</option><option>Specialties</option>
-      </select>
+    <div class="grid4" style="margin-bottom:1rem;" id="tt-stats">
+      <div class="stat-card"><div class="stat-label">Total entries</div><div class="stat-value" id="tt-s1">0</div></div>
+      <div class="stat-card"><div class="stat-label">Line items tracked</div><div class="stat-value" id="tt-s2">0</div></div>
+      <div class="stat-card"><div class="stat-label">Total hours logged</div><div class="stat-value" id="tt-s3">0</div></div>
+      <div class="stat-card"><div class="stat-label">Jobs covered</div><div class="stat-value" id="tt-s4">0</div></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:.75rem;">
+      <input id="tt-search" placeholder="Search by item or job..." style="flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawTimeTable()"/>
     </div>
     <div class="tbl-wrap">
       <table class="tbl">
-        <thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Phase</th><th>Crew member</th><th>Qty</th><th>Unit</th><th>Total hrs</th><th>Hrs/Unit</th><th>Date</th><th>Notes</th><th></th></tr></thead>
-        <tbody id="time-entries-tbl"></tbody>
+        <thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Phase</th><th>Crew</th><th>Qty</th><th>Hours</th><th>Hrs/Unit</th><th>My avg</th><th>Date</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="tt-tbody"></tbody>
       </table>
     </div>
   </div>
 
-  <!-- PRICE TRACKER -->
   <div id="est-price" style="display:none;">
     <div class="hub-header">
-      <div><div class="hub-title">Price Tracker</div><div class="hub-sub">Log what you actually charge per line item. Build your real market pricing database over time.</div></div>
-      <button class="btn-primary" onclick="openModal('price-entry-modal')">+ Log price</button>
+      <div><div class="hub-title">💲 Price Tracker</div><div class="hub-sub">Log what you actually charge. Builds your real market pricing database over time.</div></div>
+      <button class="btn-primary" onclick="openPriceModal()">+ Log price</button>
     </div>
-    <div class="grid4" style="margin-bottom:1.25rem;" id="price-tracker-stats"></div>
-    <div style="display:flex;gap:10px;margin-bottom:.75rem;flex-wrap:wrap;">
-      <input id="price-track-search" placeholder="Search by line item or job..." style="flex:1;min-width:200px;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="renderPriceEntries()"/>
-      <select id="price-trade-filter" style="font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" onchange="renderPriceEntries()">
-        <option value="">All trades</option>
-        <option>Demo & Site Work</option><option>Concrete & Foundation</option><option>Framing</option><option>Roofing</option><option>Exterior</option><option>Insulation</option><option>Drywall</option><option>Interior Trim & Millwork</option><option>Flooring</option><option>Painting</option><option>Cabinets & Countertops</option><option>Tile</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Decks & Outdoor</option><option>Doors & Windows</option><option>Specialties</option>
-      </select>
+    <div class="grid4" style="margin-bottom:1rem;" id="pt-stats">
+      <div class="stat-card"><div class="stat-label">Total entries</div><div class="stat-value" id="pt-s1">0</div></div>
+      <div class="stat-card"><div class="stat-label">Line items tracked</div><div class="stat-value" id="pt-s2">0</div></div>
+      <div class="stat-card"><div class="stat-label">Revenue logged</div><div class="stat-value" id="pt-s3">$0</div></div>
+      <div class="stat-card"><div class="stat-label">Jobs covered</div><div class="stat-value" id="pt-s4">0</div></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:.75rem;">
+      <input id="pt-search" placeholder="Search by item or job..." style="flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawPriceTable()"/>
     </div>
     <div class="tbl-wrap">
       <table class="tbl">
-        <thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Qty</th><th>Unit</th><th>Total charged</th><th>Your $/unit</th><th>DB $/unit</th><th>Variance</th><th>Date</th><th>Notes</th><th></th></tr></thead>
-        <tbody id="price-entries-tbl"></tbody>
+        <thead><tr><th>Line item</th><th>Trade</th><th>Job</th><th>Qty</th><th>Total charged</th><th>Your $/unit</th><th>DB price</th><th>My avg $/unit</th><th>Date</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="pt-tbody"></tbody>
       </table>
     </div>
   </div>
-  </div>
-</div>
 
 <!-- PROJECTS -->
 <div id="tab-projects" style="display:none;">
@@ -923,7 +921,7 @@ async function loadAll(){
     leadNotes={};(notes.data||[]).forEach(n=>{if(!leadNotes[n.lead_id])leadNotes[n.lead_id]=[];leadNotes[n.lead_id].push(n);});
     subHistory={};(hist.data||[]).forEach(h=>{if(!subHistory[h.sub_id])subHistory[h.sub_id]=[];subHistory[h.sub_id].push(h);});
     salesNotes=(sn&&sn.data)||[];salesTasks=(st&&st.data)||[];
-    setSync(true);await loadOrders();await backfillOrderForms();await loadCustomPrices();allPrices=getAllPrices();try{await loadTrackers();}catch(e){console.warn('Tracker tables not ready:',e);}renderDash();
+    setSync(true);await loadOrders();await backfillOrderForms();await loadCustomPrices();allPrices=getAllPrices();try{await loadTrackers();}catch(e){ttEntries=[];ptEntries=[];}renderDash();
     // Setup drag/drop on all doc textareas after load
     setupDocDragDrop();
   }catch(err){setSync(false);console.error(err);}
@@ -1316,299 +1314,182 @@ function showJhTab(t){
 }
 
 // ============================================================
-// TIME TRACKER & PRICE TRACKER
+// TIME & PRICE TRACKERS (rebuilt)
 // ============================================================
-let timeEntries = [], priceEntries = [];
+var ttEntries=[], ptEntries=[];
 
 async function loadTrackers(){
-  var [t, p] = await Promise.all([
-    sb.from('time_logs').select('*').order('date',{ascending:false}),
-    sb.from('price_logs').select('*').order('date',{ascending:false}),
-  ]);
-  timeEntries = t.data||[];
-  priceEntries = p.data||[];
+  var tr=await sb.from('time_logs').select('*').order('created_at',{ascending:false});
+  var pr=await sb.from('price_logs').select('*').order('created_at',{ascending:false});
+  ttEntries=tr.data||[];
+  ptEntries=pr.data||[];
 }
 
-// ── POPULATE SELECTS with price database items ────────────────────────────────
-function populateItemSelects(){
-  var prices = getAllPrices();
-  var grouped = {};
-  prices.forEach(function(p){ if(!grouped[p.trade]) grouped[p.trade]=[]; grouped[p.trade].push(p); });
-  var makeOptions = function(){
-    var html = '<option value="">— Select a line item —</option>';
-    Object.keys(grouped).sort().forEach(function(trade){
-      html += '<optgroup label="'+trade+'">';
-      grouped[trade].forEach(function(p){
-        html += '<option value="'+p.id+'" data-trade="'+p.trade+'" data-unit="'+p.unit+'" data-mat="'+p.mat+'" data-lab="'+p.lab+'" data-matH="'+(p.mat_high||p.mat)+'" data-labH="'+(p.lab_high||p.lab)+'">'+p.item+'</option>';
-      });
-      html += '</optgroup>';
+function buildItemOptions(){
+  var prices=getAllPrices();
+  var grouped={};
+  prices.forEach(function(p){if(!grouped[p.trade])grouped[p.trade]=[];grouped[p.trade].push(p);});
+  var html='<option value="">— Select a line item —</option>';
+  Object.keys(grouped).sort().forEach(function(trade){
+    html+='<optgroup label="'+trade+'">';
+    grouped[trade].forEach(function(p){
+      html+='<option value="'+p.id+'" data-trade="'+p.trade+'" data-unit="'+p.unit+'" data-dbprice="'+(p.mat+p.lab).toFixed(2)+'">'+p.item+'</option>';
     });
-    return html;
-  };
-  var ts = document.getElementById('te-item-select');
-  var ps = document.getElementById('pe-item-select');
-  if(ts) ts.innerHTML = makeOptions();
-  if(ps) ps.innerHTML = makeOptions();
-}
-
-// ── TIME ENTRY HELPERS ────────────────────────────────────────────────────────
-function onTeItemChange(){
-  var sel = document.getElementById('te-item-select');
-  var opt = sel.options[sel.selectedIndex];
-  var info = document.getElementById('te-item-info');
-  var calc = document.getElementById('te-calc');
-  if(!sel.value){ info.style.display='none'; calc.style.display='none'; return; }
-  var mat=parseFloat(opt.dataset.mat)||0, matH=parseFloat(opt.dataset.math)||mat;
-  var lab=parseFloat(opt.dataset.lab)||0, labH=parseFloat(opt.dataset.labh)||lab;
-  info.textContent = opt.parentElement.label+' · DB: Mat $'+mat.toFixed(2)+(matH>mat?'–$'+matH.toFixed(2):'')+' | Lab $'+lab.toFixed(2)+(labH>lab?'–$'+labH.toFixed(2):'')+'/'+opt.dataset.unit;
-  info.style.display='block';
-  document.getElementById('te-unit-label').textContent = opt.dataset.unit||'unit';
-  calc.style.display='none';
-  // wire up qty/hours inputs to recalc
-  ['te-qty','te-hours'].forEach(function(id){
-    document.getElementById(id).oninput = teRecalc;
+    html+='</optgroup>';
   });
+  return html;
 }
 
-function teRecalc(){
-  var qty = parseFloat(document.getElementById('te-qty').value)||0;
-  var hrs = parseFloat(document.getElementById('te-hours').value)||0;
-  var calc = document.getElementById('te-calc');
-  var hpu = document.getElementById('te-hpu');
-  if(qty>0 && hrs>0){
-    calc.style.display='block';
-    hpu.textContent = (hrs/qty).toFixed(3);
-  } else {
-    calc.style.display='none';
-  }
+function openTimeModal(){
+  var sel=document.getElementById('tt-item');
+  if(sel) sel.innerHTML=buildItemOptions();
+  openModal('tt-modal');
 }
 
-async function saveTimeEntry(){
-  var sel = document.getElementById('te-item-select');
-  if(!sel.value){alert('Please select a line item.');return;}
-  var opt = sel.options[sel.selectedIndex];
-  var qty = parseFloat(document.getElementById('te-qty').value)||0;
-  var hrs = parseFloat(document.getElementById('te-hours').value)||0;
-  if(!qty||!hrs){alert('Please enter quantity and hours.');return;}
-  var data = {
-    price_item_id: sel.value,
-    item_name: opt.text,
-    trade: opt.parentElement.label,
-    unit: opt.dataset.unit,
-    job_name: document.getElementById('te-job').value||'',
-    phase: document.getElementById('te-phase').value||'',
-    crew: document.getElementById('te-crew').value||'',
-    date: document.getElementById('te-date').value||null,
-    qty: qty,
-    hours: hrs,
-    hrs_per_unit: hrs/qty,
-    notes: document.getElementById('te-notes').value||'',
+function openPriceModal(){
+  var sel=document.getElementById('pt-item');
+  if(sel) sel.innerHTML=buildItemOptions();
+  openModal('pt-modal');
+}
+
+async function ttSave(){
+  var sel=document.getElementById('tt-item');
+  if(!sel||!sel.value){alert('Select a line item');return;}
+  var opt=sel.options[sel.selectedIndex];
+  var qty=parseFloat(document.getElementById('tt-qty').value)||0;
+  var hrs=parseFloat(document.getElementById('tt-hrs').value)||0;
+  if(!qty||!hrs){alert('Enter qty and hours');return;}
+  var row={
+    price_item_id:sel.value,
+    item_name:opt.text,
+    trade:opt.dataset.trade,
+    unit:opt.dataset.unit,
+    job_name:document.getElementById('tt-job').value||'',
+    phase:document.getElementById('tt-phase').value||'',
+    crew:document.getElementById('tt-crew').value||'',
+    date:document.getElementById('tt-date').value||null,
+    qty:qty, hours:hrs,
+    hrs_per_unit:hrs/qty,
+    notes:document.getElementById('tt-notes').value||''
   };
-  var res = await sb.from('time_logs').insert(data).select();
-  if(res.data) timeEntries.unshift(res.data[0]);
+  var res=await sb.from('time_logs').insert(row).select();
+  if(res.data) ttEntries.unshift(res.data[0]);
   closeModals();
-  renderTimeEntries();
-  // Clear form
-  ['te-item-select','te-job','te-phase','te-crew','te-qty','te-hours','te-notes'].forEach(function(id){
-    var el=document.getElementById(id); if(el) el.value='';
-  });
-  document.getElementById('te-item-info').style.display='none';
-  document.getElementById('te-calc').style.display='none';
+  drawTimeTable();
+  ['tt-job','tt-phase','tt-crew','tt-qty','tt-hrs','tt-notes'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
 }
 
-async function deleteTimeEntry(id){
+function drawTimeTable(){
+  var q=(document.getElementById('tt-search')?.value||'').toLowerCase();
+  var rows=ttEntries.filter(function(e){return !q||e.item_name.toLowerCase().includes(q)||(e.job_name||'').toLowerCase().includes(q);});
+  // Stats
+  var el=function(id){return document.getElementById(id);};
+  if(el('tt-s1')) el('tt-s1').textContent=ttEntries.length;
+  if(el('tt-s2')) el('tt-s2').textContent=new Set(ttEntries.map(function(e){return e.price_item_id;})).size;
+  if(el('tt-s3')) el('tt-s3').textContent=ttEntries.reduce(function(s,e){return s+(parseFloat(e.hours)||0);},0).toFixed(1)+'h';
+  if(el('tt-s4')) el('tt-s4').textContent=new Set(ttEntries.map(function(e){return e.job_name;}).filter(Boolean)).size;
+  // Averages per item
+  var avgs={};
+  ttEntries.forEach(function(e){if(!avgs[e.price_item_id]){avgs[e.price_item_id]={n:0,sum:0};}avgs[e.price_item_id].n++;avgs[e.price_item_id].sum+=parseFloat(e.hrs_per_unit)||0;});
+  var tbody=document.getElementById('tt-tbody');
+  if(!tbody)return;
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="12" class="empty">No time entries yet — log your first one to start building your database.</td></tr>';return;}
+  tbody.innerHTML=rows.map(function(e){
+    var a=avgs[e.price_item_id];
+    var avg=a?'avg '+(a.sum/a.n).toFixed(3)+' h/'+e.unit+' ('+a.n+')':'—';
+    var dt=e.date?new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'—';
+    return '<tr>'
+      +'<td style="font-weight:500;font-size:12px;">'+e.item_name+'</td>'
+      +'<td><span class="badge b-gray" style="font-size:10px;">'+e.trade+'</span></td>'
+      +'<td style="font-size:12px;color:var(--text2);">'+(e.job_name||'—')+'</td>'
+      +'<td style="font-size:12px;color:var(--text2);">'+(e.phase||'—')+'</td>'
+      +'<td style="font-size:12px;color:var(--text2);">'+(e.crew||'—')+'</td>'
+      +'<td style="font-size:12px;">'+e.qty+' '+e.unit+'</td>'
+      +'<td style="font-size:12px;color:var(--blue-txt);font-weight:600;">'+e.hours+'h</td>'
+      +'<td style="font-size:12px;color:var(--brand);font-weight:700;">'+(parseFloat(e.hrs_per_unit)||0).toFixed(3)+' h/'+e.unit+'</td>'
+      +'<td><span class="badge b-blue" style="font-size:10px;">'+avg+'</span></td>'
+      +'<td style="font-size:11px;color:var(--text2);">'+dt+'</td>'
+      +'<td style="font-size:11px;color:var(--text2);">'+(e.notes||'—')+'</td>'
+      +'<td><button class="btn-danger" style="padding:2px 6px;font-size:10px;" onclick="ttDelete(this.dataset.id)" data-id="'+e.id+'">✕</button></td>'
+      +'</tr>';
+  }).join('');
+}
+
+async function ttDelete(id){
   await sb.from('time_logs').delete().eq('id',id);
-  timeEntries = timeEntries.filter(function(e){return e.id!==id;});
-  renderTimeEntries();
+  ttEntries=ttEntries.filter(function(e){return e.id!==id;});
+  drawTimeTable();
 }
 
-function renderTimeEntries(){
-  var q = (document.getElementById('time-search')?.value||'').toLowerCase();
-  var tf = document.getElementById('time-trade-filter')?.value||'';
-  var filtered = timeEntries.filter(function(e){
-    var mq = !q || e.item_name.toLowerCase().includes(q) || (e.job_name||'').toLowerCase().includes(q);
-    var mt = !tf || e.trade===tf;
-    return mq&&mt;
-  });
-
-  // Stats
-  var totalEntries = timeEntries.length;
-  var avgHpu = timeEntries.length ? (timeEntries.reduce(function(s,e){return s+e.hrs_per_unit;},0)/timeEntries.length).toFixed(3) : '—';
-  var uniqueItems = new Set(timeEntries.map(function(e){return e.price_item_id;})).size;
-  var totalHours = timeEntries.reduce(function(s,e){return s+e.hours;},0);
-  statCards('time-stats',[
-    {label:'Total entries',value:totalEntries,sub:'Time logs recorded'},
-    {label:'Unique line items',value:uniqueItems,sub:'Items tracked'},
-    {label:'Total hours logged',value:totalHours.toFixed(1),sub:'Hours'},
-    {label:'Avg hrs/unit overall',value:avgHpu,sub:'Across all items'},
-  ]);
-
-  // Build averages per item
-  var itemAvgs = {};
-  timeEntries.forEach(function(e){
-    if(!itemAvgs[e.price_item_id]) itemAvgs[e.price_item_id]={count:0,totalHpu:0,item:e.item_name,trade:e.trade,unit:e.unit};
-    itemAvgs[e.price_item_id].count++;
-    itemAvgs[e.price_item_id].totalHpu+=e.hrs_per_unit;
-  });
-
-  var ttbl=document.getElementById('time-entries-tbl');if(!ttbl)return;
-  ttbl.innerHTML = filtered.length
-    ? filtered.map(function(e){
-        var avg = itemAvgs[e.price_item_id]||{count:0,totalHpu:0,unit:e.unit};
-        var avgHpuVal = avg ? (avg.totalHpu/avg.count).toFixed(3) : '—';
-        var dateStr = e.date ? new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
-        return '<tr>'
-          +'<td style="font-weight:600;font-size:12px;max-width:180px;">'+e.item_name+'</td>'
-          +'<td><span class="badge b-gray" style="font-size:10px;">'+e.trade+'</span></td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+(e.job_name||'—')+'</td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+(e.phase||'—')+'</td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+(e.crew||'—')+'</td>'
-          +'<td style="font-weight:600;">'+e.qty+' '+e.unit+'</td>'
-          +'<td style="font-weight:600;">'+e.hours+'h</td>'
-          +'<td style="color:var(--brand);font-weight:700;">'+e.hrs_per_unit.toFixed(3)+' h/'+e.unit+'</td>'
-          +'<td><span class="badge b-blue" style="font-size:10px;">avg: '+avgHpuVal+' h/'+e.unit+' ('+avg.count+' entries)</span></td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+dateStr+'</td>'
-          +'<td style="color:var(--text2);font-size:12px;max-width:150px;">'+(e.notes||'—')+'</td>'
-          +'<td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteTimeEntry(this.dataset.id)" data-id="'+e.id+'">✕</button></td>'
-          +'</tr>';
-      }).join('')
-    : '<tr><td colspan="12" class="empty">No time entries yet — log your first entry to start building your database.</td></tr>';
-}
-
-// ── PRICE TRACKER HELPERS ─────────────────────────────────────────────────────
-function onPeItemChange(){
-  var sel = document.getElementById('pe-item-select');
-  var opt = sel.options[sel.selectedIndex];
-  var info = document.getElementById('pe-item-info');
-  if(!sel.value){ info.style.display='none'; document.getElementById('pe-calc').style.display='none'; return; }
-  var mat=parseFloat(opt.dataset.mat)||0, matH=parseFloat(opt.dataset.math)||mat;
-  var lab=parseFloat(opt.dataset.lab)||0, labH=parseFloat(opt.dataset.labh)||lab;
-  var dbLow=(mat+lab).toFixed(2), dbHigh=(matH+labH).toFixed(2);
-  info.textContent = opt.parentElement.label+' · DB price: $'+dbLow+(dbHigh>dbLow?' – $'+dbHigh:'')+'/'+opt.dataset.unit;
-  info.style.display='block';
-  document.getElementById('pe-unit-label').textContent = opt.dataset.unit||'unit';
-  onPeCalc();
-}
-
-function onPeCalc(){
-  var sel = document.getElementById('pe-item-select');
-  if(!sel.value) return;
-  var opt = sel.options[sel.selectedIndex];
-  var qty = parseFloat(document.getElementById('pe-qty').value)||0;
-  var total = parseFloat(document.getElementById('pe-total').value)||0;
-  var calc = document.getElementById('pe-calc');
-  var ppu = document.getElementById('pe-ppu');
-  var vsDb = document.getElementById('pe-vs-db');
-  if(qty>0 && total>0){
-    calc.style.display='block';
-    var myRate = total/qty;
-    ppu.textContent = '$'+myRate.toFixed(2);
-    var dbLow = (parseFloat(opt.dataset.mat)||0)+(parseFloat(opt.dataset.lab)||0);
-    var dbHigh = (parseFloat(opt.dataset.math)||parseFloat(opt.dataset.mat)||0)+(parseFloat(opt.dataset.labh)||parseFloat(opt.dataset.lab)||0);
-    if(dbLow>0){
-      var pct = ((myRate-dbLow)/dbLow*100).toFixed(0);
-      var color = myRate>=dbLow?'var(--green-txt)':'var(--red-txt)';
-      vsDb.innerHTML = '<span style="color:'+color+';">'+(myRate>=dbLow?'+':'')+pct+'% vs DB</span>';
-    }
-  } else {
-    calc.style.display='none';
-  }
-}
-
-async function savePriceEntry(){
-  var sel = document.getElementById('pe-item-select');
-  if(!sel.value){alert('Please select a line item.');return;}
-  var opt = sel.options[sel.selectedIndex];
-  var qty = parseFloat(document.getElementById('pe-qty').value)||0;
-  var total = parseFloat(document.getElementById('pe-total').value)||0;
-  if(!qty||!total){alert('Please enter quantity and total charged.');return;}
-  var ppu = total/qty;
-  var dbLow = (parseFloat(opt.dataset.mat)||0)+(parseFloat(opt.dataset.lab)||0);
-  var data = {
-    price_item_id: sel.value,
-    item_name: opt.text,
-    trade: opt.parentElement.label,
-    unit: opt.dataset.unit,
-    job_name: document.getElementById('pe-job').value||'',
-    date: document.getElementById('pe-date').value||null,
-    qty: qty,
-    total_charged: total,
-    price_per_unit: ppu,
-    db_price: dbLow,
-    notes: document.getElementById('pe-notes').value||'',
+async function ptSave(){
+  var sel=document.getElementById('pt-item');
+  if(!sel||!sel.value){alert('Select a line item');return;}
+  var opt=sel.options[sel.selectedIndex];
+  var qty=parseFloat(document.getElementById('pt-qty').value)||0;
+  var total=parseFloat(document.getElementById('pt-total').value)||0;
+  if(!qty||!total){alert('Enter qty and total charged');return;}
+  var row={
+    price_item_id:sel.value,
+    item_name:opt.text,
+    trade:opt.dataset.trade,
+    unit:opt.dataset.unit,
+    job_name:document.getElementById('pt-job').value||'',
+    date:document.getElementById('pt-date').value||null,
+    qty:qty, total_charged:total,
+    price_per_unit:total/qty,
+    db_price:parseFloat(opt.dataset.dbprice)||0,
+    notes:document.getElementById('pt-notes').value||''
   };
-  var res = await sb.from('price_logs').insert(data).select();
-  if(res.data) priceEntries.unshift(res.data[0]);
+  var res=await sb.from('price_logs').insert(row).select();
+  if(res.data) ptEntries.unshift(res.data[0]);
   closeModals();
-  renderPriceEntries();
-  ['pe-item-select','pe-job','pe-qty','pe-total','pe-notes'].forEach(function(id){
-    var el=document.getElementById(id); if(el) el.value='';
-  });
-  document.getElementById('pe-item-info').style.display='none';
-  document.getElementById('pe-calc').style.display='none';
+  drawPriceTable();
+  ['pt-job','pt-qty','pt-total','pt-notes'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
 }
 
-async function deletePriceEntry(id){
+function drawPriceTable(){
+  var q=(document.getElementById('pt-search')?.value||'').toLowerCase();
+  var rows=ptEntries.filter(function(e){return !q||e.item_name.toLowerCase().includes(q)||(e.job_name||'').toLowerCase().includes(q);});
+  var el=function(id){return document.getElementById(id);};
+  var totalRev=ptEntries.reduce(function(s,e){return s+(parseFloat(e.total_charged)||0);},0);
+  if(el('pt-s1')) el('pt-s1').textContent=ptEntries.length;
+  if(el('pt-s2')) el('pt-s2').textContent=new Set(ptEntries.map(function(e){return e.price_item_id;})).size;
+  if(el('pt-s3')) el('pt-s3').textContent='$'+Math.round(totalRev).toLocaleString();
+  if(el('pt-s4')) el('pt-s4').textContent=new Set(ptEntries.map(function(e){return e.job_name;}).filter(Boolean)).size;
+  var avgs={};
+  ptEntries.forEach(function(e){if(!avgs[e.price_item_id]){avgs[e.price_item_id]={n:0,sum:0};}avgs[e.price_item_id].n++;avgs[e.price_item_id].sum+=parseFloat(e.price_per_unit)||0;});
+  var tbody=document.getElementById('pt-tbody');
+  if(!tbody)return;
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="11" class="empty">No price entries yet — log your first job to start tracking.</td></tr>';return;}
+  tbody.innerHTML=rows.map(function(e){
+    var a=avgs[e.price_item_id];
+    var avg=a?'$'+(a.sum/a.n).toFixed(2)+'/'+e.unit+' ('+a.n+')':'—';
+    var db=parseFloat(e.db_price)||0;
+    var ppu=parseFloat(e.price_per_unit)||0;
+    var diff=db>0?ppu-db:null;
+    var badge=diff!==null?'<span class="badge '+(diff>=0?'b-green':'b-red')+'">'+(diff>=0?'+':'')+('$'+diff.toFixed(2))+'</span>':'—';
+    var dt=e.date?new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'—';
+    return '<tr>'
+      +'<td style="font-weight:500;font-size:12px;">'+e.item_name+'</td>'
+      +'<td><span class="badge b-gray" style="font-size:10px;">'+e.trade+'</span></td>'
+      +'<td style="font-size:12px;color:var(--text2);">'+(e.job_name||'—')+'</td>'
+      +'<td style="font-size:12px;">'+e.qty+' '+e.unit+'</td>'
+      +'<td style="font-size:12px;color:var(--brand);font-weight:700;">$'+(parseFloat(e.total_charged)||0).toFixed(2)+'</td>'
+      +'<td style="font-size:12px;color:var(--brand);font-weight:700;">$'+ppu.toFixed(2)+'/'+e.unit+'</td>'
+      +'<td style="font-size:12px;color:var(--text2);">'+(db>0?'$'+db.toFixed(2)+'/'+e.unit:'—')+'</td>'
+      +'<td>'+badge+'</td>'
+      +'<td><span class="badge b-blue" style="font-size:10px;">'+avg+'</span></td>'
+      +'<td style="font-size:11px;color:var(--text2);">'+dt+'</td>'
+      +'<td style="font-size:11px;color:var(--text2);">'+(e.notes||'—')+'</td>'
+      +'<td><button class="btn-danger" style="padding:2px 6px;font-size:10px;" onclick="ptDelete(this.dataset.id)" data-id="'+e.id+'">✕</button></td>'
+      +'</tr>';
+  }).join('');
+}
+
+async function ptDelete(id){
   await sb.from('price_logs').delete().eq('id',id);
-  priceEntries = priceEntries.filter(function(e){return e.id!==id;});
-  renderPriceEntries();
-}
-
-function renderPriceEntries(){
-  var q = (document.getElementById('price-track-search')?.value||'').toLowerCase();
-  var tf = document.getElementById('price-trade-filter')?.value||'';
-  var filtered = priceEntries.filter(function(e){
-    var mq = !q || e.item_name.toLowerCase().includes(q) || (e.job_name||'').toLowerCase().includes(q);
-    var mt = !tf || e.trade===tf;
-    return mq&&mt;
-  });
-
-  // Stats
-  var totalEntries = priceEntries.length;
-  var uniqueItems = new Set(priceEntries.map(function(e){return e.price_item_id;})).size;
-  var totalRev = priceEntries.reduce(function(s,e){return s+e.total_charged;},0);
-  var aboveDb = priceEntries.filter(function(e){return e.db_price>0&&e.price_per_unit>=e.db_price;}).length;
-  statCards('price-tracker-stats',[
-    {label:'Price entries',value:totalEntries,sub:'Logged'},
-    {label:'Unique items tracked',value:uniqueItems,sub:'Line items'},
-    {label:'Total revenue logged',value:'$'+Math.round(totalRev).toLocaleString(),sub:'Across all entries'},
-    {label:'Above DB price',value:aboveDb+'/'+totalEntries,sub:'At or above database rate'},
-  ]);
-
-  // Build averages per item
-  var itemAvgs = {};
-  priceEntries.forEach(function(e){
-    if(!itemAvgs[e.price_item_id]) itemAvgs[e.price_item_id]={count:0,totalPpu:0};
-    itemAvgs[e.price_item_id].count++;
-    itemAvgs[e.price_item_id].totalPpu+=e.price_per_unit;
-  });
-
-  var ptbl=document.getElementById('price-entries-tbl');if(!ptbl)return;
-  ptbl.innerHTML = filtered.length
-    ? filtered.map(function(e){
-        var avg = itemAvgs[e.price_item_id]||{count:0,totalPpu:0};
-        var avgPpu = avg.count ? '$'+(avg.totalPpu/avg.count).toFixed(2) : '—';
-        var diff = e.db_price>0 ? e.price_per_unit-e.db_price : null;
-        var diffBadge = diff!==null
-          ? '<span class="badge '+(diff>=0?'b-green':'b-red')+'">'+(diff>=0?'+':'')+('$'+diff.toFixed(2))+'</span>'
-          : '<span class="badge b-gray">—</span>';
-        var dateStr = e.date ? new Date(e.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
-        return '<tr>'
-          +'<td style="font-weight:600;font-size:12px;max-width:180px;">'+e.item_name+'</td>'
-          +'<td><span class="badge b-gray" style="font-size:10px;">'+e.trade+'</span></td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+(e.job_name||'—')+'</td>'
-          +'<td style="font-weight:600;">'+e.qty+' '+e.unit+'</td>'
-          +'<td style="color:var(--brand);font-weight:700;">$'+e.total_charged.toFixed(2)+'</td>'
-          +'<td style="color:var(--brand);font-weight:700;">$'+e.price_per_unit.toFixed(2)+'/'+e.unit+'</td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+(e.db_price>0?'$'+e.db_price.toFixed(2)+'/'+e.unit:'—')+'</td>'
-          +'<td>'+diffBadge+'</td>'
-          +'<td><span class="badge b-blue" style="font-size:10px;">avg: '+avgPpu+'/'+e.unit+' ('+avg.count+')</span></td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+dateStr+'</td>'
-          +'<td style="color:var(--text2);font-size:12px;max-width:140px;">'+(e.notes||'—')+'</td>'
-          +'<td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deletePriceEntry(this.dataset.id)" data-id="'+e.id+'">✕</button></td>'
-          +'</tr>';
-      }).join('')
-    : '<tr><td colspan="12" class="empty">No price entries yet — log your first job to start tracking.</td></tr>';
+  ptEntries=ptEntries.filter(function(e){return e.id!==id;});
+  drawPriceTable();
 }
 
 // ============================================================
@@ -2727,20 +2608,8 @@ function showEstTab(t){
   });
   if(t==='estimator') renderUEItems();
   if(t==='database') renderPriceDatabase();
-  if(t==='time'){
-    try{populateItemSelects();renderTimeEntries();}
-    catch(err){
-      var el=document.getElementById('est-time');
-      if(el)el.innerHTML='<div style="padding:2rem;background:#FCEBEB;border-radius:12px;color:#791F1F;font-size:13px;margin-top:1rem;"><strong>Debug error:</strong><br>'+err.message+'<br><br><pre style="font-size:11px;white-space:pre-wrap;">'+err.stack+'</pre></div>';
-    }
-  }
-  if(t==='price'){
-    try{populateItemSelects();renderPriceEntries();}
-    catch(err){
-      var el2=document.getElementById('est-price');
-      if(el2)el2.innerHTML='<div style="padding:2rem;background:#FCEBEB;border-radius:12px;color:#791F1F;font-size:13px;margin-top:1rem;"><strong>Debug error:</strong><br>'+err.message+'<br><br><pre style="font-size:11px;white-space:pre-wrap;">'+err.stack+'</pre></div>';
-    }
-  }
+  if(t==='time') drawTimeTable();
+  if(t==='price') drawPriceTable();
 }
 
 // ── UNIT PRICE ESTIMATOR ──
@@ -3013,7 +2882,6 @@ async function deleteCustomPrice(id){
   allPrices=getAllPrices();
   renderPriceDatabase();
 }
-
 function openTrackerTab(which){
   // Hide all est-* sections
   ['proposals','estimator','database','time','price'].forEach(function(id){
@@ -3463,49 +3331,32 @@ async function deletePriceEntry(id){
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="savePriceEntry()">Save entry</button></div>
 </div></div>
 
-<!-- TIME ENTRY MODAL -->
-<div class="modal-overlay" id="time-entry-modal"><div class="modal" style="width:560px;"><h3>Log time entry</h3>
-  <div class="fg"><label>Line item</label>
-    <select id="te-item-select" onchange="onTeItemChange()">
-      <option value="">— Select a line item —</option>
-    </select>
-  </div>
-  <div id="te-item-info" style="font-size:12px;color:var(--text2);margin:-6px 0 10px;padding:6px 10px;background:var(--bg2);border-radius:6px;display:none;"></div>
+<!-- TIME MODAL -->
+<div class="modal-overlay" id="tt-modal"><div class="modal" style="width:560px;"><h3>Log time entry</h3>
+  <div class="fg"><label>Line item</label><select id="tt-item"><option value="">— Select —</option></select></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-    <div class="fg"><label>Job name</label><input id="te-job" placeholder="e.g. Johnson Master Bath"/></div>
-    <div class="fg"><label>Phase</label><input id="te-phase" placeholder="e.g. Tile, Framing, Demo..."/></div>
-    <div class="fg"><label>Crew member</label><input id="te-crew" placeholder="e.g. Yourself, Mike..."/></div>
-    <div class="fg"><label>Date</label><input id="te-date" type="date"/></div>
-    <div class="fg"><label>Quantity completed</label><input id="te-qty" type="number" step="0.1" placeholder="e.g. 120"/></div>
-    <div class="fg"><label>Total hours worked</label><input id="te-hours" type="number" step="0.25" placeholder="e.g. 8"/></div>
+    <div class="fg"><label>Job name</label><input id="tt-job" placeholder="e.g. Johnson Bath"/></div>
+    <div class="fg"><label>Phase</label><input id="tt-phase" placeholder="e.g. Tile, Demo..."/></div>
+    <div class="fg"><label>Crew member</label><input id="tt-crew" placeholder="e.g. Justin"/></div>
+    <div class="fg"><label>Date</label><input id="tt-date" type="date"/></div>
+    <div class="fg"><label>Qty completed</label><input id="tt-qty" type="number" step="0.1" placeholder="e.g. 120"/></div>
+    <div class="fg"><label>Total hours</label><input id="tt-hrs" type="number" step="0.25" placeholder="e.g. 8"/></div>
   </div>
-  <div id="te-calc" style="background:var(--brand-light);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px;display:none;">
-    <strong style="color:var(--brand);">Calculated: <span id="te-hpu">—</span> hrs/<span id="te-unit-label">unit</span></strong>
-  </div>
-  <div class="fg"><label>Notes <span style="color:var(--text3);font-weight:400;">(conditions, difficulty, etc.)</span></label><input id="te-notes" placeholder="e.g. Tight access, old house, lots of cuts..."/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveTimeEntry()">Save entry</button></div>
+  <div class="fg"><label>Notes</label><input id="tt-notes" placeholder="e.g. Tight access, old materials..."/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="ttSave()">Save</button></div>
 </div></div>
 
-<!-- PRICE ENTRY MODAL -->
-<div class="modal-overlay" id="price-entry-modal"><div class="modal" style="width:560px;"><h3>Log price entry</h3>
-  <div class="fg"><label>Line item</label>
-    <select id="pe-item-select" onchange="onPeItemChange()">
-      <option value="">— Select a line item —</option>
-    </select>
-  </div>
-  <div id="pe-item-info" style="font-size:12px;color:var(--text2);margin:-6px 0 10px;padding:6px 10px;background:var(--bg2);border-radius:6px;display:none;"></div>
+<!-- PRICE MODAL -->
+<div class="modal-overlay" id="pt-modal"><div class="modal" style="width:560px;"><h3>Log price entry</h3>
+  <div class="fg"><label>Line item</label><select id="pt-item"><option value="">— Select —</option></select></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-    <div class="fg"><label>Job name</label><input id="pe-job" placeholder="e.g. Johnson Master Bath"/></div>
-    <div class="fg"><label>Date</label><input id="pe-date" type="date"/></div>
-    <div class="fg"><label>Quantity</label><input id="pe-qty" type="number" step="0.1" placeholder="e.g. 120" oninput="onPeCalc()"/></div>
-    <div class="fg"><label>Total amount charged ($)</label><input id="pe-total" type="number" step="0.01" placeholder="e.g. 7200" oninput="onPeCalc()"/></div>
+    <div class="fg"><label>Job name</label><input id="pt-job" placeholder="e.g. Johnson Bath"/></div>
+    <div class="fg"><label>Date</label><input id="pt-date" type="date"/></div>
+    <div class="fg"><label>Quantity</label><input id="pt-qty" type="number" step="0.1" placeholder="e.g. 120"/></div>
+    <div class="fg"><label>Total charged ($)</label><input id="pt-total" type="number" step="0.01" placeholder="e.g. 7200"/></div>
   </div>
-  <div id="pe-calc" style="background:var(--brand-light);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:12px;display:none;">
-    <strong style="color:var(--brand);">Your rate: <span id="pe-ppu">—</span>/<span id="pe-unit-label">unit</span></strong>
-    &nbsp;&nbsp;<span id="pe-vs-db" style="font-size:12px;color:var(--text2);"></span>
-  </div>
-  <div class="fg"><label>Notes <span style="color:var(--text3);font-weight:400;">(scope, conditions, etc.)</span></label><input id="pe-notes" placeholder="e.g. High-end client, complex layout, premium materials..."/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="savePriceEntry()">Save entry</button></div>
+  <div class="fg"><label>Notes</label><input id="pt-notes" placeholder="e.g. High-end client, complex scope..."/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="ptSave()">Save</button></div>
 </div></div>
 </body>
 </html>
