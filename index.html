@@ -1423,6 +1423,7 @@ function drawTimeDB(){
         +'<td style="padding:8px 13px;font-size:12px;font-weight:600;color:'+deltaColor+';">'+deltaStr+'</td>'
         +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+dt+'</td>'
         +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+(e.notes||'—')+'</td>'
+        +'<td style="padding:8px 13px;"><button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+e.id+'" onclick="ttDelete(this.dataset.id);event.stopPropagation()">✕</button></td>'
         +'</tr>';
     }).join('');
 
@@ -1443,9 +1444,9 @@ function drawTimeDB(){
       +(isOpen?
         '<div style="border-top:1px solid var(--border);overflow-x:auto;">'
         +'<table class="tbl"><thead><tr>'
-        +'<th>Job</th><th>Phase</th><th>Crew</th><th>Qty</th><th>Hours</th><th>Hrs/Unit</th><th>Delta vs avg</th><th>Date</th><th>Notes</th>'
+        +'<th>Job</th><th>Phase</th><th>Crew</th><th>Qty</th><th>Hours</th><th>Hrs/Unit</th><th>Delta vs avg</th><th>Date</th><th>Notes</th><th></th>'
         +'</tr></thead><tbody>'+entryRows+'</tbody></table></div>'
-      :'')
+      :'') 
       +'</div>';
   }).join('');
 }
@@ -1498,6 +1499,7 @@ function drawPriceDB(){
         +'<td style="padding:8px 13px;font-size:12px;font-weight:600;color:'+deltaColor+';">'+deltaStr+'</td>'
         +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+dt+'</td>'
         +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+(e.notes||'—')+'</td>'
+        +'<td style="padding:8px 13px;"><button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+e.id+'" onclick="ptDelete(this.dataset.id);event.stopPropagation()">✕</button></td>'
         +'</tr>';
     }).join('');
 
@@ -1520,7 +1522,7 @@ function drawPriceDB(){
       +(isOpen?
         '<div style="border-top:1px solid var(--border);overflow-x:auto;">'
         +'<table class="tbl"><thead><tr>'
-        +'<th>Job</th><th>Qty</th><th>Total charged</th><th>$/Unit</th><th>Delta vs my avg</th><th>Date</th><th>Notes</th>'
+        +'<th>Job</th><th>Qty</th><th>Total charged</th><th>$/Unit</th><th>Delta vs my avg</th><th>Date</th><th>Notes</th><th></th>'
         +'</tr></thead><tbody>'+entryRows+'</tbody></table></div>'
       :'')
       +'</div>';
@@ -1566,7 +1568,7 @@ function drawTimeTable(){
 async function ttDelete(id){
   await sb.from('time_logs').delete().eq('id',id);
   ttEntries=ttEntries.filter(function(e){return e.id!==id;});
-  drawTimeTable();
+  drawTimeDB();
 }
 
 async function ptSave(){
@@ -1637,7 +1639,7 @@ function drawPriceTable(){
 async function ptDelete(id){
   await sb.from('price_logs').delete().eq('id',id);
   ptEntries=ptEntries.filter(function(e){return e.id!==id;});
-  drawPriceTable();
+  drawPriceDB();
 }
 
 // ============================================================
@@ -2734,7 +2736,7 @@ function getAllPrices(){
   BUILTIN_PRICES.forEach(function(p){map[p.id]=Object.assign({},p);});
   customPrices.forEach(function(p){map[p.id]=Object.assign({},p);});
   // Ensure mat_high/lab_high default to mat/lab if not set
-  return Object.values(map).sort(function(a,b){return a.trade.localeCompare(b.trade)||a.item.localeCompare(b.item);}).map(function(p){
+  return Object.values(map).filter(function(p){return !p.hidden;}).sort(function(a,b){return a.trade.localeCompare(b.trade)||a.item.localeCompare(b.item);}).map(function(p){
     if(!p.mat_high||p.mat_high===0) p.mat_high=p.mat;
     if(!p.lab_high||p.lab_high===0) p.lab_high=p.lab;
     return p;
@@ -3226,6 +3228,21 @@ function renderPriceDatabase(){
           +'</tr>';
       }).join('')
     : '<tr><td colspan="7" class="empty">No items match</td></tr>';
+}
+
+async function deleteAnyPrice(id){
+  if(!confirm('Delete this item from your price database?')) return;
+  var isCustom = customPrices.some(function(p){return p.id===id;});
+  if(isCustom){
+    await sb.from('custom_prices').delete().eq('id',id);
+    customPrices = customPrices.filter(function(p){return p.id!==id;});
+  } else {
+    // For builtins, store a hidden flag so they don't show up
+    await sb.from('custom_prices').insert({id:id,trade:'',item:'',unit:'',mat:0,lab:0,hidden:true}).select();
+    customPrices.push({id:id,hidden:true});
+  }
+  allPrices = getAllPrices();
+  renderPriceDatabase();
 }
 
 async function updatePrice(id, field, val){
