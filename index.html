@@ -473,7 +473,7 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
         <option>Demo & Site Work</option><option>Concrete & Foundation</option><option>Framing</option><option>Roofing</option><option>Exterior</option><option>Insulation</option><option>Drywall</option><option>Interior Trim & Millwork</option><option>Flooring</option><option>Painting</option><option>Cabinets & Countertops</option><option>Tile</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Decks & Outdoor</option><option>Doors & Windows</option><option>Specialties</option>
       </select>
     </div>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Trade</th><th>Item</th><th>Unit</th><th>Mat Low</th><th>Mat High</th><th>Check</th><th>My Supplier</th><th>Direct Link</th><th>Lab Low</th><th>Lab High</th><th>Range/Unit</th><th></th></tr></thead><tbody id="price-db-tbl"></tbody></table></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Trade</th><th>Item</th><th>Unit</th><th>Mat Low</th><th>Mat High</th><th>Check</th><th>My Supplier</th><th>Lab Low</th><th>Lab High</th><th>Range/Unit</th><th></th></tr></thead><tbody id="price-db-tbl"></tbody></table></div>
 
   <!-- TIME TRACKER -->
   <!-- ALWAYS VISIBLE TRACKER SECTION -->
@@ -2922,7 +2922,17 @@ function checkPriceBtn(p){
         +'</a>';
     }
   }
-  return btns||'<span style="color:var(--text3);font-size:11px;">None selected</span>';
+  // Direct link button
+  var cp2 = customPrices.find(function(c){return c.id===p.id;});
+  var dlink = cp2 ? (cp2.direct_link||'') : '';
+  if(dlink){
+    btns += '<a href="'+dlink+'" target="_blank" style="text-decoration:none;">'
+      +'<button style="background:#27500A;color:white;border:none;border-radius:4px;padding:3px 7px;font-size:10px;font-weight:600;cursor:pointer;margin:1px;" title="My direct link">🔗</button>'
+      +'</a>';
+  }
+  // Add/edit link icon
+  btns += '<button data-pid="'+p.id+'" onclick="openLinkModal(this.dataset.pid)" style="background:none;border:1px solid var(--border);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;margin:1px;color:var(--text3);" title="'+(dlink?'Edit':'Add')+' direct link">'+(dlink?'✏️':'🔗+')+'</button>';
+  return btns||'<span style="color:var(--text3);font-size:11px;margin-right:4px;">—</span>'+'<button data-pid="'+p.id+'" onclick="openLinkModal(this.dataset.pid)" style="background:none;border:1px solid var(--border);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;color:var(--text3);" title="Add direct link">🔗+</button>';
 }
 
 function supplierDropdown(p){
@@ -2963,6 +2973,24 @@ function directLinkCell(p){
       +'</div>';
   }
   return '<input placeholder="Paste URL..." data-pid="'+p.id+'" style="width:90px;font-size:11px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onblur="saveDirectLink(this.dataset.pid,this.value)"/>';
+}
+
+var currentLinkPriceId = null;
+function openLinkModal(id){
+  currentLinkPriceId = id;
+  var cp = customPrices.find(function(c){return c.id===id;});
+  var existing = cp ? (cp.direct_link||'') : '';
+  document.getElementById('link-modal-input').value = existing;
+  openModal('direct-link-modal');
+}
+async function saveLinkModal(){
+  var url = document.getElementById('link-modal-input').value.trim();
+  await saveDirectLink(currentLinkPriceId, url);
+  closeModals();
+}
+async function removeLinkModal(){
+  await clearDirectLink(currentLinkPriceId);
+  closeModals();
 }
 
 async function saveDirectLink(id, url){
@@ -3011,7 +3039,6 @@ function renderPriceDatabase(){
           +'<td><input type="number" value="'+p.mat_high.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'mat_high\',this.value)" /></td>'
           +'<td>'+checkPriceBtn(p)+'</td>'
           +'<td>'+supplierDropdown(p)+'</td>'
-          +'<td>'+directLinkCell(p)+'</td>'
           +'<td><input type="number" value="'+p.lab.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'lab\',this.value)" /></td>'
           +'<td><input type="number" value="'+p.lab_high.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'lab_high\',this.value)" /></td>'
           +'<td style="font-weight:700;color:var(--brand);white-space:nowrap;">$'+(p.mat+p.lab).toFixed(2)+(p.mat_high+p.lab_high>p.mat+p.lab?' – $'+(p.mat_high+p.lab_high).toFixed(2):'')+'/'+p.unit+'</td>'
@@ -3543,6 +3570,13 @@ async function deletePriceEntry(id){
   <div class="fg"><label>Search URL</label><input id="sm-url" placeholder="e.g. https://www.menards.com/main/search.html?search="/></div>
   <div style="font-size:12px;color:var(--text2);margin-top:-6px;margin-bottom:10px;">The item name will be appended to this URL when searching.</div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveCustomStore()">Add store</button></div>
+</div></div>
+
+<!-- DIRECT LINK MODAL -->
+<div class="modal-overlay" id="direct-link-modal"><div class="modal" style="width:440px;"><h3>Direct product link</h3>
+  <div class="fg"><label>Paste URL</label><input id="link-modal-input" placeholder="https://www.homedepot.com/p/specific-product..."/></div>
+  <p style="font-size:12px;color:var(--text2);margin-top:-6px;">Paste the exact URL for this item on any website. It will appear as a 🔗 button in the Check column.</p>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-danger" onclick="removeLinkModal()">Remove link</button><button class="btn-primary" onclick="saveLinkModal()">Save</button></div>
 </div></div>
 </body>
 </html>
