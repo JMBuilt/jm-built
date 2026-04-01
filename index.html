@@ -461,6 +461,11 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
       <div><div class="hub-title">Unit Price Database</div><div class="hub-sub">Cincinnati / SW Ohio pricing. All prices are fully editable — click any price to update it.</div></div>
       <button class="btn-primary" onclick="openModal('add-price-modal')">+ Add item</button>
     </div>
+    <!-- Price check store settings -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-header"><span class="card-title">Price check stores</span><button class="btn-sm" onclick="openModal('store-modal')">+ Add custom store</button></div>
+      <div style="padding:10px 1rem;display:flex;flex-wrap:wrap;gap:8px;align-items:center;" id="store-settings-row"></div>
+    </div>
     <div style="display:flex;gap:10px;margin-bottom:.75rem;">
       <input id="db-price-search" placeholder="Search items..." style="flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="renderPriceDatabase()"/>
       <select id="db-trade-filter" style="font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" onchange="renderPriceDatabase()">
@@ -883,7 +888,8 @@ async function loadAll(){
     leadNotes={};(notes.data||[]).forEach(n=>{if(!leadNotes[n.lead_id])leadNotes[n.lead_id]=[];leadNotes[n.lead_id].push(n);});
     subHistory={};(hist.data||[]).forEach(h=>{if(!subHistory[h.sub_id])subHistory[h.sub_id]=[];subHistory[h.sub_id].push(h);});
     salesNotes=(sn&&sn.data)||[];salesTasks=(st&&st.data)||[];
-    setSync(true);await loadOrders();await backfillOrderForms();await loadCustomPrices();allPrices=getAllPrices();try{await loadTrackers();}catch(e){ttEntries=[];ptEntries=[];}renderDash();
+    setSync(true);await loadOrders();await backfillOrderForms();await loadCustomPrices();allPrices=getAllPrices();try{await loadTrackers();}catch(e){ttEntries=[];ptEntries=[];}
+    try{await loadStoreSettings();}catch(e){}renderDash();
     // Setup drag/drop on all doc textareas after load
     setupDocDragDrop();
   }catch(err){setSync(false);console.error(err);}
@@ -2815,29 +2821,100 @@ function printEstimate(){
 
 // ── PRICE DATABASE ──
 
-// Materials-only trades where HD/Lowes search makes sense
-const MATERIAL_TRADES = ['Drywall','Framing','Roofing','Exterior','Insulation','Flooring','Tile','Doors & Windows','Decks & Outdoor','Concrete & Foundation','Specialties'];
+
+// ── PRICE CHECK STORES ────────────────────────────────────────────────────────
+const PRESET_STORES = [
+  {name:'Home Depot', short:'HD', url:'https://www.homedepot.com/s/', color:'#f96302'},
+  {name:'Lowes',      short:'Lowes', url:'https://www.lowes.com/search?searchTerm=', color:'#004990'},
+  {name:'Menards',    short:'Menards', url:'https://www.menards.com/main/search.html?search=', color:'#e31837'},
+  {name:'Amazon',     short:'Amazon', url:'https://www.amazon.com/s?k=', color:'#ff9900'},
+  {name:'Ferguson',   short:'Ferguson', url:'https://www.ferguson.com/search?term=', color:'#c8000a'},
+  {name:'ABC Supply', short:'ABC', url:'https://www.abcsupply.com/search?search=', color:'#003087'},
+  {name:'84 Lumber',  short:'84 Lbr', url:'https://www.84lumber.com/search/?q=', color:'#ffbe00'},
+  {name:'Fastenal',   short:'Fastenal', url:'https://www.fastenal.com/search/results?searchTerm=', color:'#0033a0'},
+];
+var activeStores = ['Home Depot','Lowes']; // default
+var customStores = [];
+
+async function loadStoreSettings(){
+  var res = await sb.from('settings').select('value').eq('key','price_check_stores').single();
+  if(res.data){
+    try{
+      var d = JSON.parse(res.data.value);
+      activeStores = d.active||['Home Depot','Lowes'];
+      customStores = d.custom||[];
+    }catch(e){}
+  }
+}
+
+async function saveStoreSettings(){
+  var val = JSON.stringify({active:activeStores, custom:customStores});
+  var exists = await sb.from('settings').select('key').eq('key','price_check_stores').single();
+  if(exists.data){
+    await sb.from('settings').update({value:val}).eq('key','price_check_stores');
+  } else {
+    await sb.from('settings').insert({key:'price_check_stores',value:val});
+  }
+}
+
+function renderStoreSettings(){
+  var row = document.getElementById('store-settings-row');
+  if(!row) return;
+    var allStores = PRESET_STORES.concat(customStores.map(function(s){return {name:s.name,short:s.name.slice(0,8),url:s.url,color:'#555',custom:true};}));
+    row.innerHTML = allStores.map(function(s){
+      var active = activeStores.includes(s.name);
+      var delBtn = s.custom ? ' <button onclick="deleteCustomStore(this.dataset.n)" data-n="'+s.name+'" style="background:none;border:none;cursor:pointer;color:inherit;opacity:0.7;font-size:11px;padding:0 2px;">✕</button>' : '';
+      return '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:5px 10px;border-radius:7px;border:1px solid '+(active?s.color:'var(--border)')+';background:'+(active?s.color+'18':'var(--surface)')+';font-size:12px;font-weight:600;color:'+(active?s.color:'var(--text2)');'">'
+        +'<input type="checkbox" '+(active?'checked':'')+' data-sname="'+s.name+'" onchange="toggleStore(this.dataset.sname,this.checked)" style="accent-color:'+s.color+'"/>'
+        +s.name+delBtn+'</label>';
+    }).join('');
+}
+
+async function toggleStore(name, active){
+  if(active && !activeStores.includes(name)) activeStores.push(name);
+  if(!active) activeStores = activeStores.filter(function(n){return n!==name;});
+  await saveStoreSettings();
+  renderStoreSettings();
+  renderPriceDatabase();
+}
+
+async function saveCustomStore(){
+  var name = document.getElementById('sm-name').value.trim();
+  var url  = document.getElementById('sm-url').value.trim();
+  if(!name||!url){alert('Enter both a store name and URL.');return;}
+  if(!url.endsWith('=')&&!url.endsWith('/')) url += '=';
+  customStores.push({name,url});
+  activeStores.push(name);
+  await saveStoreSettings();
+  closeModals();
+  renderStoreSettings();
+  renderPriceDatabase();
+  document.getElementById('sm-name').value='';
+  document.getElementById('sm-url').value='';
+}
+
+async function deleteCustomStore(name){
+  customStores = customStores.filter(function(s){return s.name!==name;});
+  activeStores = activeStores.filter(function(n){return n!==name;});
+  await saveStoreSettings();
+  renderStoreSettings();
+  renderPriceDatabase();
+}
 
 function checkPriceBtn(p){
-  // Only show for items that have material cost and are in material-heavy trades
-  if(p.mat===0) return '<span style="color:var(--text3);font-size:11px;">Labor only</span>';
-  // Build a clean search term - strip install/supply verbs and per-unit notes
-  var search = p.item
-    .replace(/supply & install|install|supply only|per (EA|SF|LF|SQ|HR)|[-–].*/gi,'')
-    .replace(/\(.*?\)/g,'')
-    .trim();
-  var hdUrl = 'https://www.homedepot.com/s/'+encodeURIComponent(search);
-  var lwUrl = 'https://www.lowes.com/search?searchTerm='+encodeURIComponent(search);
-  return '<div style="display:flex;gap:4px;">'
-    +'<a href="'+hdUrl+'" target="_blank" style="text-decoration:none;">'
-    +'<button style="background:#f96302;color:white;border:none;border-radius:4px;padding:3px 7px;font-size:10px;font-weight:600;cursor:pointer;">HD</button>'
-    +'</a>'
-    +'<a href="'+lwUrl+'" target="_blank" style="text-decoration:none;">'
-    +'<button style="background:#004990;color:white;border:none;border-radius:4px;padding:3px 7px;font-size:10px;font-weight:600;cursor:pointer;">Lowes</button>'
-    +'</a>'
-    +'</div>';
+  if(p.mat===0 && p.mat_high===0) return '<span style="color:var(--text3);font-size:11px;">Labor only</span>';
+  var search = p.item.replace(/supply & install|install|supply only|per (EA|SF|LF|SQ|HR)|[-–].*/gi,'').replace(/\(.*?\)/g,'').trim();
+  var allStores = PRESET_STORES.concat(customStores.map(function(s){return {name:s.name,short:s.name.slice(0,8),url:s.url,color:'#555'};}));
+  var btns = allStores.filter(function(s){return activeStores.includes(s.name);}).map(function(s){
+    return '<a href="'+s.url+encodeURIComponent(search)+'" target="_blank" style="text-decoration:none;">'
+      +'<button style="background:'+s.color+';color:white;border:none;border-radius:4px;padding:3px 7px;font-size:10px;font-weight:600;cursor:pointer;margin:1px;">'+s.short+'</button>'
+      +'</a>';
+  }).join('');
+  return btns||'<span style="color:var(--text3);font-size:11px;">None selected</span>';
 }
+
 function renderPriceDatabase(){
+  renderStoreSettings();
   var q=(document.getElementById('db-price-search')?.value||'').toLowerCase();
   var tf=document.getElementById('db-trade-filter')?.value||'';
   var prices=getAllPrices().filter(function(p){
@@ -3379,6 +3456,14 @@ async function deletePriceEntry(id){
   </div>
   <div class="fg"><label>Notes</label><input id="pt-notes" placeholder="e.g. High-end client, complex scope..."/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="ptSave()">Save</button></div>
+</div></div>
+
+<!-- STORE MODAL -->
+<div class="modal-overlay" id="store-modal"><div class="modal"><h3>Add custom price check store</h3>
+  <div class="fg"><label>Store name</label><input id="sm-name" placeholder="e.g. Menards, Ferguson, ABC Supply"/></div>
+  <div class="fg"><label>Search URL</label><input id="sm-url" placeholder="e.g. https://www.menards.com/main/search.html?search="/></div>
+  <div style="font-size:12px;color:var(--text2);margin-top:-6px;margin-bottom:10px;">The item name will be appended to this URL when searching.</div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveCustomStore()">Add store</button></div>
 </div></div>
 </body>
 </html>
