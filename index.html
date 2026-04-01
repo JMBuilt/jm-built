@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>JM Built v2</title>
+<title>JM Built v3</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <style>
@@ -471,7 +471,7 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Trade</th><th>Item</th><th>Unit</th><th>Mat Low</th><th>Mat High</th><th>Check</th><th>Lab Low</th><th>Lab High</th><th>Range/Unit</th><th></th></tr></thead><tbody id="price-db-tbl"></tbody></table></div>
 
   <!-- TIME TRACKER -->
-  <div id="est-time" style="display:none;min-height:400px;">
+  <div id="est-time" style="display:none;">
     <div class="hub-header">
       <div><div class="hub-title">⏱ Time Tracker</div><div class="hub-sub">Log how long each line item actually takes. Builds your real labor hour database over time.</div></div>
       <button class="btn-primary" onclick="openTimeModal()">+ Log time</button>
@@ -493,7 +493,7 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
     </div>
   </div>
 
-  <div id="est-price" style="display:none;min-height:400px;">
+  <div id="est-price" style="display:none;">
     <div class="hub-header">
       <div><div class="hub-title">💲 Price Tracker</div><div class="hub-sub">Log what you actually charge. Builds your real market pricing database over time.</div></div>
       <button class="btn-primary" onclick="openPriceModal()">+ Log price</button>
@@ -2600,6 +2600,7 @@ async function loadCustomPrices(){
   allPrices = getAllPrices();
 }
 
+var estTabsInitialized={};
 function showEstTab(t){
   // Show/hide tabs
   ['proposals','estimator','database','time','price'].forEach(function(id){
@@ -2611,17 +2612,23 @@ function showEstTab(t){
     var btn=document.getElementById('est-tab-'+id);
     if(btn) btn.classList.toggle('active',id===t);
   });
-  // Force reflow then render — setTimeout lets browser paint the div first
+  // If this tab has never been shown before, we need two render passes
+  // to let the browser calculate layout after display:none -> block transition
   var target=document.getElementById('est-'+t);
-  if(target){
-    void target.offsetHeight; // force layout
+  if(!estTabsInitialized[t] && target){
+    // First pass: make it briefly visible off-screen to force layout
+    target.style.position='absolute';
+    target.style.visibility='hidden';
+    target.style.display='block';
+    void target.offsetHeight; // force layout calculation
+    target.style.position='';
+    target.style.visibility='';
+    estTabsInitialized[t]=true;
   }
-  setTimeout(function(){
-    if(t==='estimator') renderUEItems();
-    if(t==='database') renderPriceDatabase();
-    if(t==='time') drawTimeTable();
-    if(t==='price') drawPriceTable();
-  },0);
+  if(t==='estimator') renderUEItems();
+  if(t==='database') renderPriceDatabase();
+  if(t==='time') drawTimeTable();
+  if(t==='price') drawPriceTable();
 }
 
 // ── UNIT PRICE ESTIMATOR ──
