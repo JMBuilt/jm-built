@@ -1423,7 +1423,10 @@ function drawTimeDB(){
         +'<td style="padding:8px 13px;font-size:12px;font-weight:600;color:'+deltaColor+';">'+deltaStr+'</td>'
         +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+dt+'</td>'
         +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+(e.notes||'—')+'</td>'
-        +'<td style="padding:8px 13px;"><button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+e.id+'" onclick="ttDelete(this.dataset.id);event.stopPropagation()">✕</button></td>'
+        +'<td style="padding:6px 13px;white-space:nowrap;">'
+        +'<button class="btn-sm" style="padding:2px 7px;font-size:10px;margin-right:3px;" data-id="'+e.id+'" onclick="openEditTimeEntry(this.dataset.id);event.stopPropagation()">Edit</button>'
+        +'<button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+e.id+'" data-name="'+e.item_name+'" onclick="confirmTTDelete(this.dataset.id,this.dataset.name);event.stopPropagation()">Delete</button>'
+        +'</td>'
         +'</tr>';
     }).join('');
 
@@ -1499,7 +1502,10 @@ function drawPriceDB(){
         +'<td style="padding:8px 13px;font-size:12px;font-weight:600;color:'+deltaColor+';">'+deltaStr+'</td>'
         +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+dt+'</td>'
         +'<td style="padding:8px 13px;font-size:12px;color:var(--text2);">'+(e.notes||'—')+'</td>'
-        +'<td style="padding:8px 13px;"><button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+e.id+'" onclick="ptDelete(this.dataset.id);event.stopPropagation()">✕</button></td>'
+        +'<td style="padding:6px 13px;white-space:nowrap;">'
+        +'<button class="btn-sm" style="padding:2px 7px;font-size:10px;margin-right:3px;" data-id="'+e.id+'" onclick="openEditPriceEntry(this.dataset.id);event.stopPropagation()">Edit</button>'
+        +'<button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+e.id+'" data-name="'+e.item_name+'" onclick="confirmPTDelete(this.dataset.id,this.dataset.name);event.stopPropagation()">Delete</button>'
+        +'</td>'
         +'</tr>';
     }).join('');
 
@@ -1563,6 +1569,82 @@ function drawTimeTable(){
       +'<td><button class="btn-danger" style="padding:2px 6px;font-size:10px;" onclick="ttDelete(this.dataset.id)" data-id="'+e.id+'">✕</button></td>'
       +'</tr>';
   }).join('');
+}
+
+// ── CONFIRM DELETE HELPERS ────────────────────────────────────────────────────
+function confirmDeletePrice(id, name){
+  if(!confirm('Delete "'+name+'" from your price database?')) return;
+  deleteAnyPrice(id);
+}
+function confirmTTDelete(id, name){
+  if(!confirm('Delete this time entry for "'+name+'"?')) return;
+  ttDelete(id);
+}
+function confirmPTDelete(id, name){
+  if(!confirm('Delete this price entry for "'+name+'"?')) return;
+  ptDelete(id);
+}
+
+// ── EDIT TIME ENTRY ───────────────────────────────────────────────────────────
+function openEditTimeEntry(id){
+  var e = ttEntries.find(function(x){return x.id===id;});
+  if(!e) return;
+  document.getElementById('tt-edit-id').value = id;
+  document.getElementById('tt-edit-job').value = e.job_name||'';
+  document.getElementById('tt-edit-phase').value = e.phase||'';
+  document.getElementById('tt-edit-crew').value = e.crew||'';
+  document.getElementById('tt-edit-qty').value = e.qty||'';
+  document.getElementById('tt-edit-hours').value = e.hours||'';
+  document.getElementById('tt-edit-notes').value = e.notes||'';
+  document.getElementById('tt-edit-item').textContent = e.item_name;
+  openModal('tt-edit-modal');
+}
+async function saveEditTimeEntry(){
+  var id = document.getElementById('tt-edit-id').value;
+  var qty = parseFloat(document.getElementById('tt-edit-qty').value)||0;
+  var hours = parseFloat(document.getElementById('tt-edit-hours').value)||0;
+  if(!qty||!hours){alert('Enter qty and hours');return;}
+  var data = {
+    job_name: document.getElementById('tt-edit-job').value||'',
+    phase: document.getElementById('tt-edit-phase').value||'',
+    crew: document.getElementById('tt-edit-crew').value||'',
+    qty: qty, hours: hours,
+    hrs_per_unit: hours/qty,
+    notes: document.getElementById('tt-edit-notes').value||'',
+  };
+  await sb.from('time_logs').update(data).eq('id',id);
+  var e = ttEntries.find(function(x){return x.id===id;});
+  if(e) Object.assign(e,data);
+  closeModals(); drawTimeDB();
+}
+
+// ── EDIT PRICE ENTRY ──────────────────────────────────────────────────────────
+function openEditPriceEntry(id){
+  var e = ptEntries.find(function(x){return x.id===id;});
+  if(!e) return;
+  document.getElementById('pt-edit-id').value = id;
+  document.getElementById('pt-edit-job').value = e.job_name||'';
+  document.getElementById('pt-edit-qty').value = e.qty||'';
+  document.getElementById('pt-edit-total').value = e.total_charged||'';
+  document.getElementById('pt-edit-notes').value = e.notes||'';
+  document.getElementById('pt-edit-item').textContent = e.item_name;
+  openModal('pt-edit-modal');
+}
+async function saveEditPriceEntry(){
+  var id = document.getElementById('pt-edit-id').value;
+  var qty = parseFloat(document.getElementById('pt-edit-qty').value)||0;
+  var total = parseFloat(document.getElementById('pt-edit-total').value)||0;
+  if(!qty||!total){alert('Enter qty and total');return;}
+  var data = {
+    job_name: document.getElementById('pt-edit-job').value||'',
+    qty: qty, total_charged: total,
+    price_per_unit: total/qty,
+    notes: document.getElementById('pt-edit-notes').value||'',
+  };
+  await sb.from('price_logs').update(data).eq('id',id);
+  var e = ptEntries.find(function(x){return x.id===id;});
+  if(e) Object.assign(e,data);
+  closeModals(); drawPriceDB();
 }
 
 async function ttDelete(id){
@@ -3224,7 +3306,10 @@ function renderPriceDatabase(){
           +'<td><input type="number" value="'+p.lab.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'lab\',this.value)" /></td>'
           +'<td><input type="number" value="'+p.lab_high.toFixed(2)+'" step="0.01" style="width:65px;font-size:12px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;" onchange="updatePrice(\''+p.id+'\',\'lab_high\',this.value)" /></td>'
           +'<td style="font-weight:700;color:var(--brand);white-space:nowrap;">$'+(p.mat+p.lab).toFixed(2)+(p.mat_high+p.lab_high>p.mat+p.lab?' – $'+(p.mat_high+p.lab_high).toFixed(2):'')+'/'+p.unit+'</td>'
-          +'<td>'+(isCustom?'<button class="btn-danger" style="padding:2px 7px;font-size:10px;" onclick="deleteCustomPrice(\''+p.id+'\')">Delete</button>':'')+'</td>'
+          +'<td style="white-space:nowrap;">'
+          +'<button class="btn-sm" style="padding:2px 7px;font-size:10px;margin-right:3px;" data-pid="'+p.id+'" onclick="openEditPrice(this.dataset.pid)">Edit</button>'
+          +'<button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-pid="'+p.id+'" data-pname="'+p.item.slice(0,30)+'" onclick="confirmDeletePrice(this.dataset.pid,this.dataset.pname)">Delete</button>'
+          +'</td>'
           +'</tr>';
       }).join('')
     : '<tr><td colspan="7" class="empty">No items match</td></tr>';
@@ -3867,6 +3952,34 @@ async function deletePriceEntry(id){
 <div class="modal-overlay" id="restore-modal"><div class="modal"><h3>Restore deleted items</h3>
   <div id="restore-list" style="max-height:400px;overflow-y:auto;"></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Close</button></div>
+</div></div>
+
+<!-- TIME ENTRY EDIT MODAL -->
+<div class="modal-overlay" id="tt-edit-modal"><div class="modal"><h3>Edit time entry</h3>
+  <input type="hidden" id="tt-edit-id"/>
+  <div id="tt-edit-item" style="font-size:13px;font-weight:600;padding:8px 12px;background:var(--bg2);border-radius:8px;margin-bottom:12px;color:var(--brand);"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="fg"><label>Job name</label><input id="tt-edit-job"/></div>
+    <div class="fg"><label>Phase</label><input id="tt-edit-phase"/></div>
+    <div class="fg"><label>Crew member</label><input id="tt-edit-crew"/></div>
+    <div class="fg"><label>Quantity completed</label><input id="tt-edit-qty" type="number" step="0.1"/></div>
+    <div class="fg"><label>Total hours</label><input id="tt-edit-hours" type="number" step="0.25"/></div>
+  </div>
+  <div class="fg"><label>Notes</label><input id="tt-edit-notes"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEditTimeEntry()">Save changes</button></div>
+</div></div>
+
+<!-- PRICE ENTRY EDIT MODAL -->
+<div class="modal-overlay" id="pt-edit-modal"><div class="modal"><h3>Edit price entry</h3>
+  <input type="hidden" id="pt-edit-id"/>
+  <div id="pt-edit-item" style="font-size:13px;font-weight:600;padding:8px 12px;background:var(--bg2);border-radius:8px;margin-bottom:12px;color:var(--brand);"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="fg"><label>Job name</label><input id="pt-edit-job"/></div>
+    <div class="fg"><label>Quantity</label><input id="pt-edit-qty" type="number" step="0.1"/></div>
+    <div class="fg"><label>Total charged ($)</label><input id="pt-edit-total" type="number" step="0.01"/></div>
+  </div>
+  <div class="fg"><label>Notes</label><input id="pt-edit-notes"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEditPriceEntry()">Save changes</button></div>
 </div></div>
 </body>
 </html>
