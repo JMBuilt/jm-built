@@ -1852,9 +1852,17 @@ function renderFormCard(f, isArchived){
         var t2=(parseFloat(row.price)||0)*(parseFloat(row.qty)||0);
         return '<td><span class="ord-cell-total">$'+t2.toFixed(2)+'</span></td>';
       }
-      var inputType=(col==='price'||col==='qty')?'number':'text';
-      if(col==='due_by'||col==='date_ordered'||col==='date_arrived')inputType='date';
-      return '<td><input class="ord-cell" type="'+inputType+'" value="'+(row[col]||'')+'" data-formid="'+f.id+'" data-row="'+ri+'" data-col="'+col+'" '+(col==='price'||col==='qty'?'step="0.01"':'')+' oninput="handleOrdCellInput(this)"/></td>';
+      var isDate=(col==='due_by'||col==='date_ordered'||col==='date_arrived');
+      var isNum=(col==='price'||col==='qty');
+      var inputType=isNum?'number':'text';
+      var extraAttrs=isNum?'step="0.01"':'';
+      var val=row[col]||'';
+      if(isDate){
+        // Use text initially, switch to date on focus so placeholder shows when empty
+        var hasVal=val&&val.length>0;
+        return '<td><input class="ord-cell" type="'+(hasVal?'date':'text')+'" value="'+val+'" placeholder="mm/dd/yyyy" data-formid="'+f.id+'" data-row="'+ri+'" data-col="'+col+'" onfocus="this.type=\'date\'" onblur="if(!this.value)this.type=\'text\'" oninput="handleOrdCellInput(this)" style="min-width:110px;"/></td>';
+      }
+      return '<td><input class="ord-cell" type="'+inputType+'" value="'+val+'" data-formid="'+f.id+'" data-row="'+ri+'" data-col="'+col+'" '+extraAttrs+' oninput="handleOrdCellInput(this)"/></td>';
     }).join('')+
     '<td><button onclick="deleteOrdRow(this.dataset.fid,'+ri+')" data-fid="'+f.id+'" style="background:none;border:none;cursor:pointer;color:var(--red-txt);font-size:14px;padding:2px 6px;">✕</button></td>'+
     '</tr>';
