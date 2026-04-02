@@ -3200,38 +3200,71 @@ function checkPriceBtn(p){
   return btns||'<span style="color:var(--text3);font-size:11px;margin-right:4px;">—</span>'+'<button data-pid="'+p.id+'" onclick="openLinkModal(this.dataset.pid)" style="background:none;border:1px solid var(--border);border-radius:4px;padding:2px 5px;font-size:10px;cursor:pointer;color:var(--text3);" title="Add direct link">🔗+</button>';
 }
 
+function getItemSuppliers(priceId){
+  var cp = customPrices.find(function(c){return c.id===priceId;});
+  if(!cp || !cp.supplier_ids) return [];
+  try{ return JSON.parse(cp.supplier_ids); }catch(e){ return []; }
+}
+
 function supplierDropdown(p){
-  var cp = customPrices.find(function(c){return c.id===p.id;});
-  var assigned = cp ? cp.supplier_id||'' : '';
-  // Combine both supplier lists, deduplicated by name
+  var assigned = getItemSuppliers(p.id);
   var allSupps = ordSuppliers.slice();
   suppliers.forEach(function(s){
     if(!allSupps.some(function(o){return o.name===s.name;}))
       allSupps.push({id:s.id,name:s.name,website:s.website||''});
   });
   allSupps.sort(function(a,b){return a.name.localeCompare(b.name);});
-  var opts = '<option value="">— None —</option>'
-    + allSupps.map(function(s){
-        return '<option value="'+s.id+'"'+(s.id===assigned?' selected':'')+'>'+s.name+'</option>';
-      }).join('');
-  return '<select style="font-size:11px;border:1px solid var(--border);border-radius:4px;padding:2px 4px;background:var(--bg2);color:var(--text);font-family:inherit;max-width:130px;" data-pid="'+p.id+'" onchange="assignSupplier(this.dataset.pid,this.value)">'+opts+'</select>';
+  var unassigned = allSupps.filter(function(s){return !assigned.includes(s.id);});
+
+  // Build the cell: assigned chips + add dropdown
+  var chips = assigned.map(function(sid){
+    var s = allSupps.find(function(x){return x.id===sid;});
+    if(!s) return '';
+    return '<span style="display:inline-flex;align-items:center;gap:3px;background:var(--brand-light);color:var(--brand);border-radius:12px;padding:2px 7px;font-size:10px;font-weight:600;margin:1px;">'
+      +s.name
+      +'<button data-pid="'+p.id+'" data-sid="'+sid+'" onclick="removeItemSupplier(this.dataset.pid,this.dataset.sid)" style="background:none;border:none;cursor:pointer;color:var(--brand);font-size:11px;line-height:1;padding:0 0 0 2px;">✕</button>'
+      +'</span>';
+  }).join('');
+
+  var addDropdown = unassigned.length
+    ? '<select data-pid="'+p.id+'" onchange="addItemSupplier(this.dataset.pid,this.value);this.value=\'\'" style="font-size:10px;border:1px solid var(--border);border-radius:4px;padding:2px 4px;background:var(--bg2);color:var(--text);font-family:inherit;max-width:110px;margin:1px;">'
+      +'<option value="">+ Add...</option>'
+      +unassigned.map(function(s){return '<option value="'+s.id+'">'+s.name+'</option>';}).join('')
+      +'</select>'
+    : '';
+
+  return '<div style="min-width:120px;max-width:200px;">'+chips+addDropdown+'</div>';
 }
 
-async function assignSupplier(priceId, supplierId){
+async function addItemSupplier(priceId, supplierId){
+  if(!supplierId) return;
+  var assigned = getItemSuppliers(priceId);
+  if(assigned.includes(supplierId)) return;
+  assigned.push(supplierId);
+  await saveItemSuppliers(priceId, assigned);
+  renderPriceDatabase();
+}
+
+async function removeItemSupplier(priceId, supplierId){
+  var assigned = getItemSuppliers(priceId).filter(function(id){return id!==supplierId;});
+  await saveItemSuppliers(priceId, assigned);
+  renderPriceDatabase();
+}
+
+async function saveItemSuppliers(priceId, suppIds){
+  var val = JSON.stringify(suppIds);
   var cp = customPrices.find(function(c){return c.id===priceId;});
   if(cp){
-    cp.supplier_id = supplierId;
-    await sb.from('custom_prices').update({supplier_id:supplierId||null}).eq('id',priceId);
+    cp.supplier_ids = val;
+    await sb.from('custom_prices').update({supplier_ids:val}).eq('id',priceId);
   } else {
-    // Create custom price entry just to store supplier assignment
     var builtin = BUILTIN_PRICES.find(function(b){return b.id===priceId;});
     if(!builtin) return;
-    var newRec = Object.assign({},builtin,{supplier_id:supplierId||null});
+    var newRec = Object.assign({},builtin,{supplier_ids:val});
     var res = await sb.from('custom_prices').insert(newRec).select();
     if(res.data) customPrices.push(res.data[0]);
   }
   allPrices = getAllPrices();
-  renderPriceDatabase();
 }
 
 function directLinkCell(p){
