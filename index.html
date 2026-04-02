@@ -920,7 +920,16 @@ function handleDocImport(type,input){
 function setupDocDragDrop(){/* file picker used instead */}
 
 const MAIN_TABS=['dash','sales','estimating','projects','field','office','marketing','ceo','admin'];
-function showTab(t){removeTrackerOverlay();
+function showTab(t){
+  removeTrackerOverlay();
+  // Reset estimating inner tabs when leaving estimating
+  if(t!=='estimating'){
+    ['proposals','estimator','database','est-sop'].forEach(function(id){
+      var el=document.getElementById('est-'+id);
+      if(el && id==='proposals') el.style.display='block';
+      else if(el) el.style.display='none';
+    });
+  }
   var allowed = currentUser ? (ROLE_TABS[currentUser.role]||[]) : [];
   if(currentUser && !allowed.includes(t)) return;
   MAIN_TABS.forEach(id=>{var el=document.getElementById('tab-'+id);if(el)el.style.display=id===t?'block':'none';});
@@ -1137,7 +1146,7 @@ async function saveDoc(type){
   const docs=docLibs[type]||[];const doc=docs.find(d=>d.id===currentDocId);if(doc){doc.title=title;doc.content=content;doc.updated_at=now;}
   document.getElementById(type+'-status').textContent='Saved ✓';setTimeout(()=>document.getElementById(type+'-status').textContent='',2000);renderDocList(type);
 }
-function openDocModal(type){pendingDocType=type;const labels={sales_sop:'New SOP',sales_scripts:'New Script',proj_sop:'New SOP',proj_templates:'New Template'};document.getElementById('new-doc-title').textContent=labels[type]||'New Document';document.getElementById('new-doc-name').value='';openModal('new-doc-modal');}
+function openDocModal(type){pendingDocType=type;const labels={sales_sop:'New SOP',sales_scripts:'New Script',proj_sop:'New SOP',est_sop:'New SOP',proj_templates:'New Template'};document.getElementById('new-doc-title').textContent=labels[type]||'New Document';document.getElementById('new-doc-name').value='';openModal('new-doc-modal');}
 async function createDoc(){
   const title=document.getElementById('new-doc-name').value.trim()||'Untitled';const type=pendingDocType;const now=new Date().toISOString();
   const {data}=await sb.from('documents').insert({title,content:'',doc_type:type,created_at:now,updated_at:now}).select();
