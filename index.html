@@ -1859,8 +1859,7 @@ function renderFormCard(f, isArchived){
       var val=row[col]||'';
       if(isDate){
         // Use text initially, switch to date on focus so placeholder shows when empty
-        var hasVal=val&&val.length>0;
-        return '<td><input class="ord-cell" type="'+(hasVal?'date':'text')+'" value="'+val+'" placeholder="mm/dd/yyyy" data-formid="'+f.id+'" data-row="'+ri+'" data-col="'+col+'" onfocus="this.type=\'date\'" onblur="if(!this.value)this.type=\'text\'" oninput="handleOrdCellInput(this)" style="min-width:110px;"/></td>';
+        return '<td><input class="ord-cell" type="text" value="'+val+'" placeholder="mm/dd/yyyy" data-formid="'+f.id+'" data-row="'+ri+'" data-col="'+col+'" onfocus="this.type=\'date\';if(this.value)this.valueAsDate=new Date(this.value)" onblur="if(!this.value)this.type=\'text\'" oninput="handleOrdCellInput(this)" style="min-width:110px;"/></td>';
       }
       return '<td><input class="ord-cell" type="'+inputType+'" value="'+val+'" data-formid="'+f.id+'" data-row="'+ri+'" data-col="'+col+'" '+extraAttrs+' oninput="handleOrdCellInput(this)"/></td>';
     }).join('')+
