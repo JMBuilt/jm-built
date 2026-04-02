@@ -528,7 +528,7 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
     <div id="ord-suppliers" style="display:none;">
       <div class="hub-header"><div><div class="hub-title">Suppliers</div><div class="hub-sub">All your material vendors — name, phone, address, what they supply, notes.</div></div><button class="btn-primary" onclick="openModal('ord-supplier-modal')">+ Add supplier</button></div>
       <div class="search-bar"><input id="ord-sup-search" placeholder="Search suppliers..." oninput="renderOrdSuppliers()"/></div>
-      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>What they supply</th><th>Notes</th><th></th></tr></thead><tbody id="ord-sup-tbl"></tbody></table></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>What they supply</th><th>Lead time</th><th>Website</th><th>Notes</th><th></th></tr></thead><tbody id="ord-sup-tbl"></tbody></table></div>
     </div>
   </div>
 
@@ -1998,10 +1998,47 @@ function renderOrdSuppliers(){
           '<td style="color:var(--text2);font-size:12px;font-weight:500;">'+(s.lead_time||'—')+'</td>'+
           '<td style="font-size:12px;">'+(s.website?'<a href="'+s.website+'" target="_blank" style="color:var(--blue-txt);font-weight:600;font-size:11px;">Visit site</a>':'—')+'</td>'+
           '<td style="color:var(--text2);font-size:12px;">'+(s.notes||'—')+'</td>'+
-          '<td><button class="btn-danger" style="padding:3px 8px;font-size:10px;" onclick="deleteOrdSupplier(this.dataset.sid)" data-sid="'+s.id+'">Delete</button></td>'+
+          '<td style="white-space:nowrap;">'
+          +'<button class="btn-sm" style="padding:3px 8px;font-size:10px;margin-right:3px;" data-sid="'+s.id+'" onclick="openEditSupplier(this.dataset.sid)">Edit</button>'
+          +'<button class="btn-danger" style="padding:3px 8px;font-size:10px;" data-sid="'+s.id+'" onclick="deleteOrdSupplier(this.dataset.sid)">Delete</button>'
+          +'</td>'+
+
           '</tr>';
       }).join('')
     : '<tr><td colspan="7" class="empty">No suppliers yet</td></tr>';
+}
+
+function openEditSupplier(id){
+  var s = ordSuppliers.find(function(x){return x.id===id;});
+  if(!s) return;
+  document.getElementById('es-id').value = id;
+  document.getElementById('es-name').value = s.name||'';
+  document.getElementById('es-phone').value = s.phone||'';
+  document.getElementById('es-address').value = s.address||'';
+  document.getElementById('es-supply').value = s.supply||'';
+  document.getElementById('es-lead-time').value = s.lead_time||'';
+  document.getElementById('es-url').value = s.website||'';
+  document.getElementById('es-notes').value = s.notes||'';
+  openModal('edit-supplier-modal');
+}
+
+async function saveEditSupplier(){
+  var id = document.getElementById('es-id').value;
+  var data = {
+    name: document.getElementById('es-name').value.trim(),
+    phone: document.getElementById('es-phone').value||'',
+    address: document.getElementById('es-address').value||'',
+    supply: document.getElementById('es-supply').value||'',
+    lead_time: document.getElementById('es-lead-time').value||'',
+    website: document.getElementById('es-url').value||'',
+    notes: document.getElementById('es-notes').value||'',
+  };
+  if(!data.name){alert('Name is required.');return;}
+  await sb.from('ord_suppliers').update(data).eq('id',id);
+  var s = ordSuppliers.find(function(x){return x.id===id;});
+  if(s) Object.assign(s, data);
+  closeModals();
+  renderOrdSuppliers();
 }
 
 async function saveOrdSupplier(){
@@ -4067,6 +4104,19 @@ async function deletePriceEntry(id){
   </div>
   <div class="fg"><label>Notes</label><input id="pt-edit-notes"/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEditPriceEntry()">Save changes</button></div>
+</div></div>
+
+<!-- EDIT SUPPLIER MODAL -->
+<div class="modal-overlay" id="edit-supplier-modal"><div class="modal"><h3>Edit supplier</h3>
+  <input type="hidden" id="es-id"/>
+  <div class="fg"><label>Company name</label><input id="es-name" placeholder="e.g. ABC Lumber Co."/></div>
+  <div class="fg"><label>Phone</label><input id="es-phone" placeholder="e.g. 513-555-0200"/></div>
+  <div class="fg"><label>Address</label><input id="es-address" placeholder="e.g. 456 Industrial Dr, Cincinnati OH"/></div>
+  <div class="fg"><label>What they supply</label><input id="es-supply" placeholder="e.g. Lumber, plywood, framing materials"/></div>
+  <div class="fg"><label>Lead time</label><input id="es-lead-time" placeholder="e.g. 2-3 days, 1 week, same day..."/></div>
+  <div class="fg"><label>Website / search URL</label><input id="es-url" placeholder="e.g. https://www.abclumber.com/search?q="/></div>
+  <div class="fg"><label>Notes</label><textarea id="es-notes" rows="2" style="resize:vertical;"></textarea></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEditSupplier()">Save changes</button></div>
 </div></div>
 </body>
 </html>
