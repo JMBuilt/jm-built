@@ -369,8 +369,9 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
     <button class="jh-tab active" data-tab="proposals" onclick="showEstTab('proposals')">📋 Proposals</button>
     <button class="jh-tab" data-tab="estimator" onclick="showEstTab('estimator')">🔢 Unit Price Estimator</button>
     <button class="jh-tab" data-tab="database" onclick="showEstTab('database')">📚 Price Database</button>
-    <button class="jh-tab" data-tab="time" onclick="showEstTab('time')" ">⏱ Time Tracker</button>
+    <button class="jh-tab" data-tab="time" onclick="showEstTab('time')">⏱ Time Tracker</button>
     <button class="jh-tab" data-tab="price" onclick="showEstTab('price')">💵 Price Tracker</button>
+    <button class="jh-tab" data-tab="est-sop" onclick="showEstTab('est-sop')">📋 SOP</button>
   </div>
 
   <!-- PROPOSALS -->
@@ -481,6 +482,10 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
 
   </div>
 </div>
+  <div id="est-est-sop" style="display:none;">
+    <div class="hub-header"><div><div class="hub-title">Estimating SOPs</div><div class="hub-sub">Standard operating procedures for your estimating process.</div></div><button class="btn-primary" onclick="openDocModal('est_sop')">+ New SOP</button></div>
+    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="est_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="est_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="est_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header"><input id="est_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('est_sop')"/><span class="doc-editor-status" id="est_sop-status"></span><button class="btn-import" onclick="triggerDocImport('est_sop')">Import Word doc</button><input type="file" class="doc-import-input" id="est_sop-file-input" accept=".docx" onchange="handleDocImport('est_sop',this)"/><button class="btn-danger" onclick="deleteDoc('est_sop')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="est_sop-content-input" placeholder="Paste or type your SOP here..." oninput="autoSaveDoc('est_sop')"></textarea></div></div></div></div>
+  </div>
 
 <!-- PROJECTS -->
 <div id="tab-projects" style="display:none;">
@@ -2842,7 +2847,7 @@ function showEstTab(t){
   // Remove any existing tracker overlay
   removeTrackerOverlay();
   // Show/hide regular tabs
-  ['proposals','estimator','database'].forEach(function(id){
+  ['proposals','estimator','database','est-sop'].forEach(function(id){
     var el=document.getElementById('est-'+id);
     if(el) el.style.display=id===t?'block':'none';
   });
@@ -2850,6 +2855,8 @@ function showEstTab(t){
   document.querySelectorAll('#est-tabs-row .jh-tab').forEach(function(btn){
     btn.classList.toggle('active', btn.dataset.tab===t);
   });
+
+  if(t==='est-sop') renderDocList('est_sop');
   if(t==='estimator') renderUEItems();
   if(t==='database') renderPriceDatabase();
   if(t==='time'||t==='price'){
