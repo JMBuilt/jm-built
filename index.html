@@ -459,7 +459,7 @@ body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onc
   <div id="est-database" style="display:none;">
     <div class="hub-header">
       <div><div class="hub-title">Unit Price Database</div><div class="hub-sub">Cincinnati / SW Ohio pricing. All prices are fully editable — click any price to update it.</div></div>
-      <button class="btn-primary" onclick="openModal('add-price-modal')">+ Add item</button>
+      <div style="display:flex;gap:8px;"><button class="btn-sm" onclick="openRestoreModal()">↺ Restore deleted</button><button class="btn-primary" onclick="openModal('add-price-modal')">+ Add item</button></div>
     </div>
     <!-- Price check store settings -->
     <div class="card" style="margin-bottom:1rem;">
@@ -3268,17 +3268,52 @@ async function saveEditPrice(){
 }
 
 async function deleteAnyPrice(id){
-  if(!confirm('Delete this item from your price database?')) return;
-  var isCustom = customPrices.some(function(p){return p.id===id;});
+  if(!confirm('Delete this item? If it is a built-in item it will be hidden from your database.')) return;
+  var isCustom = customPrices.some(function(p){return p.id===id && !p.hidden;});
   if(isCustom){
     await sb.from('custom_prices').delete().eq('id',id);
     customPrices = customPrices.filter(function(p){return p.id!==id;});
   } else {
-    // For builtins, store a hidden flag so they don't show up
-    await sb.from('custom_prices').insert({id:id,trade:'',item:'',unit:'',mat:0,lab:0,hidden:true}).select();
-    customPrices.push({id:id,hidden:true});
+    // Mark builtin as hidden - check if hidden record already exists
+    var existing = customPrices.find(function(p){return p.id===id;});
+    if(existing){
+      existing.hidden=true;
+      await sb.from('custom_prices').update({hidden:true}).eq('id',id);
+    } else {
+      var res = await sb.from('custom_prices').insert({id:id,trade:'',item:'',unit:'',mat:0,lab:0,hidden:true}).select();
+      if(res.data) customPrices.push(res.data[0]);
+    }
   }
   allPrices = getAllPrices();
+  renderPriceDatabase();
+}
+
+function openRestoreModal(){
+  // Show all hidden built-in items
+  var hidden = customPrices.filter(function(p){return p.hidden;});
+  var builtins = BUILTIN_PRICES.filter(function(p){
+    return hidden.some(function(h){return h.id===p.id;});
+  });
+  var el = document.getElementById('restore-list');
+  if(!el) return;
+  if(!builtins.length){
+    el.innerHTML='<div class="empty">No hidden items — nothing to restore.</div>';
+  } else {
+    el.innerHTML = builtins.map(function(p){
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 1rem;border-bottom:1px solid var(--border);">'
+        +'<div><div style="font-size:13px;font-weight:500;">'+p.item+'</div><div style="font-size:11px;color:var(--text3);">'+p.trade+'</div></div>'
+        +'<button class="btn-sm" style="font-size:11px;" data-rid="'+p.id+'" onclick="restoreBuiltin(this.dataset.rid)">Restore</button>'
+        +'</div>';
+    }).join('');
+  }
+  openModal('restore-modal');
+}
+
+async function restoreBuiltin(id){
+  await sb.from('custom_prices').delete().eq('id',id);
+  customPrices = customPrices.filter(function(p){return p.id!==id;});
+  allPrices = getAllPrices();
+  openRestoreModal(); // refresh the restore modal
   renderPriceDatabase();
 }
 
@@ -3826,6 +3861,12 @@ async function deletePriceEntry(id){
     <div class="fg"><label>Labor high ($)</label><input id="ep-lab-high" type="number" step="0.01"/></div>
   </div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEditPrice()">Save changes</button></div>
+</div></div>
+
+<!-- RESTORE MODAL -->
+<div class="modal-overlay" id="restore-modal"><div class="modal"><h3>Restore deleted items</h3>
+  <div id="restore-list" style="max-height:400px;overflow-y:auto;"></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Close</button></div>
 </div></div>
 </body>
 </html>
