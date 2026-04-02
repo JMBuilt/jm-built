@@ -257,6 +257,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .role-badge-View{background:var(--bg2);color:var(--text3);}
 /* View-only mode */
 body.view-only .btn-primary,body.view-only .btn-danger,body.view-only button[onclick*="openModal"],body.view-only button[onclick*="save"],body.view-only button[onclick*="add"],body.view-only button[onclick*="delete"],body.view-only button[onclick*="Archive"]{display:none!important;}
+
+/* Hide mm/dd/yyyy placeholder on empty date inputs */
+input[type="date"].ord-cell:not(:focus):not([value])::-webkit-datetime-edit { color: transparent; }
+input[type="date"].ord-cell:not(:focus)[value=""]::-webkit-datetime-edit { color: transparent; }
+input[type="date"].ord-cell::-webkit-datetime-edit { color: var(--text); }
+input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -1859,7 +1865,7 @@ function renderFormCard(f, isArchived){
       var val=row[col]||'';
       if(isDate){
         // Use text initially, switch to date on focus so placeholder shows when empty
-        return '<td><input class="ord-cell" type="text" value="'+val+'" placeholder="mm/dd/yyyy" data-formid="'+f.id+'" data-row="'+ri+'" data-col="'+col+'" onfocus="this.type=\'date\';if(this.value)this.valueAsDate=new Date(this.value)" onblur="if(!this.value)this.type=\'text\'" oninput="handleOrdCellInput(this)" style="min-width:110px;"/></td>';
+        return '<td><input class="ord-cell" type="date" value="'+val+'" data-formid="'+f.id+'" data-row="'+ri+'" data-col="'+col+'" oninput="handleOrdCellInput(this);this.style.color=this.value?\'var(--text)\':\'transparent\'" style="min-width:110px;color:'+(val?'var(--text)':'transparent')+';"/></td>';
       }
       return '<td><input class="ord-cell" type="'+inputType+'" value="'+val+'" data-formid="'+f.id+'" data-row="'+ri+'" data-col="'+col+'" '+extraAttrs+' oninput="handleOrdCellInput(this)"/></td>';
     }).join('')+
