@@ -836,6 +836,7 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
   <div class="fg"><label>Phone</label><input id="ords-phone" placeholder="e.g. 513-555-0200"/></div>
   <div class="fg"><label>Address</label><input id="ords-address" placeholder="e.g. 456 Industrial Dr, Cincinnati OH"/></div>
   <div class="fg"><label>What they supply</label><input id="ords-supply" placeholder="e.g. Lumber, plywood, framing materials"/></div>
+  <div class="fg"><label>Lead time</label><input id="ords-lead-time" placeholder="e.g. 2-3 days, 1 week, same day..."/></div>
   <div class="fg"><label>Notes</label><textarea id="ords-notes" rows="2" style="resize:vertical;" placeholder="e.g. Best prices on dimensional lumber, call ahead for large orders"></textarea></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveOrdSupplier()">Save supplier</button></div>
 </div></div>
@@ -1994,6 +1995,7 @@ function renderOrdSuppliers(){
           '<td style="color:var(--text2);">'+(s.phone||'—')+'</td>'+
           '<td style="color:var(--text2);font-size:12px;">'+(s.address||'—')+'</td>'+
           '<td style="color:var(--text2);font-size:12px;">'+(s.supply||'—')+'</td>'+
+          '<td style="color:var(--text2);font-size:12px;font-weight:500;">'+(s.lead_time||'—')+'</td>'+
           '<td style="font-size:12px;">'+(s.website?'<a href="'+s.website+'" target="_blank" style="color:var(--blue-txt);font-weight:600;font-size:11px;">Visit site</a>':'—')+'</td>'+
           '<td style="color:var(--text2);font-size:12px;">'+(s.notes||'—')+'</td>'+
           '<td><button class="btn-danger" style="padding:3px 8px;font-size:10px;" onclick="deleteOrdSupplier(this.dataset.sid)" data-sid="'+s.id+'">Delete</button></td>'+
