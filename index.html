@@ -625,11 +625,129 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
 
 <!-- MARKETING -->
 <div id="tab-marketing" style="display:none;">
-  <div class="hub-header"><div><div class="hub-title">Marketing</div><div class="hub-sub">Track where your leads come from and grow your pipeline.</div></div></div>
-  <div class="grid4" style="margin-bottom:1.25rem;" id="mkt-stats"></div>
-  <div class="grid2">
-    <div class="card"><div class="card-header"><span class="card-title">Lead sources</span></div><div id="mkt-sources"></div></div>
-    <div class="card"><div class="card-header"><span class="card-title">Marketing to-do</span></div><div id="mkt-todos"></div><div class="add-row"><input id="mkt-inp" placeholder="Add marketing task..." onkeydown="if(event.key==='Enter')addMktTask()"/><button class="btn-primary" style="padding:7px 13px;" onclick="addMktTask()">Add</button></div></div>
+  <!-- Inner tabs -->
+  <div id="mkt-tabs-row" style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.25rem;flex-wrap:wrap;width:fit-content;">
+    <button class="jh-tab active" data-tab="overview" onclick="showMktTab('overview')">📊 Overview</button>
+    <button class="jh-tab" data-tab="spend" onclick="showMktTab('spend')">💰 Ad Spend</button>
+    <button class="jh-tab" data-tab="campaigns" onclick="showMktTab('campaigns')">📅 Campaigns</button>
+    <button class="jh-tab" data-tab="social" onclick="showMktTab('social')">📱 Social</button>
+    <button class="jh-tab" data-tab="reviews" onclick="showMktTab('reviews')">⭐ Reviews</button>
+    <button class="jh-tab" data-tab="followups" onclick="showMktTab('followups')">📧 Follow-ups</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="mkt-overview">
+    <div class="grid4" style="margin-bottom:1.25rem;" id="mkt-stats"></div>
+    <div class="grid2" style="margin-bottom:1.25rem;">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Lead sources</span></div>
+        <div id="mkt-sources"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Marketing tasks</span></div>
+        <div id="mkt-todos"></div>
+        <div class="add-row"><input id="mkt-inp" placeholder="Add marketing task..." onkeydown="if(event.key==='Enter')addMktTask()"/><button class="btn-primary" style="padding:7px 13px;" onclick="addMktTask()">Add</button></div>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-header"><span class="card-title">ROI by channel</span></div>
+        <div id="mkt-roi"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Monthly spend</span></div>
+        <div id="mkt-spend-summary"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AD SPEND -->
+  <div id="mkt-spend" style="display:none;">
+    <div class="hub-header">
+      <div><div class="hub-title">Ad Spend</div><div class="hub-sub">Track marketing spend by channel and measure return.</div></div>
+      <button class="btn-primary" onclick="openModal('spend-modal')">+ Log spend</button>
+    </div>
+    <div class="grid4" style="margin-bottom:1.25rem;" id="spend-stats"></div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Channel</th><th>Campaign/Description</th><th>Amount spent</th><th>Leads generated</th><th>Revenue attributed</th><th>Cost per lead</th><th>ROI</th><th>Date</th><th></th></tr></thead>
+        <tbody id="spend-tbl"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CAMPAIGNS -->
+  <div id="mkt-campaigns" style="display:none;">
+    <div class="hub-header">
+      <div><div class="hub-title">Campaigns</div><div class="hub-sub">Plan and track your marketing campaigns.</div></div>
+      <button class="btn-primary" onclick="openModal('campaign-modal')">+ New campaign</button>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Campaign</th><th>Channel</th><th>Goal</th><th>Budget</th><th>Start</th><th>End</th><th>Status</th><th>Leads</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="campaign-tbl"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SOCIAL -->
+  <div id="mkt-social" style="display:none;">
+    <div class="hub-header">
+      <div><div class="hub-title">Social Media</div><div class="hub-sub">Plan and schedule your content across platforms.</div></div>
+      <button class="btn-primary" onclick="openModal('social-modal')">+ Add post</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:.75rem;flex-wrap:wrap;">
+      <select id="social-platform-filter" style="font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" onchange="renderSocial()">
+        <option value="">All platforms</option>
+        <option>Facebook</option><option>Instagram</option><option>Google Business</option><option>Nextdoor</option><option>YouTube</option><option>TikTok</option><option>LinkedIn</option>
+      </select>
+      <select id="social-status-filter" style="font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" onchange="renderSocial()">
+        <option value="">All statuses</option>
+        <option>Idea</option><option>Planned</option><option>Published</option>
+      </select>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Platform</th><th>Content idea</th><th>Date</th><th>Status</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="social-tbl"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div id="mkt-reviews" style="display:none;">
+    <div class="hub-header">
+      <div><div class="hub-title">Reviews & Reputation</div><div class="hub-sub">Track your reviews across platforms. Ask every happy customer.</div></div>
+      <button class="btn-primary" onclick="openModal('review-modal')">+ Log review</button>
+    </div>
+    <div class="grid4" style="margin-bottom:1.25rem;" id="review-stats"></div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Platform</th><th>Customer</th><th>Rating</th><th>Review</th><th>Date</th><th>Responded</th><th></th></tr></thead>
+        <tbody id="review-tbl"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FOLLOW-UPS -->
+  <div id="mkt-followups" style="display:none;">
+    <div class="hub-header">
+      <div><div class="hub-title">Follow-ups</div><div class="hub-sub">Track email and text follow-ups with leads and past clients.</div></div>
+      <button class="btn-primary" onclick="openModal('followup-modal')">+ Log follow-up</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:.75rem;">
+      <input id="followup-search" placeholder="Search by name or notes..." style="flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="renderFollowups()"/>
+      <select id="followup-status-filter" style="font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" onchange="renderFollowups()">
+        <option value="">All statuses</option>
+        <option>Sent</option><option>Replied</option><option>No response</option><option>Converted</option>
+      </select>
+    </div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Name</th><th>Type</th><th>Date</th><th>Status</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="followup-tbl"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -901,6 +1019,7 @@ async function loadAll(){
     subHistory={};(hist.data||[]).forEach(h=>{if(!subHistory[h.sub_id])subHistory[h.sub_id]=[];subHistory[h.sub_id].push(h);});
     salesNotes=(sn&&sn.data)||[];salesTasks=(st&&st.data)||[];
     setSync(true);await loadOrders();await backfillOrderForms();await loadCustomPrices();allPrices=getAllPrices();try{await loadTrackers();}catch(e){ttEntries=[];ptEntries=[];}
+    try{await loadMarketing();}catch(e){}
     try{await loadStoreSettings();}catch(e){}renderDash();
     // Setup drag/drop on all doc textareas after load
     setupDocDragDrop();
@@ -1759,6 +1878,327 @@ async function ptDelete(id){
   await sb.from('price_logs').delete().eq('id',id);
   ptEntries=ptEntries.filter(function(e){return e.id!==id;});
   drawPriceDB();
+}
+
+// ============================================================
+// MARKETING HUB
+// ============================================================
+var mktSpend=[], mktCampaigns=[], mktSocial=[], mktReviews=[], mktFollowups=[];
+
+async function loadMarketing(){
+  var [sp,ca,so,re,fu] = await Promise.all([
+    sb.from('mkt_spend').select('*').order('date',{ascending:false}),
+    sb.from('mkt_campaigns').select('*').order('start_date',{ascending:false}),
+    sb.from('mkt_social').select('*').order('date',{ascending:false}),
+    sb.from('mkt_reviews').select('*').order('date',{ascending:false}),
+    sb.from('mkt_followups').select('*').order('date',{ascending:false}),
+  ]);
+  mktSpend=sp.data||[];
+  mktCampaigns=ca.data||[];
+  mktSocial=so.data||[];
+  mktReviews=re.data||[];
+  mktFollowups=fu.data||[];
+}
+
+function showMktTab(t){
+  ['overview','spend','campaigns','social','reviews','followups'].forEach(function(id){
+    var el=document.getElementById('mkt-'+id);
+    if(el) el.style.display=id===t?'block':'none';
+  });
+  document.querySelectorAll('#mkt-tabs-row .jh-tab').forEach(function(btn){
+    btn.classList.toggle('active',btn.dataset.tab===t);
+  });
+  if(t==='overview') renderMkt();
+  if(t==='spend') renderSpend();
+  if(t==='campaigns') renderCampaigns();
+  if(t==='social') renderSocial();
+  if(t==='reviews') renderReviews();
+  if(t==='followups') renderFollowups();
+}
+
+function fmt$(n){return '$'+Math.round(n||0).toLocaleString();}
+function fmtD(d){return d?new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'—';}
+
+// ── OVERVIEW ─────────────────────────────────────────────────────────────────
+function renderMkt(){
+  var totalLeads=leads.length;
+  var won=leads.filter(function(l){return l.stage==='Won';}).length;
+  var closeRate=totalLeads?Math.round(won/totalLeads*100):0;
+  var totalSpend=mktSpend.reduce(function(s,x){return s+(parseFloat(x.amount)||0);},0);
+  var totalRev=mktSpend.reduce(function(s,x){return s+(parseFloat(x.revenue)||0);},0);
+  var roi=totalSpend>0?Math.round((totalRev-totalSpend)/totalSpend*100):0;
+  var avgRating=mktReviews.length?mktReviews.reduce(function(s,r){return s+(parseInt(r.rating)||5);},0)/mktReviews.length:0;
+
+  statCards('mkt-stats',[
+    {label:'Total leads',value:totalLeads,sub:closeRate+'% close rate'},
+    {label:'Total ad spend',value:fmt$(totalSpend),sub:'All time'},
+    {label:'Marketing ROI',value:roi+'%',sub:totalRev>0?fmt$(totalRev)+' attributed revenue':'No revenue logged'},
+    {label:'Avg review rating',value:mktReviews.length?avgRating.toFixed(1)+'★':'—',sub:mktReviews.length+' reviews logged'},
+  ]);
+
+  // Lead sources bar chart
+  var sources={};
+  leads.forEach(function(l){if(l.source)sources[l.source]=(sources[l.source]||0)+1;});
+  var maxSrc=Math.max.apply(null,Object.values(sources))||1;
+  document.getElementById('mkt-sources').innerHTML=Object.entries(sources).sort(function(a,b){return b[1]-a[1];}).map(function(e){
+    var pct=Math.round(e[1]/totalLeads*100);
+    return '<div class="list-row"><div class="row-name">'+e[0]+'</div>'
+      +'<div style="display:flex;align-items:center;gap:8px;flex:1;">'
+      +'<div style="flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;max-width:120px;"><div style="width:'+Math.round(e[1]/maxSrc*100)+'%;height:100%;background:var(--brand);border-radius:3px;"></div></div>'
+      +'<span style="font-size:13px;font-weight:600;">'+e[1]+'</span>'
+      +'<span style="font-size:11px;color:var(--text3);">'+pct+'%</span>'
+      +'</div></div>';
+  }).join('')||'<div class="empty">Add leads to see sources</div>';
+
+  // ROI by channel
+  var channels={};
+  mktSpend.forEach(function(x){
+    if(!channels[x.channel]) channels[x.channel]={spend:0,revenue:0,leads:0};
+    channels[x.channel].spend+=parseFloat(x.amount)||0;
+    channels[x.channel].revenue+=parseFloat(x.revenue)||0;
+    channels[x.channel].leads+=parseInt(x.leads_generated)||0;
+  });
+  document.getElementById('mkt-roi').innerHTML=Object.entries(channels).length
+    ? Object.entries(channels).map(function(e){
+        var ch=e[0],d=e[1];
+        var roi=d.spend>0?Math.round((d.revenue-d.spend)/d.spend*100):0;
+        var color=roi>=0?'var(--green-txt)':'var(--red-txt)';
+        return '<div class="list-row"><div class="row-name">'+ch+'</div>'
+          +'<div style="font-size:12px;color:var(--text2);">Spent: '+fmt$(d.spend)+' · '+d.leads+' leads</div>'
+          +'<div style="font-weight:700;color:'+color+';">'+roi+'% ROI</div></div>';
+      }).join('')
+    : '<div class="empty">Log ad spend to see ROI by channel</div>';
+
+  // Monthly spend summary
+  var monthly={};
+  mktSpend.forEach(function(x){
+    if(!x.date) return;
+    var mo=x.date.slice(0,7);
+    monthly[mo]=(monthly[mo]||0)+(parseFloat(x.amount)||0);
+  });
+  document.getElementById('mkt-spend-summary').innerHTML=Object.entries(monthly).sort().reverse().slice(0,6).map(function(e){
+    var d=new Date(e[0]+'-01');
+    var label=d.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+    return '<div class="list-row"><div class="row-name">'+label+'</div><div style="font-weight:600;color:var(--brand);">'+fmt$(e[1])+'</div></div>';
+  }).join('')||'<div class="empty">No spend logged yet</div>';
+
+  // Tasks
+  document.getElementById('mkt-todos').innerHTML=mktTasks.map(function(t){
+    return '<div class="todo-item">'
+      +'<div class="chk'+(t.done?' done':'')+'" data-id="'+t.id+'" onclick="toggleMktTask(this.dataset.id,'+!t.done+')"></div>'
+      +'<div class="todo-label'+(t.done?' striked':'')+'">'+t.text+'</div>'
+      +'</div>';
+  }).join('')||'<div class="empty">No tasks yet</div>';
+}
+
+// ── AD SPEND ──────────────────────────────────────────────────────────────────
+function renderSpend(){
+  var total=mktSpend.reduce(function(s,x){return s+(parseFloat(x.amount)||0);},0);
+  var totalRev=mktSpend.reduce(function(s,x){return s+(parseFloat(x.revenue)||0);},0);
+  var totalLeadsGen=mktSpend.reduce(function(s,x){return s+(parseInt(x.leads_generated)||0);},0);
+  var roi=total>0?Math.round((totalRev-total)/total*100):0;
+  statCards('spend-stats',[
+    {label:'Total spent',value:fmt$(total),sub:'All time'},
+    {label:'Revenue attributed',value:fmt$(totalRev),sub:'From ad campaigns'},
+    {label:'Leads generated',value:totalLeadsGen,sub:'From paid channels'},
+    {label:'Overall ROI',value:roi+'%',sub:roi>=0?'Profitable':'Needs attention'},
+  ]);
+  var cplColors={'Google Ads':'b-blue','Facebook/Instagram':'b-brand','Nextdoor':'b-green'};
+  document.getElementById('spend-tbl').innerHTML=mktSpend.length
+    ? mktSpend.map(function(x){
+        var cpl=x.leads_generated>0?(parseFloat(x.amount)/x.leads_generated).toFixed(2):'—';
+        var roi=parseFloat(x.amount)>0?Math.round((parseFloat(x.revenue||0)-parseFloat(x.amount))/parseFloat(x.amount)*100):0;
+        var roiColor=roi>=0?'var(--green-txt)':'var(--red-txt)';
+        return '<tr>'
+          +'<td><span class="badge b-gray" style="font-size:10px;">'+x.channel+'</span></td>'
+          +'<td style="font-weight:500;">'+x.description+'</td>'
+          +'<td style="color:var(--brand);font-weight:600;">'+fmt$(x.amount)+'</td>'
+          +'<td>'+x.leads_generated+'</td>'
+          +'<td style="color:var(--green-txt);font-weight:600;">'+fmt$(x.revenue||0)+'</td>'
+          +'<td style="color:var(--text2);">'+(cpl==='—'?'—':'$'+cpl)+'</td>'
+          +'<td style="font-weight:700;color:'+roiColor+';">'+roi+'%</td>'
+          +'<td style="color:var(--text2);font-size:12px;">'+fmtD(x.date)+'</td>'
+          +'<td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+x.id+'" onclick="deleteSpend(this.dataset.id)">✕</button></td>'
+          +'</tr>';
+      }).join('')
+    : '<tr><td colspan="9" class="empty">No spend logged yet — track your first campaign</td></tr>';
+}
+
+async function saveSpend(){
+  var data={
+    channel:document.getElementById('sp-channel').value,
+    description:document.getElementById('sp-desc').value||'',
+    amount:parseFloat(document.getElementById('sp-amount').value)||0,
+    leads_generated:parseInt(document.getElementById('sp-leads').value)||0,
+    revenue:parseFloat(document.getElementById('sp-revenue').value)||0,
+    date:document.getElementById('sp-date').value||null,
+  };
+  var res=await sb.from('mkt_spend').insert(data).select();
+  if(res.data) mktSpend.unshift(res.data[0]);
+  closeModals(); renderSpend();
+  ['sp-desc','sp-amount','sp-leads','sp-revenue','sp-date'].forEach(function(id){document.getElementById(id).value='';});
+}
+async function deleteSpend(id){
+  if(!confirm('Delete this spend entry?')) return;
+  await sb.from('mkt_spend').delete().eq('id',id);
+  mktSpend=mktSpend.filter(function(x){return x.id!==id;});
+  renderSpend();
+}
+
+// ── CAMPAIGNS ─────────────────────────────────────────────────────────────────
+function renderCampaigns(){
+  var statusColors={Planning:'b-gray',Active:'b-green',Paused:'b-amber',Complete:'b-blue'};
+  document.getElementById('campaign-tbl').innerHTML=mktCampaigns.length
+    ? mktCampaigns.map(function(c){
+        return '<tr>'
+          +'<td style="font-weight:600;">'+c.name+'</td>'
+          +'<td><span class="badge b-gray" style="font-size:10px;">'+c.channel+'</span></td>'
+          +'<td style="color:var(--text2);font-size:12px;">'+(c.goal||'—')+'</td>'
+          +'<td style="color:var(--brand);font-weight:600;">'+fmt$(c.budget)+'</td>'
+          +'<td style="color:var(--text2);font-size:12px;">'+fmtD(c.start_date)+'</td>'
+          +'<td style="color:var(--text2);font-size:12px;">'+fmtD(c.end_date)+'</td>'
+          +'<td><span class="badge '+(statusColors[c.status]||'b-gray')+'">'+c.status+'</span></td>'
+          +'<td>'+c.leads_count+'</td>'
+          +'<td style="color:var(--text2);font-size:12px;max-width:150px;">'+(c.notes||'—')+'</td>'
+          +'<td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+c.id+'" onclick="deleteCampaign(this.dataset.id)">✕</button></td>'
+          +'</tr>';
+      }).join('')
+    : '<tr><td colspan="10" class="empty">No campaigns yet</td></tr>';
+}
+async function saveCampaign(){
+  var name=document.getElementById('camp-name').value.trim();if(!name)return;
+  var data={name,channel:document.getElementById('camp-channel').value,goal:document.getElementById('camp-goal').value||'',budget:parseFloat(document.getElementById('camp-budget').value)||0,start_date:document.getElementById('camp-start').value||null,end_date:document.getElementById('camp-end').value||null,status:document.getElementById('camp-status').value,notes:document.getElementById('camp-notes').value||'',leads_count:0};
+  var res=await sb.from('mkt_campaigns').insert(data).select();
+  if(res.data) mktCampaigns.unshift(res.data[0]);
+  closeModals(); renderCampaigns();
+  ['camp-name','camp-goal','camp-budget','camp-start','camp-end','camp-notes'].forEach(function(id){document.getElementById(id).value='';});
+}
+async function deleteCampaign(id){
+  if(!confirm('Delete this campaign?')) return;
+  await sb.from('mkt_campaigns').delete().eq('id',id);
+  mktCampaigns=mktCampaigns.filter(function(x){return x.id!==id;});
+  renderCampaigns();
+}
+
+// ── SOCIAL ────────────────────────────────────────────────────────────────────
+function renderSocial(){
+  var pf=document.getElementById('social-platform-filter')?.value||'';
+  var sf=document.getElementById('social-status-filter')?.value||'';
+  var filtered=mktSocial.filter(function(x){return(!pf||x.platform===pf)&&(!sf||x.status===sf);});
+  var platColors={Facebook:'b-blue',Instagram:'b-brand','Google Business':'b-green',Nextdoor:'b-amber',YouTube:'b-red',TikTok:'b-gray',LinkedIn:'b-blue'};
+  var statColors={Idea:'b-gray',Planned:'b-amber',Published:'b-green'};
+  document.getElementById('social-tbl').innerHTML=filtered.length
+    ? filtered.map(function(x){
+        return '<tr>'
+          +'<td><span class="badge '+(platColors[x.platform]||'b-gray')+'" style="font-size:10px;">'+x.platform+'</span></td>'
+          +'<td style="font-weight:500;max-width:250px;">'+x.content+'</td>'
+          +'<td style="color:var(--text2);font-size:12px;">'+fmtD(x.date)+'</td>'
+          +'<td><span class="badge '+(statColors[x.status]||'b-gray')+'">'+x.status+'</span></td>'
+          +'<td style="color:var(--text2);font-size:12px;">'+(x.notes||'—')+'</td>'
+          +'<td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+x.id+'" onclick="deleteSocial(this.dataset.id)">✕</button></td>'
+          +'</tr>';
+      }).join('')
+    : '<tr><td colspan="6" class="empty">No posts yet — plan your first piece of content</td></tr>';
+}
+async function saveSocial(){
+  var content2=document.getElementById('soc-content').value.trim();if(!content2)return;
+  var data={platform:document.getElementById('soc-platform').value,content:content2,date:document.getElementById('soc-date').value||null,status:document.getElementById('soc-status').value,notes:document.getElementById('soc-notes').value||''};
+  var res=await sb.from('mkt_social').insert(data).select();
+  if(res.data) mktSocial.unshift(res.data[0]);
+  closeModals(); renderSocial();
+  ['soc-content','soc-date','soc-notes'].forEach(function(id){document.getElementById(id).value='';});
+}
+async function deleteSocial(id){
+  await sb.from('mkt_social').delete().eq('id',id);
+  mktSocial=mktSocial.filter(function(x){return x.id!==id;});
+  renderSocial();
+}
+
+// ── REVIEWS ───────────────────────────────────────────────────────────────────
+function renderReviews(){
+  var total=mktReviews.length;
+  var avg=total?mktReviews.reduce(function(s,r){return s+(parseInt(r.rating)||5);},0)/total:0;
+  var fivestar=mktReviews.filter(function(r){return parseInt(r.rating)===5;}).length;
+  var needsReply=mktReviews.filter(function(r){return !r.responded;}).length;
+  statCards('review-stats',[
+    {label:'Total reviews',value:total,sub:'All platforms'},
+    {label:'Average rating',value:total?avg.toFixed(1)+'★':'—',sub:'Overall'},
+    {label:'5-star reviews',value:fivestar,sub:total?Math.round(fivestar/total*100)+'% of total':''},
+    {label:'Need response',value:needsReply,sub:needsReply?'Follow up!':'All responded ✓'},
+  ]);
+  var stars=['','⭐','⭐⭐','⭐⭐⭐','⭐⭐⭐⭐','⭐⭐⭐⭐⭐'];
+  document.getElementById('review-tbl').innerHTML=mktReviews.length
+    ? mktReviews.map(function(r){
+        var rating=parseInt(r.rating)||5;
+        return '<tr>'
+          +'<td><span class="badge b-blue" style="font-size:10px;">'+r.platform+'</span></td>'
+          +'<td style="font-weight:600;">'+r.customer+'</td>'
+          +'<td style="font-size:14px;">'+stars[rating]+'</td>'
+          +'<td style="color:var(--text2);font-size:12px;max-width:200px;">'+(r.review||'—')+'</td>'
+          +'<td style="color:var(--text2);font-size:12px;">'+fmtD(r.date)+'</td>'
+          +'<td>'+(r.responded?'<span class="badge b-green">Yes</span>':'<span class="badge b-amber">No</span><button class="btn-sm" style="padding:2px 7px;font-size:10px;margin-left:4px;" data-id="'+r.id+'" onclick="markResponded(this.dataset.id)">Mark done</button>')+'</td>'
+          +'<td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+r.id+'" onclick="deleteReview(this.dataset.id)">✕</button></td>'
+          +'</tr>';
+      }).join('')
+    : '<tr><td colspan="7" class="empty">No reviews logged yet</td></tr>';
+}
+async function saveReview(){
+  var customer=document.getElementById('rev-customer').value.trim();if(!customer)return;
+  var ratingStr=document.getElementById('rev-rating').value;
+  var rating=ratingStr.charAt(0)==='⭐'?ratingStr.split('⭐').length-1:5;
+  var data={platform:document.getElementById('rev-platform').value,customer,rating,review:document.getElementById('rev-text').value||'',date:document.getElementById('rev-date').value||null,responded:document.getElementById('rev-responded').value==='true'};
+  var res=await sb.from('mkt_reviews').insert(data).select();
+  if(res.data) mktReviews.unshift(res.data[0]);
+  closeModals(); renderReviews();
+  ['rev-customer','rev-text','rev-date'].forEach(function(id){document.getElementById(id).value='';});
+}
+async function markResponded(id){
+  await sb.from('mkt_reviews').update({responded:true}).eq('id',id);
+  var r=mktReviews.find(function(x){return x.id===id;});
+  if(r) r.responded=true;
+  renderReviews();
+}
+async function deleteReview(id){
+  await sb.from('mkt_reviews').delete().eq('id',id);
+  mktReviews=mktReviews.filter(function(x){return x.id!==id;});
+  renderReviews();
+}
+
+// ── FOLLOW-UPS ────────────────────────────────────────────────────────────────
+function renderFollowups(){
+  var q=(document.getElementById('followup-search')?.value||'').toLowerCase();
+  var sf=document.getElementById('followup-status-filter')?.value||'';
+  var filtered=mktFollowups.filter(function(x){
+    var mq=!q||(x.name||'').toLowerCase().includes(q)||(x.notes||'').toLowerCase().includes(q);
+    var ms=!sf||x.status===sf;
+    return mq&&ms;
+  });
+  var statColors={Sent:'b-blue',Replied:'b-green','No response':'b-amber',Converted:'b-brand'};
+  document.getElementById('followup-tbl').innerHTML=filtered.length
+    ? filtered.map(function(x){
+        return '<tr>'
+          +'<td style="font-weight:600;">'+x.name+'</td>'
+          +'<td><span class="badge b-gray" style="font-size:10px;">'+x.type+'</span></td>'
+          +'<td style="color:var(--text2);font-size:12px;">'+fmtD(x.date)+'</td>'
+          +'<td><span class="badge '+(statColors[x.status]||'b-gray')+'">'+x.status+'</span></td>'
+          +'<td style="color:var(--text2);font-size:12px;max-width:200px;">'+(x.notes||'—')+'</td>'
+          +'<td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+x.id+'" onclick="deleteFollowup(this.dataset.id)">✕</button></td>'
+          +'</tr>';
+      }).join('')
+    : '<tr><td colspan="6" class="empty">No follow-ups logged yet</td></tr>';
+}
+async function saveFollowup(){
+  var name=document.getElementById('fu-name').value.trim();if(!name)return;
+  var data={name,type:document.getElementById('fu-type').value,date:document.getElementById('fu-date').value||null,status:document.getElementById('fu-status').value,notes:document.getElementById('fu-notes').value||''};
+  var res=await sb.from('mkt_followups').insert(data).select();
+  if(res.data) mktFollowups.unshift(res.data[0]);
+  closeModals(); renderFollowups();
+  ['fu-name','fu-date','fu-notes'].forEach(function(id){document.getElementById(id).value='';});
+}
+async function deleteFollowup(id){
+  await sb.from('mkt_followups').delete().eq('id',id);
+  mktFollowups=mktFollowups.filter(function(x){return x.id!==id;});
+  renderFollowups();
 }
 
 // ============================================================
@@ -4117,6 +4557,63 @@ async function deletePriceEntry(id){
   <div class="fg"><label>Website / search URL</label><input id="es-url" placeholder="e.g. https://www.abclumber.com/search?q="/></div>
   <div class="fg"><label>Notes</label><textarea id="es-notes" rows="2" style="resize:vertical;"></textarea></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEditSupplier()">Save changes</button></div>
+</div></div>
+
+<!-- AD SPEND MODAL -->
+<div class="modal-overlay" id="spend-modal"><div class="modal"><h3>Log ad spend</h3>
+  <div class="fg"><label>Channel</label><select id="sp-channel"><option>Google Ads</option><option>Facebook/Instagram</option><option>Nextdoor</option><option>Yard signs</option><option>Door hangers</option><option>Mailers</option><option>Home Advisor/Angi</option><option>Thumbtack</option><option>Other</option></select></div>
+  <div class="fg"><label>Campaign / description</label><input id="sp-desc" placeholder="e.g. Spring promo, Facebook ad set..."/></div>
+  <div class="fg"><label>Amount spent ($)</label><input id="sp-amount" type="number" step="0.01" placeholder="e.g. 500"/></div>
+  <div class="fg"><label>Leads generated</label><input id="sp-leads" type="number" placeholder="e.g. 8"/></div>
+  <div class="fg"><label>Revenue attributed ($)</label><input id="sp-revenue" type="number" step="0.01" placeholder="e.g. 12000"/></div>
+  <div class="fg"><label>Date</label><input id="sp-date" type="date"/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveSpend()">Save</button></div>
+</div></div>
+
+<!-- CAMPAIGN MODAL -->
+<div class="modal-overlay" id="campaign-modal"><div class="modal"><h3>New campaign</h3>
+  <div class="fg"><label>Campaign name</label><input id="camp-name" placeholder="e.g. Spring 2025 Google Push"/></div>
+  <div class="fg"><label>Channel</label><select id="camp-channel"><option>Google Ads</option><option>Facebook/Instagram</option><option>Nextdoor</option><option>Yard signs</option><option>Door hangers</option><option>Mailers</option><option>Home Advisor/Angi</option><option>Thumbtack</option><option>Email</option><option>Other</option></select></div>
+  <div class="fg"><label>Goal</label><input id="camp-goal" placeholder="e.g. 10 new leads, $50k revenue..."/></div>
+  <div class="fg"><label>Budget ($)</label><input id="camp-budget" type="number" step="0.01" placeholder="e.g. 1000"/></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="fg"><label>Start date</label><input id="camp-start" type="date"/></div>
+    <div class="fg"><label>End date</label><input id="camp-end" type="date"/></div>
+  </div>
+  <div class="fg"><label>Status</label><select id="camp-status"><option>Planning</option><option>Active</option><option>Paused</option><option>Complete</option></select></div>
+  <div class="fg"><label>Notes</label><textarea id="camp-notes" rows="2" style="resize:vertical;" placeholder="e.g. Target zip codes, ad copy ideas..."></textarea></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveCampaign()">Save campaign</button></div>
+</div></div>
+
+<!-- SOCIAL MODAL -->
+<div class="modal-overlay" id="social-modal"><div class="modal"><h3>Add social post</h3>
+  <div class="fg"><label>Platform</label><select id="soc-platform"><option>Facebook</option><option>Instagram</option><option>Google Business</option><option>Nextdoor</option><option>YouTube</option><option>TikTok</option><option>LinkedIn</option></select></div>
+  <div class="fg"><label>Content idea</label><textarea id="soc-content" rows="3" style="resize:vertical;" placeholder="e.g. Before/after bathroom remodel, tips for hiring a contractor..."></textarea></div>
+  <div class="fg"><label>Scheduled date</label><input id="soc-date" type="date"/></div>
+  <div class="fg"><label>Status</label><select id="soc-status"><option>Idea</option><option>Planned</option><option>Published</option></select></div>
+  <div class="fg"><label>Notes</label><input id="soc-notes" placeholder="e.g. Link to project photos, tag client..."/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveSocial()">Save post</button></div>
+</div></div>
+
+<!-- REVIEW MODAL -->
+<div class="modal-overlay" id="review-modal"><div class="modal"><h3>Log review</h3>
+  <div class="fg"><label>Platform</label><select id="rev-platform"><option>Google</option><option>Facebook</option><option>Yelp</option><option>Home Advisor</option><option>Angi</option><option>Thumbtack</option><option>BBB</option><option>Other</option></select></div>
+  <div class="fg"><label>Customer name</label><input id="rev-customer" placeholder="e.g. Mike Johnson"/></div>
+  <div class="fg"><label>Rating</label><select id="rev-rating"><option>⭐⭐⭐⭐⭐ 5 stars</option><option>⭐⭐⭐⭐ 4 stars</option><option>⭐⭐⭐ 3 stars</option><option>⭐⭐ 2 stars</option><option>⭐ 1 star</option></select></div>
+  <div class="fg"><label>Review text</label><textarea id="rev-text" rows="3" style="resize:vertical;" placeholder="Paste or summarize the review..."></textarea></div>
+  <div class="fg"><label>Date</label><input id="rev-date" type="date"/></div>
+  <div class="fg"><label>Responded?</label><select id="rev-responded"><option value="false">Not yet</option><option value="true">Yes</option></select></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveReview()">Save review</button></div>
+</div></div>
+
+<!-- FOLLOW-UP MODAL -->
+<div class="modal-overlay" id="followup-modal"><div class="modal"><h3>Log follow-up</h3>
+  <div class="fg"><label>Name</label><input id="fu-name" placeholder="e.g. Mike Johnson"/></div>
+  <div class="fg"><label>Type</label><select id="fu-type"><option>Email</option><option>Text</option><option>Phone call</option><option>In person</option></select></div>
+  <div class="fg"><label>Date</label><input id="fu-date" type="date"/></div>
+  <div class="fg"><label>Status</label><select id="fu-status"><option>Sent</option><option>Replied</option><option>No response</option><option>Converted</option></select></div>
+  <div class="fg"><label>Notes</label><textarea id="fu-notes" rows="2" style="resize:vertical;" placeholder="e.g. Sent estimate follow-up, they said call back next week..."></textarea></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveFollowup()">Save</button></div>
 </div></div>
 </body>
 </html>
