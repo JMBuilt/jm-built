@@ -2708,6 +2708,7 @@ function renderFormCard(f, isArchived){
         (isArchived
           ? '<button class="btn-sm" onclick="archiveOrdForm(this.dataset.fid,false)" data-fid="'+f.id+'">Unarchive</button>'
           : '<button class="btn-sm" onclick="archiveOrdForm(this.dataset.fid,true)" data-fid="'+f.id+'">Archive</button>')+
+        '<button class="btn-danger" style="padding:4px 10px;font-size:12px;" data-fid="'+f.id+'" data-pname="'+f.project_name+'" onclick="confirmDeleteOrdForm(this.dataset.fid,this.dataset.pname)">Delete form</button>'+
       '</div>'+
     '</div>'+
   '</div>';
@@ -2824,6 +2825,14 @@ async function deleteOrdRow(id,ri){
   f.rows=JSON.stringify(rows);
   await saveOrdFormRows(id,rows);
   expandedFormId=id;
+  renderOrdering();
+}
+
+async function confirmDeleteOrdForm(id, name){
+  if(!confirm('Delete the entire order form for "'+name+'"? This cannot be undone.')) return;
+  await sb.from('order_forms').delete().eq('id',id);
+  orderForms=orderForms.filter(function(f){return f.id!==id;});
+  if(expandedFormId===id) expandedFormId=null;
   renderOrdering();
 }
 
