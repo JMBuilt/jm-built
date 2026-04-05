@@ -759,9 +759,140 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
   </div>
 
   <!-- MARKETING STRATEGY -->
-  <div id="mkt-mkt-strategy" style="display:none;min-height:500px;">
-    <div class="hub-header"><div><div class="hub-title">Marketing Strategy</div><div class="hub-sub">Document your marketing strategy, goals, and plans.</div></div><button class="btn-primary" onclick="openDocModal('mkt_strategy')">+ New document</button></div>
-    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="mkt_strategy-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="mkt_strategy-empty"><span style="font-size:32px;">🎯</span><span>Select a document or create a new one</span></div><div id="mkt_strategy-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header" style="flex-wrap:wrap;gap:6px;"><input id="mkt_strategy-title-input" placeholder="Document title..." oninput="autoSaveDoc('mkt_strategy')"/><span class="doc-editor-status" id="mkt_strategy-status"></span><div style="display:flex;align-items:center;gap:4px;"><input id="mkt_strategy-cloud-input" placeholder="☁ Cloud link..." style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;background:var(--bg2);color:var(--text);font-family:inherit;width:220px;" oninput="saveCloudLink('mkt_strategy')"/><a id="mkt_strategy-cloud-btn" href="#" target="_blank" style="display:none;text-decoration:none;"><button style="background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--blue-txt);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;">Open ↗</button></a></div><button class="btn-import" onclick="triggerDocImport('mkt_strategy')">Import Word doc</button><input type="file" class="doc-import-input" id="mkt_strategy-file-input" accept=".docx" onchange="handleDocImport('mkt_strategy',this)"/><button class="btn-danger" onclick="deleteDoc('mkt_strategy')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="mkt_strategy-content-input" placeholder="Document your target market, channels, goals, differentiators..." oninput="autoSaveDoc('mkt_strategy')"></textarea></div></div></div></div>
+  <div id="mkt-mkt-strategy" style="display:none;">
+    <div class="hub-header">
+      <div><div class="hub-title">🎯 Marketing Strategy</div><div class="hub-sub">Your complete marketing playbook — goals, customers, channels, budget, and brand.</div></div>
+      <button class="btn-primary" onclick="saveMktStrategy()">💾 Save all</button>
+    </div>
+
+    <!-- INNER STRATEGY SUBTABS -->
+    <div id="strat-tabs" style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.25rem;flex-wrap:wrap;width:fit-content;">
+      <button class="jh-tab active" data-stab="goals" onclick="showStratTab('goals')">🏆 Goals</button>
+      <button class="jh-tab" data-stab="customer" onclick="showStratTab('customer')">👤 Target Customer</button>
+      <button class="jh-tab" data-stab="channels" onclick="showStratTab('channels')">📡 Channels</button>
+      <button class="jh-tab" data-stab="budget" onclick="showStratTab('budget')">💰 Budget</button>
+      <button class="jh-tab" data-stab="brand" onclick="showStratTab('brand')">🎨 Brand</button>
+      <button class="jh-tab" data-stab="rnd" onclick="showStratTab('rnd')">🔬 R&amp;D</button>
+    </div>
+
+    <!-- GOALS -->
+    <div id="strat-goals">
+      <div class="grid2" style="margin-bottom:1rem;">
+        <div class="card">
+          <div class="card-header"><span class="card-title">🏆 Short-term goals <span style="font-size:11px;color:var(--text3);font-weight:400;">(next 90 days)</span></span></div>
+          <div style="padding:1rem;">
+            <div id="short-goals-list" style="margin-bottom:.75rem;"></div>
+            <div style="display:flex;gap:8px;">
+              <input id="short-goal-inp" placeholder="Add a short-term goal..." style="flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 10px;background:var(--surface);color:var(--text);font-family:inherit;" onkeydown="if(event.key==='Enter')addStratGoal('short')"/>
+              <button class="btn-primary" style="padding:7px 13px;" onclick="addStratGoal('short')">Add</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">🎯 Long-term goals <span style="font-size:11px;color:var(--text3);font-weight:400;">(12+ months)</span></span></div>
+          <div style="padding:1rem;">
+            <div id="long-goals-list" style="margin-bottom:.75rem;"></div>
+            <div style="display:flex;gap:8px;">
+              <input id="long-goal-inp" placeholder="Add a long-term goal..." style="flex:1;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 10px;background:var(--surface);color:var(--text);font-family:inherit;" onkeydown="if(event.key==='Enter')addStratGoal('long')"/>
+              <button class="btn-primary" style="padding:7px 13px;" onclick="addStratGoal('long')">Add</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TARGET CUSTOMER -->
+    <div id="strat-customer" style="display:none;">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">👤 Ideal Customer Profile</span></div>
+          <div style="padding:1rem;display:flex;flex-direction:column;gap:10px;">
+            <div class="fg"><label>Who is your ideal customer?</label><textarea id="strat-who" rows="3" style="resize:vertical;" placeholder="e.g. Homeowners aged 35-60, household income $80k+, in suburbs of Cincinnati..."></textarea></div>
+            <div class="fg"><label>What problems do they have?</label><textarea id="strat-problems" rows="3" style="resize:vertical;" placeholder="e.g. Outdated kitchen, want to increase home value, don't trust contractors..."></textarea></div>
+            <div class="fg"><label>What do they value most?</label><textarea id="strat-values" rows="3" style="resize:vertical;" placeholder="e.g. Quality workmanship, clear communication, on-time completion, fair pricing..."></textarea></div>
+            <div class="fg"><label>Where do they find contractors?</label><textarea id="strat-where" rows="2" style="resize:vertical;" placeholder="e.g. Referrals from neighbors, Google search, Facebook groups, Nextdoor..."></textarea></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">🏘 Service Area & Demographics</span></div>
+          <div style="padding:1rem;display:flex;flex-direction:column;gap:10px;">
+            <div class="fg"><label>Primary service area</label><input id="strat-area" placeholder="e.g. Clermont County, east Cincinnati suburbs..."/></div>
+            <div class="fg"><label>Avg project size</label><input id="strat-proj-size" placeholder="e.g. $15k–$60k kitchen and bath remodels"/></div>
+            <div class="fg"><label>Best type of project</label><input id="strat-best-proj" placeholder="e.g. Full kitchen remodels, master bath, basement finish..."/></div>
+            <div class="fg"><label>What makes you different?</label><textarea id="strat-diff" rows="3" style="resize:vertical;" placeholder="e.g. Owner on every job, 10 years local experience, 5-star Google rating..."></textarea></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHANNELS -->
+    <div id="strat-channels" style="display:none;">
+      <div class="card">
+        <div class="card-header"><span class="card-title">📡 Channel Strategy</span><button class="btn-sm" onclick="addStratChannel()">+ Add channel</button></div>
+        <div style="padding:1rem;">
+          <div id="strat-channel-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUDGET -->
+    <div id="strat-budget" style="display:none;">
+      <div class="grid4" style="margin-bottom:1rem;" id="strat-budget-stats"></div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">💰 Budget Allocation</span><button class="btn-sm" onclick="addBudgetLine()">+ Add line</button></div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Channel / Category</th><th>Monthly budget</th><th>Annual budget</th><th>% of total</th><th>Notes</th><th></th></tr></thead>
+            <tbody id="strat-budget-tbl"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- BRAND -->
+    <div id="strat-brand" style="display:none;">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">🎨 Brand Guidelines</span></div>
+          <div style="padding:1rem;display:flex;flex-direction:column;gap:10px;">
+            <div class="fg"><label>Brand voice / tone</label><textarea id="strat-voice" rows="3" style="resize:vertical;" placeholder="e.g. Professional but approachable, straight-talking, no fluff..."></textarea></div>
+            <div class="fg"><label>Tagline / slogan</label><input id="strat-tagline" placeholder="e.g. Built right. Every time."/></div>
+            <div class="fg"><label>Core message</label><textarea id="strat-message" rows="3" style="resize:vertical;" placeholder="e.g. JM Built delivers high-quality remodels with honest communication and zero surprises..."></textarea></div>
+            <div class="fg"><label>What to always say</label><textarea id="strat-always" rows="2" style="resize:vertical;" placeholder="e.g. Licensed and insured, local owner-operated, 5-star rated..."></textarea></div>
+            <div class="fg"><label>What to never say</label><textarea id="strat-never" rows="2" style="resize:vertical;" placeholder="e.g. Cheapest, discount, quick fix..."></textarea></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">🖼 Visual Identity</span></div>
+          <div style="padding:1rem;display:flex;flex-direction:column;gap:10px;">
+            <div class="fg"><label>Primary colors</label><input id="strat-colors" placeholder="e.g. Orange #C8440A, Dark gray #1A1A18..."/></div>
+            <div class="fg"><label>Fonts</label><input id="strat-fonts" placeholder="e.g. Inter for headings, system fonts for body..."/></div>
+            <div class="fg"><label>Logo / assets location</label><input id="strat-assets" placeholder="Paste OneDrive or Google Drive link to brand assets..."/></div>
+            <div class="fg"><label>Photo style</label><textarea id="strat-photos" rows="3" style="resize:vertical;" placeholder="e.g. Real job photos, before/after, no stock photos, good lighting..."></textarea></div>
+            <div class="fg"><label>Brand notes</label><textarea id="strat-brand-notes" rows="2" style="resize:vertical;" placeholder="Other brand guidelines..."></textarea></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- R&D -->
+    <div id="strat-rnd" style="display:none;">
+      <div class="grid2">
+        <div class="card">
+          <div class="card-header"><span class="card-title">🔬 Research &amp; Ideas</span><button class="btn-sm" onclick="addRndItem()">+ Add idea</button></div>
+          <div style="padding:1rem;">
+            <div id="rnd-list"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">🏆 Competitor Notes</span><button class="btn-sm" onclick="addCompetitor()">+ Add competitor</button></div>
+          <div style="padding:1rem;">
+            <div id="competitor-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1302,7 +1433,7 @@ async function saveDoc(type){
   const docs=docLibs[type]||[];const doc=docs.find(d=>d.id===currentDocId);if(doc){doc.title=title;doc.content=content;doc.cloud_link=cloud_link;doc.updated_at=now;}
   document.getElementById(type+'-status').textContent='Saved ✓';setTimeout(()=>document.getElementById(type+'-status').textContent='',2000);renderDocList(type);
 }
-function openDocModal(type){pendingDocType=type;const labels={sales_sop:'New SOP',sales_scripts:'New Script',proj_sop:'New SOP',est_sop:'New SOP',mkt_sop:'New SOP',mkt_strategy:'New Document',proj_templates:'New Template'};document.getElementById('new-doc-title').textContent=labels[type]||'New Document';document.getElementById('new-doc-name').value='';openModal('new-doc-modal');}
+function openDocModal(type){pendingDocType=type;const labels={sales_sop:'New SOP',sales_scripts:'New Script',proj_sop:'New SOP',est_sop:'New SOP',mkt_sop:'New SOP',proj_templates:'New Template'};document.getElementById('new-doc-title').textContent=labels[type]||'New Document';document.getElementById('new-doc-name').value='';openModal('new-doc-modal');}
 async function createDoc(){
   const title=document.getElementById('new-doc-name').value.trim()||'Untitled';const type=pendingDocType;const now=new Date().toISOString();
   const {data}=await sb.from('documents').insert({title,content:'',doc_type:type,created_at:now,updated_at:now}).select();
@@ -1929,11 +2060,238 @@ function showMktTab(t){
   if(t==='reviews') renderReviews();
   if(t==='followups') renderFollowups();
   if(t==='mkt-sop'){renderDocList('mkt_sop');document.getElementById('mkt-mkt-sop').style.minHeight='calc(100vh - 200px)';}
-  if(t==='mkt-strategy'){renderDocList('mkt_strategy');document.getElementById('mkt-mkt-strategy').style.minHeight='calc(100vh - 200px)';}
+  if(t==='mkt-strategy'){loadMktStrategy();}
 }
 
 function fmt$(n){return '$'+Math.round(n||0).toLocaleString();}
 function fmtD(d){return d?new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'—';}
+
+// ── MARKETING STRATEGY ────────────────────────────────────────────────────────
+var mktStrategyData = {
+  short_goals:[], long_goals:[],
+  who:'',problems:'',values:'',where:'',area:'',proj_size:'',best_proj:'',diff:'',
+  channels:[], budget:[],
+  voice:'',tagline:'',message:'',always:'',never:'',colors:'',fonts:'',assets:'',photos:'',brand_notes:'',
+  rnd:[], competitors:[]
+};
+
+function showStratTab(t){
+  document.querySelectorAll('#strat-tabs .jh-tab').forEach(function(btn){
+    btn.classList.toggle('active',btn.dataset.stab===t);
+  });
+  ['goals','customer','channels','budget','brand','rnd'].forEach(function(id){
+    var el=document.getElementById('strat-'+id);
+    if(el) el.style.display=id===t?'block':'none';
+  });
+  if(t==='budget') renderStratBudget();
+  if(t==='channels') renderStratChannels();
+  if(t==='rnd') renderRnd();
+}
+
+async function loadMktStrategy(){
+  var res=await sb.from('settings').select('value').eq('key','mkt_strategy').single();
+  if(res.data){
+    try{mktStrategyData=Object.assign(mktStrategyData,JSON.parse(res.data.value));}catch(e){}
+  }
+  populateStrategyFields();
+  renderStratGoals();
+  renderStratBudget();
+  renderStratChannels();
+  renderRnd();
+}
+
+function populateStrategyFields(){
+  var d=mktStrategyData;
+  var fields={
+    'strat-who':d.who,'strat-problems':d.problems,'strat-values':d.values,'strat-where':d.where,
+    'strat-area':d.area,'strat-proj-size':d.proj_size,'strat-best-proj':d.best_proj,'strat-diff':d.diff,
+    'strat-voice':d.voice,'strat-tagline':d.tagline,'strat-message':d.message,
+    'strat-always':d.always,'strat-never':d.never,'strat-colors':d.colors,
+    'strat-fonts':d.fonts,'strat-assets':d.assets,'strat-photos':d.photos,'strat-brand-notes':d.brand_notes
+  };
+  Object.entries(fields).forEach(function(e){
+    var el=document.getElementById(e[0]);
+    if(el) el.value=e[1]||'';
+  });
+}
+
+async function saveMktStrategy(){
+  var d=mktStrategyData;
+  var fields={
+    'strat-who':'who','strat-problems':'problems','strat-values':'values','strat-where':'where',
+    'strat-area':'area','strat-proj-size':'proj_size','strat-best-proj':'best_proj','strat-diff':'diff',
+    'strat-voice':'voice','strat-tagline':'tagline','strat-message':'message',
+    'strat-always':'always','strat-never':'never','strat-colors':'colors',
+    'strat-fonts':'fonts','strat-assets':'assets','strat-photos':'photos','strat-brand-notes':'brand_notes'
+  };
+  Object.entries(fields).forEach(function(e){
+    var el=document.getElementById(e[0]);
+    if(el) d[e[1]]=el.value;
+  });
+  var val=JSON.stringify(d);
+  var exists=await sb.from('settings').select('key').eq('key','mkt_strategy').single();
+  if(exists.data){await sb.from('settings').update({value:val}).eq('key','mkt_strategy');}
+  else{await sb.from('settings').insert({key:'mkt_strategy',value:val});}
+  // Show saved toast
+  var btn=document.querySelector('[onclick="saveMktStrategy()"]');
+  if(btn){var orig=btn.textContent;btn.textContent='✓ Saved!';setTimeout(function(){btn.textContent=orig;},2000);}
+}
+
+// GOALS
+function renderStratGoals(){
+  var sg=mktStrategyData.short_goals||[];
+  var lg=mktStrategyData.long_goals||[];
+  document.getElementById('short-goals-list').innerHTML=sg.length
+    ? sg.map(function(g,i){return '<div class="todo-item"><div class="chk'+(g.done?' done':'')+' strat-goal" data-i="'+i+'" data-type="short" onclick="toggleStratGoal(this.dataset.type,this.dataset.i)"></div><div class="todo-label'+(g.done?' striked':'')+'" style="flex:1;">'+g.text+'</div><button class="strat-del" data-i="'+i+'" data-type="short" onclick="deleteStratGoal(this.dataset.type,this.dataset.i)" style="background:none;border:none;cursor:pointer;color:var(--red-txt);font-size:12px;">✕</button></div>';}).join('')
+    : '<div class="empty" style="font-size:12px;padding:.5rem 0;">No short-term goals yet</div>';
+  document.getElementById('long-goals-list').innerHTML=lg.length
+    ? lg.map(function(g,i){return '<div class="todo-item"><div class="chk'+(g.done?' done':'')+' strat-goal" data-i="'+i+'" data-type="long" onclick="toggleStratGoal(this.dataset.type,this.dataset.i)"></div><div class="todo-label'+(g.done?' striked':'')+'" style="flex:1;">'+g.text+'</div><button class="strat-del" data-i="'+i+'" data-type="long" onclick="deleteStratGoal(this.dataset.type,this.dataset.i)" style="background:none;border:none;cursor:pointer;color:var(--red-txt);font-size:12px;">✕</button></div>';}).join('')
+    : '<div class="empty" style="font-size:12px;padding:.5rem 0;">No long-term goals yet</div>';
+}
+async function addStratGoal(type){
+  var inp=document.getElementById(type+'-goal-inp');
+  var text=inp.value.trim();if(!text)return;
+  if(!mktStrategyData[type+'_goals']) mktStrategyData[type+'_goals']=[];
+  mktStrategyData[type+'_goals'].push({text:text,done:false});
+  inp.value='';
+  await saveMktStrategy();
+  renderStratGoals();
+}
+async function toggleStratGoal(type,i){
+  i=parseInt(i);
+  mktStrategyData[type+'_goals'][i].done=!mktStrategyData[type+'_goals'][i].done;
+  await saveMktStrategy();
+  renderStratGoals();
+}
+async function deleteStratGoal(type,i){
+  i=parseInt(i);
+  mktStrategyData[type+'_goals'].splice(i,1);
+  await saveMktStrategy();
+  renderStratGoals();
+}
+
+// CHANNELS
+function renderStratChannels(){
+  var ch=mktStrategyData.channels||[];
+  var el=document.getElementById('strat-channel-list');
+  if(!el) return;
+  el.innerHTML=ch.length
+    ? ch.map(function(c,i){
+        return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;" data-si="'+i+'">'
+          +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'
+          +'<input value="'+c.name+'" placeholder="Channel name" data-si="'+i+'" data-fld="name" onchange="updateStratChannelEl(this)" style="font-size:13px;font-weight:600;flex:1;border:none;background:transparent;color:var(--text);font-family:inherit;" />'
+          +'<select data-si="'+i+'" data-fld="status" onchange="updateStratChannelEl(this)" style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;">'
+          +'<option'+(c.status==='Active'?' selected':'')+'>Active</option><option'+(c.status==='Testing'?' selected':'')+'>Testing</option><option'+(c.status==='Paused'?' selected':'')+'>Paused</option><option'+(c.status==='Planned'?' selected':'')+'>Planned</option>'
+          +'</select>'
+          +'<button data-si="'+i+'" onclick="deleteStratChannel(parseInt(this.dataset.si))" style="background:none;border:none;cursor:pointer;color:var(--red-txt);">✕</button>'
+          +'</div>'
+          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
+          +'<div class="fg"><label>Strategy / approach</label><textarea data-si="'+i+'" data-fld="approach" onchange="updateStratChannelEl(this)" rows="2" style="resize:vertical;font-size:12px;" placeholder="e.g. Run search ads for kitchen remodel keywords...">'+( c.approach||'')+'</textarea></div>'
+          +'<div class="fg"><label>Monthly budget</label><input type="number" value="'+(c.budget||'')+'" data-si="'+i+'" data-fld="budget" onchange="updateStratChannelEl(this)" placeholder="e.g. 500" style="font-size:12px;"/></div>'
+          +'</div>'
+          +'</div>';
+      }).join('')
+    : '<div class="empty">No channels yet — add your first marketing channel</div>';
+}
+function updateStratChannelEl(el){
+  var i=parseInt(el.dataset.si);
+  var fld=el.dataset.fld;
+  mktStrategyData.channels[i][fld]=el.value;
+}
+
+function updateStratChannel(i,field,val){mktStrategyData.channels[i][field]=val;}
+async function addStratChannel(){
+  if(!mktStrategyData.channels) mktStrategyData.channels=[];
+  mktStrategyData.channels.push({name:'',status:'Active',approach:'',budget:''});
+  await saveMktStrategy();
+  renderStratChannels();
+}
+async function deleteStratChannel(i){
+  mktStrategyData.channels.splice(i,1);
+  await saveMktStrategy();
+  renderStratChannels();
+}
+
+// BUDGET
+function renderStratBudget(){
+  var b=mktStrategyData.budget||[];
+  var totalMonthly=b.reduce(function(s,x){return s+(parseFloat(x.monthly)||0);},0);
+  var totalAnnual=totalMonthly*12;
+  statCards('strat-budget-stats',[
+    {label:'Monthly budget',value:'$'+Math.round(totalMonthly).toLocaleString(),sub:'All channels'},
+    {label:'Annual budget',value:'$'+Math.round(totalAnnual).toLocaleString(),sub:'Projected'},
+    {label:'Budget lines',value:b.length,sub:'Active allocations'},
+    {label:'Largest channel',value:b.length?b.reduce(function(a,x){return (parseFloat(x.monthly)||0)>(parseFloat(a.monthly)||0)?x:a;},{monthly:0}).name||'—':'—',sub:'By monthly spend'},
+  ]);
+  var tbody=document.getElementById('strat-budget-tbl');
+  if(!tbody) return;
+  tbody.innerHTML=b.length
+    ? b.map(function(x,i){
+        var pct=totalMonthly>0?Math.round((parseFloat(x.monthly)||0)/totalMonthly*100):0;
+        return '<tr>'
+          +'<td><input value="'+x.name+'" placeholder="e.g. Google Ads, Yard signs..." data-bi="'+i+'" data-bf="name" onchange="updateBudgetLine(this.dataset.bi,this.dataset.bf,this.value)" style="border:none;background:transparent;color:var(--text);font-family:inherit;font-weight:600;font-size:13px;width:100%;"/></td>'
+          +'<td><input type="number" value="'+(x.monthly||'')+'" placeholder="0" data-bi="'+i+'" data-bf="monthly" onchange="updateBudgetLine(this.dataset.bi,this.dataset.bf,this.value)" style="width:80px;font-size:13px;border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:var(--bg2);color:var(--text);font-family:inherit;"/></td>'
+          +'<td style="font-weight:600;color:var(--brand);">$'+Math.round((parseFloat(x.monthly)||0)*12).toLocaleString()+'</td>'
+          +'<td><div style="display:flex;align-items:center;gap:6px;"><div style="width:60px;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;"><div style="width:'+pct+'%;height:100%;background:var(--brand);border-radius:3px;"></div></div><span style="font-size:12px;color:var(--text2);">'+pct+'%</span></div></td>'
+          +'<td><input value="'+(x.notes||'')+'" placeholder="Notes..." data-bi="'+i+'" data-bf="notes" onchange="updateBudgetLine(this.dataset.bi,this.dataset.bf,this.value)" style="border:none;background:transparent;color:var(--text2);font-family:inherit;font-size:12px;width:100%;"/></td>'
+          +'<td><button data-i="'+i+'" data-bi="'+i+'" onclick="deleteBudgetLine(parseInt(this.dataset.bi))" style="background:none;border:none;cursor:pointer;color:var(--red-txt);">✕</button></td>'
+          +'</tr>';
+      }).join('')
+      +'<tr style="border-top:2px solid var(--border);background:var(--bg2);">'
+      +'<td style="font-weight:700;">Total</td>'
+      +'<td style="font-weight:700;color:var(--brand);">$'+Math.round(totalMonthly).toLocaleString()+'/mo</td>'
+      +'<td style="font-weight:700;color:var(--brand);">$'+Math.round(totalAnnual).toLocaleString()+'/yr</td>'
+      +'<td colspan="3"></td></tr>'
+    : '<tr><td colspan="6" class="empty">No budget lines yet</td></tr>';
+}
+function updateBudgetLine(i,field,val){i=parseInt(i);mktStrategyData.budget[i][field]=val;if(field==='monthly')renderStratBudget();}
+async function addBudgetLine(){
+  if(!mktStrategyData.budget) mktStrategyData.budget=[];
+  mktStrategyData.budget.push({name:'',monthly:'',notes:''});
+  await saveMktStrategy();
+  renderStratBudget();
+}
+async function deleteBudgetLine(i){
+  mktStrategyData.budget.splice(i,1);
+  await saveMktStrategy();
+  renderStratBudget();
+}
+
+// R&D
+function renderRnd(){
+  var r=mktStrategyData.rnd||[];
+  var c=mktStrategyData.competitors||[];
+  var rndEl=document.getElementById('rnd-list');
+  var compEl=document.getElementById('competitor-list');
+  if(rndEl) rndEl.innerHTML=r.length
+    ? r.map(function(x,i){
+        return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;display:flex;gap:8px;align-items:flex-start;">'
+          +'<div style="flex:1;">'
+          +'<input value="'+x.title+'" placeholder="Idea or research topic..." data-ri="'+i+'" data-rf="title" onchange="updateRnd(parseInt(this.dataset.ri),this.dataset.rf,this.value)" style="font-weight:600;font-size:13px;border:none;background:transparent;color:var(--text);font-family:inherit;width:100%;margin-bottom:4px;"/>'
+          +'<textarea rows="2" placeholder="Notes, links, findings..." data-ri="'+i+'" data-rf="notes" onchange="updateRnd(parseInt(this.dataset.ri),this.dataset.rf,this.value)" style="font-size:12px;color:var(--text2);border:none;background:transparent;width:100%;resize:none;font-family:inherit;">'+( x.notes||'')+'</textarea>'
+          +'</div>'
+          +'<button data-ri="'+i+'" onclick="deleteRndItem(parseInt(this.dataset.ri))" style="background:none;border:none;cursor:pointer;color:var(--red-txt);">✕</button>'
+          +'</div>';
+      }).join('')
+    : '<div class="empty" style="font-size:12px;">No research items yet</div>';
+  if(compEl) compEl.innerHTML=c.length
+    ? c.map(function(x,i){
+        return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;display:flex;gap:8px;align-items:flex-start;">'
+          +'<div style="flex:1;">'
+          +'<input value="'+x.name+'" placeholder="Competitor name..." data-ci="'+i+'" data-cf="name" onchange="updateCompetitor(parseInt(this.dataset.ci),this.dataset.cf,this.value)" style="font-weight:600;font-size:13px;border:none;background:transparent;color:var(--text);font-family:inherit;width:100%;margin-bottom:4px;"/>'
+          +'<textarea rows="2" placeholder="Their strengths, weaknesses, pricing, how you differ..." data-ci="'+i+'" data-cf="notes" onchange="updateCompetitor(parseInt(this.dataset.ci),this.dataset.cf,this.value)" style="font-size:12px;color:var(--text2);border:none;background:transparent;width:100%;resize:none;font-family:inherit;">'+( x.notes||'')+'</textarea>'
+          +'</div>'
+          +'<button data-ci="'+i+'" onclick="deleteCompetitor(parseInt(this.dataset.ci))" style="background:none;border:none;cursor:pointer;color:var(--red-txt);">✕</button>'
+          +'</div>';
+      }).join('')
+    : '<div class="empty" style="font-size:12px;">No competitors tracked yet</div>';
+}
+function updateRnd(i,f,v){mktStrategyData.rnd[i][f]=v;}
+function updateCompetitor(i,f,v){mktStrategyData.competitors[i][f]=v;}
+async function addRndItem(){mktStrategyData.rnd.push({title:'',notes:''});await saveMktStrategy();renderRnd();}
+async function deleteRndItem(i){mktStrategyData.rnd.splice(i,1);await saveMktStrategy();renderRnd();}
+async function addCompetitor(){mktStrategyData.competitors.push({name:'',notes:''});await saveMktStrategy();renderRnd();}
+async function deleteCompetitor(i){mktStrategyData.competitors.splice(i,1);await saveMktStrategy();renderRnd();}
 
 // ── OVERVIEW ─────────────────────────────────────────────────────────────────
 function renderMkt(){
