@@ -1926,14 +1926,14 @@ function renderMkt(){
   var closeRate=totalLeads?Math.round(won/totalLeads*100):0;
   var totalSpend=mktSpend.reduce(function(s,x){return s+(parseFloat(x.amount)||0);},0);
   var totalRev=mktSpend.reduce(function(s,x){return s+(parseFloat(x.revenue)||0);},0);
+  var totalLeadsGen=mktSpend.reduce(function(s,x){return s+(parseInt(x.leads_generated)||0);},0);
   var roi=totalSpend>0?Math.round((totalRev-totalSpend)/totalSpend*100):0;
-  var avgRating=mktReviews.length?mktReviews.reduce(function(s,r){return s+(parseInt(r.rating)||5);},0)/mktReviews.length:0;
 
   statCards('mkt-stats',[
     {label:'Total leads',value:totalLeads,sub:closeRate+'% close rate'},
     {label:'Total ad spend',value:fmt$(totalSpend),sub:'All time'},
     {label:'Marketing ROI',value:roi+'%',sub:totalRev>0?fmt$(totalRev)+' attributed revenue':'No revenue logged'},
-    {label:'Avg review rating',value:mktReviews.length?avgRating.toFixed(1)+'★':'—',sub:mktReviews.length+' reviews logged'},
+    {label:'Cost per lead',value:totalLeadsGen>0?'$'+(totalSpend/totalLeadsGen).toFixed(2):'—',sub:totalLeadsGen+' leads from paid channels'},
   ]);
 
   // Lead sources bar chart
