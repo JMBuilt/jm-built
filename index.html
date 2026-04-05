@@ -633,6 +633,8 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
     <button class="jh-tab" data-tab="social" onclick="showMktTab('social')">📱 Social</button>
     <button class="jh-tab" data-tab="reviews" onclick="showMktTab('reviews')">⭐ Reviews</button>
     <button class="jh-tab" data-tab="followups" onclick="showMktTab('followups')">📧 Follow-ups</button>
+    <button class="jh-tab" data-tab="mkt-sop" onclick="showMktTab('mkt-sop')">📋 SOP</button>
+    <button class="jh-tab" data-tab="mkt-strategy" onclick="showMktTab('mkt-strategy')">🎯 Strategy</button>
   </div>
 
   <!-- OVERVIEW -->
@@ -748,6 +750,18 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
         <tbody id="followup-tbl"></tbody>
       </table>
     </div>
+
+  <!-- MARKETING SOP -->
+  <div id="mkt-mkt-sop" style="display:none;">
+    <div class="hub-header"><div><div class="hub-title">Marketing SOPs</div><div class="hub-sub">Standard operating procedures for your marketing process.</div></div><button class="btn-primary" onclick="openDocModal('mkt_sop')">+ New SOP</button></div>
+    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="mkt_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="mkt_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="mkt_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header" style="flex-wrap:wrap;gap:6px;"><input id="mkt_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('mkt_sop')"/><span class="doc-editor-status" id="mkt_sop-status"></span><div style="display:flex;align-items:center;gap:4px;"><input id="mkt_sop-cloud-input" placeholder="☁ Cloud link..." style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;background:var(--bg2);color:var(--text);font-family:inherit;width:220px;" oninput="saveCloudLink('mkt_sop')"/><a id="mkt_sop-cloud-btn" href="#" target="_blank" style="display:none;text-decoration:none;"><button style="background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--blue-txt);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;">Open ↗</button></a></div><button class="btn-import" onclick="triggerDocImport('mkt_sop')">Import Word doc</button><input type="file" class="doc-import-input" id="mkt_sop-file-input" accept=".docx" onchange="handleDocImport('mkt_sop',this)"/><button class="btn-danger" onclick="deleteDoc('mkt_sop')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="mkt_sop-content-input" placeholder="Paste or type your SOP here..." oninput="autoSaveDoc('mkt_sop')"></textarea></div></div></div></div>
+  </div>
+
+  <!-- MARKETING STRATEGY -->
+  <div id="mkt-mkt-strategy" style="display:none;">
+    <div class="hub-header"><div><div class="hub-title">Marketing Strategy</div><div class="hub-sub">Document your marketing strategy, goals, and plans.</div></div><button class="btn-primary" onclick="openDocModal('mkt_strategy')">+ New document</button></div>
+    <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="mkt_strategy-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="mkt_strategy-empty"><span style="font-size:32px;">🎯</span><span>Select a document or create a new one</span></div><div id="mkt_strategy-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header" style="flex-wrap:wrap;gap:6px;"><input id="mkt_strategy-title-input" placeholder="Document title..." oninput="autoSaveDoc('mkt_strategy')"/><span class="doc-editor-status" id="mkt_strategy-status"></span><div style="display:flex;align-items:center;gap:4px;"><input id="mkt_strategy-cloud-input" placeholder="☁ Cloud link..." style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;background:var(--bg2);color:var(--text);font-family:inherit;width:220px;" oninput="saveCloudLink('mkt_strategy')"/><a id="mkt_strategy-cloud-btn" href="#" target="_blank" style="display:none;text-decoration:none;"><button style="background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--blue-txt);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;">Open ↗</button></a></div><button class="btn-import" onclick="triggerDocImport('mkt_strategy')">Import Word doc</button><input type="file" class="doc-import-input" id="mkt_strategy-file-input" accept=".docx" onchange="handleDocImport('mkt_strategy',this)"/><button class="btn-danger" onclick="deleteDoc('mkt_strategy')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="mkt_strategy-content-input" placeholder="Document your target market, channels, goals, differentiators..." oninput="autoSaveDoc('mkt_strategy')"></textarea></div></div></div></div>
+  </div>
   </div>
 </div>
 
@@ -1288,7 +1302,7 @@ async function saveDoc(type){
   const docs=docLibs[type]||[];const doc=docs.find(d=>d.id===currentDocId);if(doc){doc.title=title;doc.content=content;doc.cloud_link=cloud_link;doc.updated_at=now;}
   document.getElementById(type+'-status').textContent='Saved ✓';setTimeout(()=>document.getElementById(type+'-status').textContent='',2000);renderDocList(type);
 }
-function openDocModal(type){pendingDocType=type;const labels={sales_sop:'New SOP',sales_scripts:'New Script',proj_sop:'New SOP',est_sop:'New SOP',proj_templates:'New Template'};document.getElementById('new-doc-title').textContent=labels[type]||'New Document';document.getElementById('new-doc-name').value='';openModal('new-doc-modal');}
+function openDocModal(type){pendingDocType=type;const labels={sales_sop:'New SOP',sales_scripts:'New Script',proj_sop:'New SOP',est_sop:'New SOP',mkt_sop:'New SOP',mkt_strategy:'New Document',proj_templates:'New Template'};document.getElementById('new-doc-title').textContent=labels[type]||'New Document';document.getElementById('new-doc-name').value='';openModal('new-doc-modal');}
 async function createDoc(){
   const title=document.getElementById('new-doc-name').value.trim()||'Untitled';const type=pendingDocType;const now=new Date().toISOString();
   const {data}=await sb.from('documents').insert({title,content:'',doc_type:type,created_at:now,updated_at:now}).select();
@@ -1901,7 +1915,7 @@ async function loadMarketing(){
 }
 
 function showMktTab(t){
-  ['overview','spend','campaigns','social','reviews','followups'].forEach(function(id){
+  ['overview','spend','campaigns','social','reviews','followups','mkt-sop','mkt-strategy'].forEach(function(id){
     var el=document.getElementById('mkt-'+id);
     if(el) el.style.display=id===t?'block':'none';
   });
@@ -1914,6 +1928,8 @@ function showMktTab(t){
   if(t==='social') renderSocial();
   if(t==='reviews') renderReviews();
   if(t==='followups') renderFollowups();
+  if(t==='mkt-sop') renderDocList('mkt_sop');
+  if(t==='mkt-strategy') renderDocList('mkt_strategy');
 }
 
 function fmt$(n){return '$'+Math.round(n||0).toLocaleString();}
