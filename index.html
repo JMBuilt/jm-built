@@ -750,18 +750,18 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
         <tbody id="followup-tbl"></tbody>
       </table>
     </div>
+  </div>
 
   <!-- MARKETING SOP -->
-  <div id="mkt-mkt-sop" style="display:none;">
+  <div id="mkt-mkt-sop" style="display:none;min-height:500px;">
     <div class="hub-header"><div><div class="hub-title">Marketing SOPs</div><div class="hub-sub">Standard operating procedures for your marketing process.</div></div><button class="btn-primary" onclick="openDocModal('mkt_sop')">+ New SOP</button></div>
     <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="mkt_sop-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="mkt_sop-empty"><span style="font-size:32px;">📋</span><span>Select an SOP or create a new one</span></div><div id="mkt_sop-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header" style="flex-wrap:wrap;gap:6px;"><input id="mkt_sop-title-input" placeholder="Document title..." oninput="autoSaveDoc('mkt_sop')"/><span class="doc-editor-status" id="mkt_sop-status"></span><div style="display:flex;align-items:center;gap:4px;"><input id="mkt_sop-cloud-input" placeholder="☁ Cloud link..." style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;background:var(--bg2);color:var(--text);font-family:inherit;width:220px;" oninput="saveCloudLink('mkt_sop')"/><a id="mkt_sop-cloud-btn" href="#" target="_blank" style="display:none;text-decoration:none;"><button style="background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--blue-txt);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;">Open ↗</button></a></div><button class="btn-import" onclick="triggerDocImport('mkt_sop')">Import Word doc</button><input type="file" class="doc-import-input" id="mkt_sop-file-input" accept=".docx" onchange="handleDocImport('mkt_sop',this)"/><button class="btn-danger" onclick="deleteDoc('mkt_sop')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="mkt_sop-content-input" placeholder="Paste or type your SOP here..." oninput="autoSaveDoc('mkt_sop')"></textarea></div></div></div></div>
   </div>
 
   <!-- MARKETING STRATEGY -->
-  <div id="mkt-mkt-strategy" style="display:none;">
+  <div id="mkt-mkt-strategy" style="display:none;min-height:500px;">
     <div class="hub-header"><div><div class="hub-title">Marketing Strategy</div><div class="hub-sub">Document your marketing strategy, goals, and plans.</div></div><button class="btn-primary" onclick="openDocModal('mkt_strategy')">+ New document</button></div>
     <div class="doc-layout"><div class="doc-list"><div class="doc-list-header"><span class="doc-list-title">Documents</span></div><div id="mkt_strategy-list"></div></div><div class="doc-editor-wrap"><div class="doc-empty" id="mkt_strategy-empty"><span style="font-size:32px;">🎯</span><span>Select a document or create a new one</span></div><div id="mkt_strategy-editor-area" style="display:none;flex-direction:column;height:100%;"><div class="doc-editor-header" style="flex-wrap:wrap;gap:6px;"><input id="mkt_strategy-title-input" placeholder="Document title..." oninput="autoSaveDoc('mkt_strategy')"/><span class="doc-editor-status" id="mkt_strategy-status"></span><div style="display:flex;align-items:center;gap:4px;"><input id="mkt_strategy-cloud-input" placeholder="☁ Cloud link..." style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:4px 8px;background:var(--bg2);color:var(--text);font-family:inherit;width:220px;" oninput="saveCloudLink('mkt_strategy')"/><a id="mkt_strategy-cloud-btn" href="#" target="_blank" style="display:none;text-decoration:none;"><button style="background:var(--blue-bg);color:var(--blue-txt);border:1px solid var(--blue-txt);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;cursor:pointer;">Open ↗</button></a></div><button class="btn-import" onclick="triggerDocImport('mkt_strategy')">Import Word doc</button><input type="file" class="doc-import-input" id="mkt_strategy-file-input" accept=".docx" onchange="handleDocImport('mkt_strategy',this)"/><button class="btn-danger" onclick="deleteDoc('mkt_strategy')">Delete</button></div><div class="doc-textarea-wrap"><textarea class="doc-textarea" id="mkt_strategy-content-input" placeholder="Document your target market, channels, goals, differentiators..." oninput="autoSaveDoc('mkt_strategy')"></textarea></div></div></div></div>
-  </div>
   </div>
 </div>
 
@@ -1928,8 +1928,8 @@ function showMktTab(t){
   if(t==='social') renderSocial();
   if(t==='reviews') renderReviews();
   if(t==='followups') renderFollowups();
-  if(t==='mkt-sop') renderDocList('mkt_sop');
-  if(t==='mkt-strategy') renderDocList('mkt_strategy');
+  if(t==='mkt-sop'){renderDocList('mkt_sop');document.getElementById('mkt-mkt-sop').style.minHeight='calc(100vh - 200px)';}
+  if(t==='mkt-strategy'){renderDocList('mkt_strategy');document.getElementById('mkt-mkt-strategy').style.minHeight='calc(100vh - 200px)';}
 }
 
 function fmt$(n){return '$'+Math.round(n||0).toLocaleString();}
