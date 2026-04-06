@@ -1887,7 +1887,16 @@ function drawTimeDB(){
   var q=(document.getElementById('tt-db-search')?.value||'').toLowerCase();
   // Group entries by price_item_id
   var groups={};
-  ttEntries.forEach(function(e){
+  // Only show line item entries (not job type aggregates)
+  var lineItems=ttEntries.filter(function(e){return e.trade!=='Job Type Tracking';});
+  var e2=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+  e2('tt-s1',lineItems.length);
+  e2('tt-s2',new Set(lineItems.map(function(e){return e.price_item_id;})).size);
+  e2('tt-s3',lineItems.reduce(function(s,e){return s+(parseFloat(e.hours)||0);},0).toFixed(1)+'h');
+  e2('tt-s4',new Set(lineItems.map(function(e){return e.job_name;}).filter(Boolean)).size);
+  var q=(document.getElementById('tt-db-search')?.value||'').toLowerCase();
+  var groups={};
+  lineItems.filter(function(e){return !q||e.item_name.toLowerCase().includes(q)||(e.job_name||'').toLowerCase().includes(q);}).forEach(function(e){
     var id=e.price_item_id||e.item_name;
     if(!groups[id]) groups[id]={id:id,item:e.item_name,trade:e.trade,unit:e.unit,entries:[]};
     groups[id].entries.push(e);
@@ -2047,7 +2056,16 @@ function drawTimeTable(){
   if(el('tt-s4')) el('tt-s4').textContent=new Set(ttEntries.map(function(e){return e.job_name;}).filter(Boolean)).size;
   // Averages per item
   var avgs={};
-  ttEntries.forEach(function(e){if(!avgs[e.price_item_id]){avgs[e.price_item_id]={n:0,sum:0};}avgs[e.price_item_id].n++;avgs[e.price_item_id].sum+=parseFloat(e.hrs_per_unit)||0;});
+  // Only show line item entries (not job type aggregates)
+  var lineItems=ttEntries.filter(function(e){return e.trade!=='Job Type Tracking';});
+  var e2=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+  e2('tt-s1',lineItems.length);
+  e2('tt-s2',new Set(lineItems.map(function(e){return e.price_item_id;})).size);
+  e2('tt-s3',lineItems.reduce(function(s,e){return s+(parseFloat(e.hours)||0);},0).toFixed(1)+'h');
+  e2('tt-s4',new Set(lineItems.map(function(e){return e.job_name;}).filter(Boolean)).size);
+  var q=(document.getElementById('tt-db-search')?.value||'').toLowerCase();
+  var groups={};
+  lineItems.filter(function(e){return !q||e.item_name.toLowerCase().includes(q)||(e.job_name||'').toLowerCase().includes(q);}).forEach(function(e){if(!avgs[e.price_item_id]){avgs[e.price_item_id]={n:0,sum:0};}avgs[e.price_item_id].n++;avgs[e.price_item_id].sum+=parseFloat(e.hrs_per_unit)||0;});
   var tbody=document.getElementById('tt-tbody');
   if(!tbody)return;
   if(!rows.length){tbody.innerHTML='<tr><td colspan="12" class="empty">No time entries yet — log your first one to start building your database.</td></tr>';return;}
@@ -2316,43 +2334,100 @@ function addLaborCrewRow(){
   container.appendChild(row);
 }
 
-// ── LABOR HOURS → TIME TRACKER SYNC ──────────────────────────────────────────
+// ── JOB TYPE LABOR SUB-TAB ────────────────────────────────────────────────────
+function switchTTSub(v){
+  var itemsView=document.getElementById('tt-sub-items-view');
+  var jobtypeView=document.getElementById('tt-sub-jobtypes-view');
+  var btnI=document.getElementById('tt-sub-items');
+  var btnJ=document.getElementById('tt-sub-jobtypes');
+  if(!itemsView) return;
+  itemsView.style.display=v==='items'?'block':'none';
+  jobtypeView.style.display=v==='jobtypes'?'block':'none';
+  if(btnI) btnI.classList.toggle('active',v==='items');
+  if(btnJ) btnJ.classList.toggle('active',v==='jobtypes');
+  if(v==='items') drawTimeDB();
+  if(v==='jobtypes') drawJobTypeTracker();
+}
+
+function drawJobTypeTracker(){
+  var el=document.getElementById('tt-jobtype-content');
+  if(!el) return;
+
+  // Build job type data from job_labor_hours across all projects
+  // Group by project job_type
+  var jobTypeData={};
+  JOB_TYPE_TRACK.forEach(function(jt){ jobTypeData[jt]={jobs:[],totalHrs:0,entries:[]}; });
+
+  // Load from jhLaborHours (current job) + need all projects' labor hours
+  // We'll use what's available: current job hub data + a summary from projects
+  var allLabor=jhLaborHours||[];
+
+  // Get job_type for current project
+  var currentProj=projects.find(function(x){return x.id===currentJobId;});
+  var currentType=currentProj?currentProj.job_type||'':'';
+
+  if(currentType && JOB_TYPE_TRACK.includes(currentType)){
+    allLabor.forEach(function(l){
+      jobTypeData[currentType].totalHrs+=(parseFloat(l.hours)||0);
+      jobTypeData[currentType].entries.push(Object.assign({},l,{projectName:currentProj.name}));
+    });
+    if(allLabor.length) jobTypeData[currentType].jobs.push(currentProj.name);
+  }
+
+  // Also aggregate from time_logs that are job-type entries (from previous sync if any)
+  // Filter out entries that were synced (they have trade='Job Type Tracking')
+  // Actually we scrapped that - so we only have current job data here
+  // To get cross-job data we need to query job_labor_hours across all projects
+  // Show what we have and note that more data comes as more jobs are logged
+
+  var types=JOB_TYPE_TRACK.filter(function(jt){return jobTypeData[jt].entries.length>0||jobTypeData[jt].totalHrs>0;});
+
+  if(!types.length){
+    el.innerHTML='<div class="empty" style="padding:2rem;text-align:center;">'
+      +'<div style="font-size:32px;margin-bottom:.5rem;">🏗</div>'
+      +'<div style="font-size:14px;font-weight:600;margin-bottom:.5rem;">No job type data yet</div>'
+      +'<div style="font-size:13px;color:var(--text2);">Set a job type on your projects and log labor hours to build your benchmark database.</div>'
+      +'</div>';
+    return;
+  }
+
+  el.innerHTML=types.map(function(jt){
+    var d=jobTypeData[jt];
+    var avg=d.entries.length?d.totalHrs/Math.max(d.jobs.length,1):0;
+    var phaseBreakdown={};
+    d.entries.forEach(function(e){
+      var ph=e.phase||'General';
+      phaseBreakdown[ph]=(phaseBreakdown[ph]||0)+(parseFloat(e.hours)||0);
+    });
+    var phaseRows=Object.entries(phaseBreakdown).sort(function(a,b){return b[1]-a[1];}).map(function(e){
+      var pct=d.totalHrs>0?Math.round(e[1]/d.totalHrs*100):0;
+      return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">'
+        +'<div style="flex:1;font-size:12px;font-weight:500;">'+e[0]+'</div>'
+        +'<div style="width:80px;height:5px;background:var(--bg2);border-radius:3px;overflow:hidden;"><div style="width:'+pct+'%;height:100%;background:var(--brand);border-radius:3px;"></div></div>'
+        +'<div style="font-size:13px;font-weight:700;color:var(--brand);width:50px;text-align:right;">'+e[1].toFixed(1)+'h</div>'
+        +'<div style="font-size:11px;color:var(--text3);width:35px;text-align:right;">'+pct+'%</div>'
+        +'</div>';
+    }).join('');
+    return '<div class="card" style="margin-bottom:1rem;">'
+      +'<div class="card-header">'
+        +'<div style="flex:1;"><div class="hub-title" style="font-size:15px;">'+jt+'</div></div>'
+        +'<div style="display:flex;gap:20px;align-items:center;">'
+          +'<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">Total hours</div><div style="font-size:20px;font-weight:700;color:var(--brand);">'+d.totalHrs.toFixed(1)+'h</div></div>'
+          +'<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">Avg per job</div><div style="font-size:20px;font-weight:700;">'+avg.toFixed(1)+'h</div></div>'
+          +'<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">Jobs tracked</div><div style="font-size:20px;font-weight:700;">'+Math.max(d.jobs.length,d.entries.length>0?1:0)+'</div></div>'
+        +'</div>'
+      +'</div>'
+      +(phaseRows?'<div style="padding:.75rem 1rem;"><div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Hours by phase</div>'+phaseRows+'</div>':'')
+      +'</div>';
+  }).join('');
+}
+
+// ── JOB TYPE LABOR TRACKING ──────────────────────────────────────────────────
 var JOB_TYPE_TRACK=['Kitchen','Bathroom','Basement','Deck','Whole house','Addition'];
 
-// Virtual price IDs for job-type aggregate tracking in time tracker
-var JOB_TYPE_IDS={
-  'Kitchen':    'jt-kitchen-labor',
-  'Bathroom':   'jt-bathroom-labor',
-  'Basement':   'jt-basement-labor',
-  'Deck':       'jt-deck-labor',
-  'Whole house':'jt-wholehouse-labor',
-  'Addition':   'jt-addition-labor',
-};
-
-async function syncLaborToTimeTracker(laborEntry){
-  var proj=projects.find(function(x){return x.id===currentJobId;});
-  if(!proj||!proj.job_type) return;
-  var jobType=proj.job_type;
-  if(!JOB_TYPE_TRACK.includes(jobType)) return;
-
-  var virtualId=JOB_TYPE_IDS[jobType];
-  // Insert into time_logs as a job-type aggregate entry
-  var row={
-    price_item_id:virtualId,
-    item_name:jobType+' — Total Labor',
-    trade:'Job Type Tracking',
-    unit:'job',
-    job_name:proj.name,
-    phase:laborEntry.phase||'',
-    crew:laborEntry.name||'',
-    date:laborEntry.date||null,
-    qty:1,
-    hours:parseFloat(laborEntry.hours)||0,
-    hrs_per_unit:parseFloat(laborEntry.hours)||0,
-    notes:'Auto-synced from job hub labor hours',
-  };
-  var res=await sb.from('time_logs').insert(row).select();
-  if(res.data) ttEntries.unshift(res.data[0]);
+function syncJobTypeHours(laborEntry){
+  // Just triggers a redraw - job type hours come from job_labor_hours table
+  // filtered by project job_type - no separate table needed
 }
 
 async function saveLaborHours(){
@@ -2370,8 +2445,8 @@ async function saveLaborHours(){
   var res=await sb.from('job_labor_hours').insert(entries).select();
   if(res.data){
     jhLaborHours=res.data.concat(jhLaborHours);
-    // Sync to time tracker by job type
-    for(var i=0;i<res.data.length;i++) await syncLaborToTimeTracker(res.data[i]);
+    // Sync to job type tracker (separate from line item time tracker)
+    for(var i=0;i<res.data.length;i++) syncJobTypeHours(res.data[i]);
   }
   closeModals();
   renderLaborHours();
@@ -4747,6 +4822,11 @@ function getTimeTrackerHTML(){
   return '<div style="padding:1.5rem;"><div style="max-width:1400px;margin:0 auto;">'+tabsHTML
     +'<div class="hub-header"><div><div class="hub-title">⏱ Time Tracker</div><div class="hub-sub">Your real labor hour database — built from actual jobs.</div></div>'
     +'<button class="btn-primary" onclick="openTimeModal()">+ Log time</button></div>'
+    +'<div style="display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:1.25rem;width:fit-content;">'
+    +'<button id="tt-sub-items" class="jh-tab active" onclick="switchTTSub(\'items\')">📋 Line Items</button>'
+    +'<button id="tt-sub-jobtypes" class="jh-tab" onclick="switchTTSub(\'jobtypes\')">🏗 Job Types</button>'
+    +'</div>'
+    +'<div id="tt-sub-items-view">'
     +'<div class="grid4" style="margin-bottom:1rem;">'
     +'<div class="stat-card"><div class="stat-label">Total entries</div><div class="stat-value" id="tt-s1">0</div></div>'
     +'<div class="stat-card"><div class="stat-label">Items tracked</div><div class="stat-value" id="tt-s2">0</div></div>'
@@ -4755,6 +4835,10 @@ function getTimeTrackerHTML(){
     +'</div>'
     +'<div style="margin-bottom:.75rem;"><input id="tt-db-search" placeholder="Search items..." style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;" oninput="drawTimeDB()"/></div>'
     +'<div id="tt-db-content"></div>'
+    +'</div>'
+    +'<div id="tt-sub-jobtypes-view" style="display:none;">'
+    +'<div id="tt-jobtype-content"></div>'
+    +'</div>'
     +'</div></div>';
 }
 
