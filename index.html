@@ -825,15 +825,20 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
 
   <!-- CAMPAIGNS -->
   <div id="mkt-campaigns" style="display:none;">
-    <div class="hub-header">
-      <div><div class="hub-title">Campaigns</div><div class="hub-sub">Plan and track your marketing campaigns.</div></div>
-      <button class="btn-primary" onclick="openModal('campaign-modal')">+ New campaign</button>
+    <div id="camp-list-view">
+      <div class="hub-header">
+        <div><div class="hub-title">Campaigns</div><div class="hub-sub">Click a campaign to see full details.</div></div>
+        <button class="btn-primary" onclick="openModal('campaign-modal')">+ New campaign</button>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Campaign</th><th>Channel</th><th>Start</th><th>End</th><th>Status</th><th>Leads</th><th>Cost/Lead</th><th></th></tr></thead>
+          <tbody id="campaign-tbl"></tbody>
+        </table>
+      </div>
     </div>
-    <div class="tbl-wrap">
-      <table class="tbl">
-        <thead><tr><th>Campaign</th><th>Channel</th><th>Start</th><th>End</th><th>Status</th><th>Leads</th><th>Cost/Lead</th><th></th></tr></thead>
-        <tbody id="campaign-tbl"></tbody>
-      </table>
+    <div id="camp-detail-view" style="display:none;">
+      <div id="camp-detail-content"></div>
     </div>
   </div>
 
@@ -2979,6 +2984,81 @@ function renderCampaigns(){
       }).join('')
     : '<tr><td colspan="10" class="empty">No campaigns yet</td></tr>';
 }
+function openCampaignDetail(id){
+  var c=mktCampaigns.find(function(x){return x.id===id;});
+  if(!c) return;
+  document.getElementById('camp-list-view').style.display='none';
+  document.getElementById('camp-detail-view').style.display='block';
+
+  var statColors={Planning:'b-gray',Active:'b-green',Paused:'b-amber',Complete:'b-blue'};
+  var cpl=c.cost_per_lead?'$'+parseFloat(c.cost_per_lead).toFixed(2):'—';
+
+  function section(title,content,color){
+    if(!content) return '';
+    return '<div class="card" style="margin-bottom:1rem;">'
+      +'<div class="card-header"><span class="card-title">'+(color?'<span style="color:'+color+';">'+title+'</span>':title)+'</span></div>'
+      +'<div style="padding:1rem;font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">'+content+'</div>'
+      +'</div>';
+  }
+
+  document.getElementById('camp-detail-content').innerHTML=
+    // Header
+    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;">'
+      +'<button class="btn-sm" onclick="closeCampaignDetail()">← Back</button>'
+      +'<div style="flex:1;">'
+        +'<div style="font-size:22px;font-weight:700;">'+c.name+'</div>'
+        +'<div style="font-size:13px;color:var(--text2);margin-top:2px;">'
+          +'<span class="badge b-gray" style="margin-right:6px;">'+c.channel+'</span>'
+          +'<span class="badge '+(statColors[c.status]||'b-gray')+'" style="margin-right:6px;">'+c.status+'</span>'
+          +(c.start_date?'<span style="color:var(--text3);">'+fmtD(c.start_date)+' → '+fmtD(c.end_date)+'</span>':'')
+        +'</div>'
+      +'</div>'
+      +'<button class="btn-primary" data-id="'+c.id+'" onclick="openEditCampaign(this.dataset.id)">Edit campaign</button>'
+    +'</div>'
+
+    // Stat cards
+    +'<div class="grid4" style="margin-bottom:1.5rem;">'
+      +'<div class="stat-card"><div class="stat-label">Budget</div><div class="stat-value" style="font-size:18px;">'+(c.budget?'$'+Math.round(c.budget).toLocaleString():'—')+'</div></div>'
+      +'<div class="stat-card"><div class="stat-label">Leads generated</div><div class="stat-value" style="font-size:18px;">'+(c.leads_count||0)+'</div></div>'
+      +'<div class="stat-card"><div class="stat-label">Cost per lead</div><div class="stat-value" style="font-size:18px;">'+cpl+'</div></div>'
+      +'<div class="stat-card"><div class="stat-label">ROI</div><div class="stat-value" style="font-size:18px;">'
+        +(c.cost_per_lead&&c.leads_count?'$'+Math.round(c.budget||0).toLocaleString()+' spent':'—')
+      +'</div></div>'
+    +'</div>'
+
+    // Goals
+    +section('🎯 Goals', c.goal, 'var(--brand)')
+
+    // Budget breakdown
+    +section('💰 Budget Breakdown', c.budget_notes)
+
+    // Campaign Notes
+    +section('📋 Campaign Notes', c.notes)
+
+    // Debrief
+    +(c.debrief
+      ? '<div class="card" style="margin-bottom:1rem;border:2px solid var(--green-txt);">'
+          +'<div class="card-header"><span class="card-title" style="color:var(--green-txt);">✅ Debrief / Summary</span></div>'
+          +'<div style="padding:1rem;font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">'+c.debrief+'</div>'
+          +'</div>'
+      : '<div class="card" style="margin-bottom:1rem;border:1px dashed var(--border);">'
+          +'<div class="card-header"><span class="card-title" style="color:var(--text3);">📝 Debrief / Summary</span>'
+          +'<button class="btn-sm" data-id="'+c.id+'" onclick="openEditCampaign(this.dataset.id)">Add debrief</button></div>'
+          +'<div style="padding:1rem;font-size:13px;color:var(--text3);">No debrief yet. Add one when this campaign closes to capture what worked and what to improve next time.</div>'
+          +'</div>'
+    )
+
+    // Delete button
+    +'<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);">'
+      +'<button class="btn-danger" style="font-size:12px;" data-id="'+c.id+'" onclick="deleteCampaign(this.dataset.id)">Delete campaign</button>'
+    +'</div>';
+}
+
+function closeCampaignDetail(){
+  document.getElementById('camp-list-view').style.display='block';
+  document.getElementById('camp-detail-view').style.display='none';
+}
+
 function openEditCampaign(id){
   var c=mktCampaigns.find(function(x){return x.id===id;});
   if(!c) return;
@@ -3013,14 +3093,18 @@ async function saveCampaign(){
   }
   closeModals(); renderCampaigns();
   ['camp-name','camp-goal','camp-budget','camp-budget-notes','camp-start','camp-end','camp-notes','camp-leads','camp-cpl','camp-debrief'].forEach(function(id){document.getElementById(id).value='';});
+  var eid=document.getElementById('camp-edit-id').value;
   document.getElementById('camp-edit-id').value='';
   document.getElementById('camp-modal-title').textContent='New campaign';
+  // Refresh detail view if it was open
+  if(eid&&document.getElementById('camp-detail-view')&&document.getElementById('camp-detail-view').style.display!=='none') openCampaignDetail(eid);
 }
 async function deleteCampaign(id){
   if(!confirm('Delete this campaign?')) return;
   await sb.from('mkt_campaigns').delete().eq('id',id);
   mktCampaigns=mktCampaigns.filter(function(x){return x.id!==id;});
   renderCampaigns();
+  closeCampaignDetail();
 }
 
 // ── SOCIAL ────────────────────────────────────────────────────────────────────
