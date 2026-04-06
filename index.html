@@ -831,7 +831,7 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
     </div>
     <div class="tbl-wrap">
       <table class="tbl">
-        <thead><tr><th>Campaign</th><th>Channel</th><th>Goal</th><th>Budget</th><th>Start</th><th>End</th><th>Status</th><th>Leads</th><th>Notes</th><th></th></tr></thead>
+        <thead><tr><th>Campaign</th><th>Channel</th><th>Start</th><th>End</th><th>Status</th><th>Leads</th><th>Cost/Lead</th><th></th></tr></thead>
         <tbody id="campaign-tbl"></tbody>
       </table>
     </div>
@@ -2979,13 +2979,42 @@ function renderCampaigns(){
       }).join('')
     : '<tr><td colspan="10" class="empty">No campaigns yet</td></tr>';
 }
+function openEditCampaign(id){
+  var c=mktCampaigns.find(function(x){return x.id===id;});
+  if(!c) return;
+  document.getElementById('camp-edit-id').value=id;
+  document.getElementById('camp-modal-title').textContent='Edit campaign';
+  document.getElementById('camp-name').value=c.name||'';
+  document.getElementById('camp-channel').value=c.channel||'Google Ads';
+  document.getElementById('camp-start').value=c.start_date||'';
+  document.getElementById('camp-end').value=c.end_date||'';
+  document.getElementById('camp-status').value=c.status||'Planning';
+  document.getElementById('camp-leads').value=c.leads_count||'';
+  document.getElementById('camp-goal').value=c.goal||'';
+  document.getElementById('camp-budget-notes').value=c.budget_notes||'';
+  document.getElementById('camp-budget').value=c.budget||'';
+  document.getElementById('camp-notes').value=c.notes||'';
+  document.getElementById('camp-cpl').value=c.cost_per_lead||'';
+  document.getElementById('camp-debrief').value=c.debrief||'';
+  openModal('campaign-modal');
+}
+
 async function saveCampaign(){
   var name=document.getElementById('camp-name').value.trim();if(!name)return;
-  var data={name,channel:document.getElementById('camp-channel').value,goal:document.getElementById('camp-goal').value||'',budget:parseFloat(document.getElementById('camp-budget').value)||0,start_date:document.getElementById('camp-start').value||null,end_date:document.getElementById('camp-end').value||null,status:document.getElementById('camp-status').value,notes:document.getElementById('camp-notes').value||'',leads_count:0};
-  var res=await sb.from('mkt_campaigns').insert(data).select();
-  if(res.data) mktCampaigns.unshift(res.data[0]);
+  var editId=document.getElementById('camp-edit-id').value;
+  var data={name,channel:document.getElementById('camp-channel').value,goal:document.getElementById('camp-goal').value||'',budget:parseFloat(document.getElementById('camp-budget').value)||0,budget_notes:document.getElementById('camp-budget-notes').value||'',start_date:document.getElementById('camp-start').value||null,end_date:document.getElementById('camp-end').value||null,status:document.getElementById('camp-status').value,notes:document.getElementById('camp-notes').value||'',leads_count:parseInt(document.getElementById('camp-leads').value)||0,cost_per_lead:parseFloat(document.getElementById('camp-cpl').value)||0,debrief:document.getElementById('camp-debrief').value||''};
+  if(editId){
+    await sb.from('mkt_campaigns').update(data).eq('id',editId);
+    var c=mktCampaigns.find(function(x){return x.id===editId;});
+    if(c) Object.assign(c,data);
+  } else {
+    var res=await sb.from('mkt_campaigns').insert(data).select();
+    if(res.data) mktCampaigns.unshift(res.data[0]);
+  }
   closeModals(); renderCampaigns();
-  ['camp-name','camp-goal','camp-budget','camp-start','camp-end','camp-notes'].forEach(function(id){document.getElementById(id).value='';});
+  ['camp-name','camp-goal','camp-budget','camp-budget-notes','camp-start','camp-end','camp-notes','camp-leads','camp-cpl','camp-debrief'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('camp-edit-id').value='';
+  document.getElementById('camp-modal-title').textContent='New campaign';
 }
 async function deleteCampaign(id){
   if(!confirm('Delete this campaign?')) return;
@@ -6049,18 +6078,25 @@ async function deletePriceEntry(id){
 </div></div>
 
 <!-- CAMPAIGN MODAL -->
-<div class="modal-overlay" id="campaign-modal"><div class="modal"><h3>New campaign</h3>
-  <div class="fg"><label>Campaign name</label><input id="camp-name" placeholder="e.g. Spring 2025 Google Push"/></div>
-  <div class="fg"><label>Channel</label><select id="camp-channel"><option>Google Ads</option><option>Facebook/Instagram</option><option>Nextdoor</option><option>Yard signs</option><option>Door hangers</option><option>Mailers</option><option>Home Advisor/Angi</option><option>Thumbtack</option><option>Email</option><option>Other</option></select></div>
-  <div class="fg"><label>Goal</label><input id="camp-goal" placeholder="e.g. 10 new leads, $50k revenue..."/></div>
-  <div class="fg"><label>Budget ($)</label><input id="camp-budget" type="number" step="0.01" placeholder="e.g. 1000"/></div>
+<div class="modal-overlay" id="campaign-modal"><div class="modal" style="width:640px;"><h3 id="camp-modal-title">New campaign</h3>
+  <input type="hidden" id="camp-edit-id"/>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="fg"><label>Campaign name</label><input id="camp-name" placeholder="e.g. Spring 2025 Google Push"/></div>
+    <div class="fg"><label>Channel</label><select id="camp-channel"><option>Google Ads</option><option>Facebook/Instagram</option><option>Nextdoor</option><option>Yard signs</option><option>Door hangers</option><option>Mailers</option><option>Home Advisor/Angi</option><option>Thumbtack</option><option>Email</option><option>Other</option></select></div>
     <div class="fg"><label>Start date</label><input id="camp-start" type="date"/></div>
     <div class="fg"><label>End date</label><input id="camp-end" type="date"/></div>
+    <div class="fg"><label>Status</label><select id="camp-status"><option>Planning</option><option>Active</option><option>Paused</option><option>Complete</option></select></div>
+    <div class="fg"><label>Leads generated</label><input id="camp-leads" type="number" placeholder="e.g. 12"/></div>
   </div>
-  <div class="fg"><label>Status</label><select id="camp-status"><option>Planning</option><option>Active</option><option>Paused</option><option>Complete</option></select></div>
-  <div class="fg"><label>Notes</label><textarea id="camp-notes" rows="2" style="resize:vertical;" placeholder="e.g. Target zip codes, ad copy ideas..."></textarea></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveCampaign()">Save campaign</button></div>
+  <div class="fg"><label>Goals <span style="color:var(--text3);font-weight:400;">— be specific</span></label><textarea id="camp-goal" rows="3" style="resize:vertical;" placeholder="e.g. Generate 15 qualified leads in Clermont County. Target homeowners 35-60 with $80k+ income. Achieve cost per lead under $40. Book 8 estimates."></textarea></div>
+  <div class="fg"><label>Budget breakdown <span style="color:var(--text3);font-weight:400;">— what are you paying for?</span></label><textarea id="camp-budget-notes" rows="3" style="resize:vertical;" placeholder="e.g. Google Ads daily budget: $30/day ($900/mo)&#10;Campaign management fee: $200/mo&#10;Landing page: $0 (using existing site)&#10;Total: $1,100/mo"></textarea></div>
+  <div class="fg"><label>Total budget ($)</label><input id="camp-budget" type="number" step="0.01" placeholder="e.g. 1100"/></div>
+  <div class="fg"><label>Campaign notes <span style="color:var(--text3);font-weight:400;">— targeting, ad copy ideas, audience, etc.</span></label><textarea id="camp-notes" rows="4" style="resize:vertical;" placeholder="e.g. Target zip codes: 45103, 45140, 45150. Keywords: kitchen remodel Clermont County. Audience: homeowners, 35-60, $80k+. Exclude: renters. Run Mon-Fri 7am-8pm."></textarea></div>
+  <div id="camp-debrief-section">
+    <div class="fg"><label>Cost per lead ($) <span style="color:var(--text3);font-weight:400;">— fill in when campaign ends</span></label><input id="camp-cpl" type="number" step="0.01" placeholder="e.g. 38.50"/></div>
+    <div class="fg"><label>Debrief / summary <span style="color:var(--text3);font-weight:400;">— what worked, what didn't, what to do next time</span></label><textarea id="camp-debrief" rows="4" style="resize:vertical;" placeholder="e.g. Campaign exceeded lead goal by 20%. Best performing ad was the before/after bathroom photo. Cost per lead came in at $32, under target. Leads from 45103 converted best. Recommend increasing budget in that zip next run. Would pause Tuesday/Wednesday — lowest volume days."></textarea></div>
+  </div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" id="camp-save-btn" onclick="saveCampaign()">Save campaign</button></div>
 </div></div>
 
 <!-- SOCIAL MODAL -->
