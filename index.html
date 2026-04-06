@@ -1079,6 +1079,14 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
 <div class="modal-overlay" id="history-modal"><div class="modal"><div class="notes-header"><div><div class="notes-name" id="history-name"></div><div class="notes-meta" id="history-meta"></div></div><button class="btn-sm" onclick="closeModals()">Close</button></div><div id="history-list"></div><div class="notes-input-area"><textarea class="notes-textarea" id="history-input" placeholder="e.g. Framed Johnson Master Bath — Mar 2025, $3,200"></textarea><div style="display:flex;justify-content:flex-end;"><button class="btn-primary" onclick="saveHistory()">Add entry</button></div></div></div></div>
 <div class="modal-overlay" id="qualifier-modal"><div class="modal"><h3>Update qualifier</h3><input type="hidden" id="q-lead-id"/><div class="fg"><label>Qualifier</label><select id="q-qualifier"><option>Good</option><option>Neutral</option><option>Do Not Contact</option></select></div><div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveQualifier()">Save</button></div></div></div>
 <div class="modal-overlay" id="lead-modal"><div class="modal"><h3>Add new lead</h3>
+  <div class="fg"><label>Existing customer? <span style="color:var(--text3);font-weight:400;">(optional — auto-fills info)</span></label>
+    <div style="position:relative;">
+      <input id="l-cust-search" placeholder="Search customer database..." autocomplete="off"
+        style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;background:var(--surface);color:var(--text);font-family:inherit;"
+        oninput="searchLeadCustomers(this.value)" onfocus="searchLeadCustomers(this.value)"/>
+      <div id="l-cust-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:999;max-height:200px;overflow-y:auto;"></div>
+    </div>
+  </div>
   <div class="fg"><label>Customer name</label><input id="l-name" placeholder="e.g. John Smith"/></div>
   <div class="fg"><label>Phone number</label><input id="l-phone" placeholder="e.g. 513-555-0100"/></div>
   <div class="fg"><label>Email</label><input id="l-email" placeholder="e.g. john@email.com"/></div>
@@ -1393,7 +1401,7 @@ function renderSalesPipeline(){
   const active=leads.filter(l=>ACTIVE_LEAD_STAGES.includes(l.stage));
   const q=(document.getElementById('inactive-search')?.value||'').toLowerCase();
   const inactive=leads.filter(l=>INACTIVE_LEAD_STAGES.includes(l.stage)).filter(l=>!q||[l.name,l.customer_id,l.job,l.source,l.stage,l.qualifier].some(v=>(v||'').toLowerCase().includes(q)));
-  var decided=leads.filter(l=>l.stage==='Won'||l.stage==='Lost').length;var closeRate=decided?Math.round(leads.filter(l=>l.stage==='Won').length/decided*100)+'%':'0%';statCards('pipeline-stats',[{label:'Active leads',value:active.length,sub:'In pipeline'},{label:'Pipeline value',value:fmt(active.reduce((s,l)=>s+toNum(l.val),0)),sub:'Potential'},{label:'Won',value:leads.filter(l=>l.stage==='Won').length,sub:'Won jobs'},{label:'Lost',value:leads.filter(l=>l.stage==='Lost').length,sub:'Lost leads'},{label:'Close rate',value:closeRate,sub:'Leads → completed'}]);
+  var decided=leads.filter(l=>l.stage==='Won'||l.stage==='Lost').length;var closeRate=decided?Math.round(leads.filter(l=>l.stage==='Won').length/decided*100)+'%':'0%';statCards('pipeline-stats',[{label:'Active leads',value:active.length,sub:'In pipeline'},{label:'Pipeline value',value:fmt(active.reduce((s,l)=>s+toNum(l.val),0)),sub:'Potential'},{label:'Won',value:leads.filter(l=>l.stage==='Won').length,sub:'Won jobs'},{label:'Lost',value:leads.filter(l=>l.stage==='Lost').length,sub:'Lost leads'},{label:'Close rate',value:closeRate,sub:'Won ÷ (Won + Lost)'}]);
   document.getElementById('sales-board').innerHTML=ACTIVE_LEAD_STAGES.map(stage=>{const cards=leads.filter(l=>l.stage===stage);return '<div class="pcol"><div class="pcol-header"><span>'+stage+'</span><span class="pcount">'+cards.length+'</span></div>'+cards.map(l=>'<div class="lcard"><div class="lcard-name">'+l.name+'</div><div class="lcard-sub">'+(l.job||'—')+'</div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:7px;"><span class="lcard-val">'+(l.val||'TBD')+'</span><select onchange="moveLeadStage(\''+l.id+'\',this.value)" class="inline-select">'+ALL_LEAD_STAGES.map(s=>'<option'+(s===stage?' selected':'')+'>'+s+'</option>').join('')+'</select></div></div>').join('')+'</div>';}).join('');
   document.getElementById('active-count').textContent=active.length;
   document.getElementById('leads-tbl').innerHTML=active.map(activeLeadRow).join('')||'<tr><td colspan="8" class="empty">No active leads</td></tr>';
@@ -1639,7 +1647,44 @@ async function deleteCeoPri(id){if(!confirm('Delete this priority?'))return;awai
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModals(){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));}
 
-async function saveLead(){const name=document.getElementById('l-name').value.trim();if(!name)return;const now=new Date().toISOString();const customer_id=await getNextId('last_customer_id',1012);const {data}=await sb.from('leads').insert({name,customer_id,phone:document.getElementById('l-phone').value||'',email:document.getElementById('l-email').value||'',address:document.getElementById('l-address').value||'',job:document.getElementById('l-job').value||'',val:document.getElementById('l-val').value||'TBD',source:document.getElementById('l-source').value,qualifier:document.getElementById('l-qualifier').value,stage:'New Lead',stage_updated_at:now}).select();if(data)leads.unshift(data[0]);closeModals();renderSalesPipeline();renderDash();['l-name','l-phone','l-email','l-address','l-job','l-val'].forEach(id=>document.getElementById(id).value='');}
+function searchLeadCustomers(q){
+  var dropdown=document.getElementById('l-cust-dropdown');
+  if(!dropdown) return;
+  if(!q||q.length<1){dropdown.style.display='none';return;}
+  q=q.toLowerCase();
+  var matches=leads.filter(function(l){
+    return (l.name||'').toLowerCase().includes(q)||(l.phone||'').includes(q)||(l.email||'').toLowerCase().includes(q);
+  }).filter(function(l,i,arr){
+    // deduplicate by name+phone
+    return arr.findIndex(function(x){return x.name===l.name&&x.phone===l.phone;})===i;
+  }).slice(0,8);
+  if(!matches.length){dropdown.style.display='none';return;}
+  dropdown.style.display='block';
+  dropdown.innerHTML=matches.map(function(l){
+    return '<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);" '
+      +'data-name="'+(l.name||'')+'" data-phone="'+(l.phone||'')+'" data-email="'+(l.email||'')+'" data-address="'+(l.address||'')+'" '
+      +'onmousedown="fillLeadFromCustomer(this)" '
+      +'onmouseover="this.style.background=\'var(--bg2)\'" onmouseout="this.style.background=\'\'">'
+      +'<div style="font-weight:600;">'+l.name+'</div>'
+      +'<div style="font-size:11px;color:var(--text3);">'+(l.phone||'')+(l.email?' · '+l.email:'')+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function fillLeadFromCustomer(el){
+  document.getElementById('l-name').value=el.dataset.name||'';
+  document.getElementById('l-phone').value=el.dataset.phone||'';
+  document.getElementById('l-email').value=el.dataset.email||'';
+  document.getElementById('l-address').value=el.dataset.address||'';
+  document.getElementById('l-cust-search').value=el.dataset.name||'';
+  document.getElementById('l-cust-dropdown').style.display='none';
+  // Set source to Repeat client automatically
+  document.getElementById('l-source').value='Repeat client';
+}
+
+document.addEventListener("click",function(e){var dd=document.getElementById("l-cust-dropdown");if(dd&&!dd.contains(e.target)&&e.target.id!=="l-cust-search")dd.style.display="none";});
+
+async function saveLead(){const name=document.getElementById('l-name').value.trim();if(!name)return;const now=new Date().toISOString();const customer_id=await getNextId('last_customer_id',1012);const {data}=await sb.from('leads').insert({name,customer_id,phone:document.getElementById('l-phone').value||'',email:document.getElementById('l-email').value||'',address:document.getElementById('l-address').value||'',job:document.getElementById('l-job').value||'',val:document.getElementById('l-val').value||'TBD',source:document.getElementById('l-source').value,qualifier:document.getElementById('l-qualifier').value,stage:'New Lead',stage_updated_at:now}).select();if(data)leads.unshift(data[0]);closeModals();renderSalesPipeline();renderDash();['l-name','l-phone','l-email','l-address','l-job','l-val','l-cust-search'].forEach(id=>document.getElementById(id).value='');document.getElementById('l-cust-dropdown').style.display='none';}
 async function saveEst(){const client=document.getElementById('e-client').value.trim();if(!client)return;const today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});const {data}=await sb.from('estimates').insert({client,description:document.getElementById('e-desc').value||'',amt:document.getElementById('e-amt').value||'TBD',status:document.getElementById('e-status').value,sent:today,follow_up:document.getElementById('e-follow').value||''}).select();if(data)estimates.unshift(data[0]);closeModals();renderEst();renderDash();['e-client','e-desc','e-amt','e-follow'].forEach(id=>document.getElementById(id).value='');}
 async function saveProj(){const name=document.getElementById('p-name').value.trim();if(!name)return;const job_id=await getNextId('last_job_id',1045);const {data}=await sb.from('projects').insert({name,job_id,client:document.getElementById('p-client').value||'',customer_id:document.getElementById('p-customer-id').value||'',val:document.getElementById('p-val').value||'TBD',status:document.getElementById('p-status').value,progress:0,start_date:document.getElementById('p-start').value||'',due_date:document.getElementById('p-due').value||'',profitable:''}).select();if(data)projects.unshift(data[0]);closeModals();renderProj();renderDash();['p-name','p-client','p-customer-id','p-val','p-start','p-due'].forEach(id=>document.getElementById(id).value='');}
 async function saveTask(){const text=document.getElementById('t-text').value.trim();if(!text)return;const {data}=await sb.from('tasks').insert({text,project:document.getElementById('t-proj').value||'General',assigned_to:document.getElementById('t-assign').value||'Yourself',priority:document.getElementById('t-pri').value,done:false}).select();if(data)tasks.unshift(data[0]);closeModals();renderField();renderDash();['t-text','t-proj','t-assign'].forEach(id=>document.getElementById(id).value='');}
@@ -2488,14 +2533,15 @@ async function deleteCompetitor(i){mktStrategyData.competitors.splice(i,1);await
 function renderMkt(){
   var totalLeads=leads.length;
   var won=leads.filter(function(l){return l.stage==='Won';}).length;
-  var closeRate=totalLeads?Math.round(won/totalLeads*100):0;
+  var decided=leads.filter(function(l){return l.stage==='Won'||l.stage==='Lost';}).length;
+  var closeRate=decided?Math.round(won/decided*100):0;
   var totalSpend=mktSpend.reduce(function(s,x){return s+(parseFloat(x.amount)||0);},0);
   var totalRev=mktSpend.reduce(function(s,x){return s+(parseFloat(x.revenue)||0);},0);
   var totalLeadsGen=mktSpend.reduce(function(s,x){return s+(parseInt(x.leads_generated)||0);},0);
   var roi=totalSpend>0?Math.round((totalRev-totalSpend)/totalSpend*100):0;
 
   statCards('mkt-stats',[
-    {label:'Total leads',value:totalLeads,sub:closeRate+'% close rate'},
+    {label:'Total leads',value:totalLeads,sub:closeRate+'% close rate (won vs lost)'},
     {label:'Total ad spend',value:fmt$(totalSpend),sub:'All time'},
     {label:'Marketing ROI',value:roi+'%',sub:totalRev>0?fmt$(totalRev)+' attributed revenue':'No revenue logged'},
     {label:'Cost per lead',value:totalLeadsGen>0?'$'+(totalSpend/totalLeadsGen).toFixed(2):'—',sub:totalLeadsGen+' leads from paid channels'},
