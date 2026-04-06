@@ -224,8 +224,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ord-spreadsheet th{background:var(--bg2);padding:8px 10px;text-align:left;font-size:11px;font-weight:600;color:var(--text3);border-bottom:1px solid var(--border);white-space:nowrap;}
 .ord-spreadsheet td{padding:4px 6px;border-bottom:1px solid var(--border);vertical-align:middle;}
 .ord-spreadsheet tr:last-child td{border-bottom:none;}
-.ord-cell{width:100%;font-size:12px;border:1px solid transparent;border-radius:4px;padding:5px 7px;background:transparent;color:var(--text);font-family:inherit;transition:border-color 0.15s;}
-.ord-cell:focus{outline:none;border-color:var(--brand);background:var(--bg2);}
+.ord-cell{width:100%;font-size:12px;border:1px solid transparent;border-radius:4px;padding:5px 7px;background:transparent;color:var(--text);font-family:inherit;transition:border-color 0.15s;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;}
+.ord-cell:focus{outline:none;border-color:var(--brand);background:var(--bg2);text-overflow:clip;overflow:visible;white-space:nowrap;}
+.ord-cell-wide:focus{min-width:200px;position:relative;z-index:10;box-shadow:0 2px 12px rgba(0,0,0,0.15);}
 .ord-cell-total{font-size:12px;font-weight:600;color:var(--brand);padding:5px 7px;}
 .ord-form-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 1rem;border-top:1px solid var(--border);background:var(--bg2);}
 .ord-form-total{font-size:13px;font-weight:600;}
@@ -3814,7 +3815,10 @@ function renderFormCard(f, isArchived){
       if(col==='notes'){
         return '<td><button style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:3px 8px;background:'+(val?'var(--brand)':'var(--bg2)')+'  ;color:'+(val?'white':'var(--text2)')+';cursor:pointer;white-space:nowrap;" data-formid="'+f.id+'" data-row="'+ri+'" onclick="openOrdNotes(this.dataset.formid,'+ri+')">  '+(val?'📝 Notes':'+ Notes')+'</button></td>';
       }
-      return '<td><input class="ord-cell" type="'+inputType+'" value="'+val+'" data-formid="'+f.id+'" data-row="'+ri+'" data-col="'+col+'" '+extraAttrs+' oninput="handleOrdCellInput(this)"/></td>';
+      var isWide=(col==='material'||col==='description'||col==='supplier');
+      var focusAttr=isWide?' onfocus="this.select()"':'';
+      var cls='ord-cell'+(isWide?' ord-cell-wide':'');
+      return '<td><input class="'+cls+'" type="'+inputType+'" value="'+val+'" data-formid="'+f.id+'" data-row="'+ri+'" data-col="'+col+'" '+extraAttrs+focusAttr+' oninput="handleOrdCellInput(this)"/></td>';
     }).join('')+
     '<td style="white-space:nowrap;">'
     +'<button class="btn-sm" style="padding:2px 7px;font-size:10px;margin-right:3px;" data-fid="'+f.id+'" data-ri="'+ri+'" onclick="openEditOrdRow(this.dataset.fid,parseInt(this.dataset.ri))">Edit</button>'
