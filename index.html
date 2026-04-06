@@ -2258,7 +2258,37 @@ function renderLaborHours(){
     byDate[d].push(l);
   });
 
-  el.innerHTML='<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Crew member</th><th>Phase / task</th><th>Hours</th><th>Notes</th><th></th></tr></thead><tbody>'
+  // Group by phase
+  var byPhase={};
+  jhLaborHours.forEach(function(l){
+    var ph=l.phase||'General';
+    if(!byPhase[ph]) byPhase[ph]=0;
+    byPhase[ph]+=(parseFloat(l.hours)||0);
+  });
+
+  // Phase summary cards
+  var phaseCards=Object.entries(byPhase).sort(function(a,b){return b[1]-a[1];}).map(function(e){
+    var pct=totalHrs>0?Math.round(e[1]/totalHrs*100):0;
+    return '<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;min-width:120px;">'
+      +'<div style="font-size:11px;color:var(--text3);margin-bottom:3px;">'+e[0]+'</div>'
+      +'<div style="font-size:18px;font-weight:700;color:var(--brand);">'+e[1].toFixed(1)+'h</div>'
+      +'<div style="font-size:11px;color:var(--text2);">'+pct+'% of job</div>'
+      +'</div>';
+  }).join('');
+
+  // Grand total card
+  var grandTotal='<div style="background:var(--brand);border-radius:10px;padding:10px 14px;min-width:120px;">'
+    +'<div style="font-size:11px;color:rgba(255,255,255,0.8);margin-bottom:3px;">Grand total</div>'
+    +'<div style="font-size:20px;font-weight:700;color:white;">'+totalHrs.toFixed(1)+'h</div>'
+    +'<div style="font-size:11px;color:rgba(255,255,255,0.8);">'+new Set(jhLaborHours.map(function(l){return l.name;})).size+' crew members</div>'
+    +'</div>';
+
+  var phaseSummaryHtml='<div style="padding:.75rem 1rem;border-bottom:2px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:stretch;">'
+    +grandTotal+phaseCards
+    +'</div>';
+
+  el.innerHTML=phaseSummaryHtml
+    +'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Crew member</th><th>Phase / task</th><th>Hours</th><th>Notes</th><th></th></tr></thead><tbody>'
     +jhLaborHours.map(function(l){
       var d=l.date?new Date(l.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}):'—';
       return '<tr>'
@@ -2270,15 +2300,7 @@ function renderLaborHours(){
         +'<td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+l.id+'" onclick="deleteLaborHours(this.dataset.id)">✕</button></td>'
         +'</tr>';
     }).join('')
-    +'</tbody></table></div>'
-    // Weekly summary footer
-    +'<div style="padding:.75rem 1rem;border-top:1px solid var(--border);display:flex;gap:1.5rem;flex-wrap:wrap;">'
-    +Object.entries(byDate).slice(0,7).map(function(e){
-      var dayHrs=e[1].reduce(function(s,l){return s+(parseFloat(l.hours)||0);},0);
-      var d=e[0]!=='No date'?new Date(e[0]+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):e[0];
-      return '<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">'+d+'</div><div style="font-size:14px;font-weight:700;color:var(--brand);">'+dayHrs.toFixed(1)+'h</div></div>';
-    }).join('')
-    +'</div>';
+    +'</tbody></table></div>';
 }
 
 function addLaborCrewRow(){
