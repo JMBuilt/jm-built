@@ -571,6 +571,15 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
         <div class="cal-day-panel" id="cal-day-panel"></div>
         <div class="cal-legend"><div class="cal-legend-item"><div class="cal-legend-dot cal-ev-phase"></div>Phase</div><div class="cal-legend-item"><div class="cal-legend-dot cal-ev-delivery"></div>Delivery</div><div class="cal-legend-item"><div class="cal-legend-dot cal-ev-inspection"></div>Inspection</div><div class="cal-legend-item"><div class="cal-legend-dot cal-ev-event"></div>Event</div></div>
       </div>
+      <!-- DELAY TRACKER -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-header">
+          <span class="card-title">⚠️ Project Delays</span>
+          <button class="btn-primary" onclick="openModal('delay-modal')">+ Log delay</button>
+        </div>
+        <div id="jh-delays-list"></div>
+      </div>
+
       <div class="grid2">
         <div class="card"><div class="card-header"><span class="card-title">Notes</span></div><div id="jh-notes-list"></div><div class="add-row"><input id="jh-note-inp" placeholder="Add note..." onkeydown="if(event.key==='Enter')addJhNote()"/><button class="btn-primary" style="padding:7px 13px;" onclick="addJhNote()">Add</button></div></div>
         <div class="card"><div class="card-header"><span class="card-title">Daily log</span></div><div id="jh-log-list" style="max-height:300px;overflow-y:auto;"></div><div class="add-row" style="flex-direction:column;gap:6px;"><textarea id="jh-log-inp" placeholder="What happened today? Who was on site? Any issues?" style="width:100%;font-size:13px;border:1px solid var(--border);border-radius:8px;padding:8px 11px;background:var(--bg2);color:var(--text);font-family:inherit;resize:vertical;min-height:70px;"></textarea><div style="display:flex;justify-content:flex-end;"><button class="btn-primary" style="padding:7px 16px;" onclick="addJhLog()">Log entry</button></div></div></div>
@@ -2027,6 +2036,62 @@ async function ptDelete(id){
 }
 
 // ============================================================
+
+// ── PROJECT DELAYS ────────────────────────────────────────────────────────────
+var jhDelays=[];
+
+function renderJhDelays(){
+  var el=document.getElementById('jh-delays-list');
+  if(!el) return;
+  if(!jhDelays.length){
+    el.innerHTML='<div class="empty" style="padding:1rem;">No delays logged yet. Log any delays for documentation and client communication.</div>';
+    return;
+  }
+  var catColors={'Weather':'b-blue','Material shortage':'b-amber','Material delivery':'b-amber','Subcontractor':'b-brand','Client decision / change':'b-purple','Permit / inspection':'b-gray','Unforeseen conditions':'b-red','Labor shortage':'b-red','Equipment':'b-gray','Other':'b-gray'};
+  var impactColors={'Minor — less than 1 week':'b-green','Moderate — 1–2 weeks':'b-amber','Significant — 2–4 weeks':'b-amber','Major — 1+ month':'b-red'};
+  el.innerHTML='<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Category</th><th>Description</th><th>Started</th><th>Resolved</th><th>Days</th><th>Impact</th><th>Status</th><th></th></tr></thead><tbody>'
+    +jhDelays.map(function(d){
+      var start=d.date_start?new Date(d.date_start+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'--';
+      var end=d.date_end?new Date(d.date_end+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'Ongoing';
+      return '<tr>'
+        +'<td><span class="badge '+(catColors[d.category]||'b-gray')+'" style="font-size:10px;">'+d.category+'</span></td>'
+        +'<td style="font-size:12px;max-width:200px;color:var(--text2);">'+(d.description||'--')+'</td>'
+        +'<td style="font-size:12px;color:var(--text2);">'+start+'</td>'
+        +'<td style="font-size:12px;color:'+(d.date_end?'var(--green-txt)':'var(--red-txt)')+';">'+end+'</td>'
+        +'<td style="font-weight:600;text-align:center;">'+(d.days_delayed||'--')+'</td>'
+        +'<td><span class="badge '+(impactColors[d.impact]||'b-gray')+'" style="font-size:10px;">'+d.impact+'</span></td>'
+        +'<td><span class="badge '+(d.status==='Resolved'?'b-green':'b-red')+'">'+d.status+'</span></td>'
+        +'<td style="white-space:nowrap;">'
+          +'<button class="btn-sm" style="padding:2px 7px;font-size:10px;margin-right:3px;" data-id="'+d.id+'" onclick="resolveDelay(this.dataset.id)">Resolve</button>'
+          +'<button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+d.id+'" onclick="deleteDelay(this.dataset.id)">X</button>'
+        +'</td>'
+        +'</tr>';
+    }).join('')+'</tbody></table></div>';
+}
+
+async function saveDelay(){
+  var data={project_id:currentJobId,category:document.getElementById('dl-category').value,date_start:document.getElementById('dl-start').value||null,date_end:document.getElementById('dl-end').value||null,days_delayed:parseInt(document.getElementById('dl-days').value)||null,description:document.getElementById('dl-desc').value||'',impact:document.getElementById('dl-impact').value,status:document.getElementById('dl-status').value};
+  var res=await sb.from('job_delays').insert(data).select();
+  if(res.data) jhDelays.unshift(res.data[0]);
+  closeModals(); renderJhDelays();
+  ['dl-start','dl-end','dl-days','dl-desc'].forEach(function(id){document.getElementById(id).value='';});
+}
+
+async function resolveDelay(id){
+  var today=new Date().toISOString().split('T')[0];
+  await sb.from('job_delays').update({status:'Resolved',date_end:today}).eq('id',id);
+  var d=jhDelays.find(function(x){return x.id===id;});
+  if(d){d.status='Resolved';d.date_end=today;}
+  renderJhDelays();
+}
+
+async function deleteDelay(id){
+  if(!confirm('Delete this delay record?')) return;
+  await sb.from('job_delays').delete().eq('id',id);
+  jhDelays=jhDelays.filter(function(x){return x.id!==id;});
+  renderJhDelays();
+}
+
 // MARKETING HUB
 // ============================================================
 var mktSpend=[], mktCampaigns=[], mktSocial=[], mktReviews=[], mktFollowups=[];
@@ -2953,7 +3018,7 @@ function closeJobHub(){
 
 async function loadJobHubData(projId){
   try{
-    const [phases,tasks,notes,log,labor,materials,subcosts,cos,docs,people,calev,findata,other]=await Promise.all([
+    const [phases,tasks,notes,log,labor,materials,subcosts,cos,docs,people,calev,delays,findata,other]=await Promise.all([
       sb.from('job_phases').select('*').eq('project_id',projId).order('created_at',{ascending:true}),
       sb.from('job_tasks').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
       sb.from('job_notes').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
@@ -2965,6 +3030,7 @@ async function loadJobHubData(projId){
       sb.from('job_docs').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
       sb.from('job_people').select('*').eq('project_id',projId).order('created_at',{ascending:true}),
       sb.from('job_cal_events').select('*').eq('project_id',projId).order('date',{ascending:true}),
+      sb.from('job_delays').select('*').eq('project_id',projId).order('date_start',{ascending:false}),
       sb.from('job_financials').select('*').eq('project_id',projId).single(),
       sb.from('job_other_expenses').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
     ]);
@@ -2979,6 +3045,7 @@ async function loadJobHubData(projId){
     jhDocs=docs.data||[];
     jhTeam=people.data||[];
     jhCalEvents=calev.data||[];
+    jhDelays=delays.data||[];
     jhFinancials=findata.data||null;
     jhOther=other.data||[];
     renderJhManagement();
@@ -2987,6 +3054,7 @@ async function loadJobHubData(projId){
 
 // ---- MANAGEMENT ----
 function renderJhManagement(){
+  renderJhDelays();
   renderJhPhases();
   renderJhTasks();
   renderJhNotes();
@@ -5181,6 +5249,45 @@ async function deletePriceEntry(id){
     <div class="fg"><label>Date arrived</label><input id="eor-date_arrived" type="date"/></div>
   </div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveEditOrdRow()">Save changes</button></div>
+</div></div>
+
+<!-- DELAY MODAL -->
+<div class="modal-overlay" id="delay-modal"><div class="modal"><h3>Log project delay</h3>
+  <div class="fg"><label>Delay category</label>
+    <select id="dl-category">
+      <option>Weather</option>
+      <option>Material shortage</option>
+      <option>Material delivery</option>
+      <option>Subcontractor</option>
+      <option>Client decision / change</option>
+      <option>Permit / inspection</option>
+      <option>Unforeseen conditions</option>
+      <option>Labor shortage</option>
+      <option>Equipment</option>
+      <option>Other</option>
+    </select>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="fg"><label>Date started</label><input id="dl-start" type="date"/></div>
+    <div class="fg"><label>Date resolved <span style="color:var(--text3);font-weight:400;">(optional)</span></label><input id="dl-end" type="date"/></div>
+  </div>
+  <div class="fg"><label>Days delayed</label><input id="dl-days" type="number" min="1" placeholder="e.g. 3"/></div>
+  <div class="fg"><label>Description</label><textarea id="dl-desc" rows="3" style="resize:vertical;" placeholder="What caused the delay? What was the impact? What was done to resolve it?"></textarea></div>
+  <div class="fg"><label>Impact on schedule</label>
+    <select id="dl-impact">
+      <option>Minor — less than 1 week</option>
+      <option>Moderate — 1–2 weeks</option>
+      <option>Significant — 2–4 weeks</option>
+      <option>Major — 1+ month</option>
+    </select>
+  </div>
+  <div class="fg"><label>Status</label>
+    <select id="dl-status">
+      <option>Active</option>
+      <option>Resolved</option>
+    </select>
+  </div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveDelay()">Log delay</button></div>
 </div></div>
 </body>
 </html>
