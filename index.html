@@ -3709,8 +3709,8 @@ async function deletePayable(id){
 // ============================================================
 let orderForms=[], ordSuppliers=[], expandedFormId=null;
 
-const ORD_COLS=['material','description','supplier','price','qty','total','due_by','date_ordered','date_arrived'];
-const ORD_HEADERS=['Material','Description','Supplier','Price ($)','Quantity','Total','Due By','Date Ordered','Date Arrived'];
+const ORD_COLS=['material','description','supplier','price','qty','total','due_by','order_by','date_ordered','date_arrived','notes'];
+const ORD_HEADERS=['Material','Description','Supplier','Price ($)','Quantity','Total','Due By','Order By','Date Ordered','Date Arrived','Notes'];
 
 function showOrdTab(t){
   document.getElementById('ord-orders').style.display=t==='orders'?'block':'none';
@@ -3802,7 +3802,7 @@ function renderFormCard(f, isArchived){
         var t2=(parseFloat(row.price)||0)*(parseFloat(row.qty)||0);
         return '<td><span class="ord-cell-total">$'+t2.toFixed(2)+'</span></td>';
       }
-      var isDate=(col==='due_by'||col==='date_ordered'||col==='date_arrived');
+      var isDate=(col==='due_by'||col==='order_by'||col==='date_ordered'||col==='date_arrived');
       var isNum=(col==='price'||col==='qty');
       var inputType=isNum?'number':'text';
       var extraAttrs=isNum?'step="0.01"':'';
@@ -3810,6 +3810,9 @@ function renderFormCard(f, isArchived){
       if(isDate){
         // Use text initially, switch to date on focus so placeholder shows when empty
         return '<td><input class="ord-cell" type="date" value="'+val+'" data-formid="'+f.id+'" data-row="'+ri+'" data-col="'+col+'" oninput="handleOrdCellInput(this);this.style.color=this.value?\'var(--text)\':\'transparent\'" style="min-width:110px;color:'+(val?'var(--text)':'transparent')+';"/></td>';
+      }
+      if(col==='notes'){
+        return '<td><button style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:3px 8px;background:'+(val?'var(--brand)':'var(--bg2)')+'  ;color:'+(val?'white':'var(--text2)')+';cursor:pointer;white-space:nowrap;" data-formid="'+f.id+'" data-row="'+ri+'" onclick="openOrdNotes(this.dataset.formid,'+ri+')">  '+(val?'📝 Notes':'+ Notes')+'</button></td>';
       }
       return '<td><input class="ord-cell" type="'+inputType+'" value="'+val+'" data-formid="'+f.id+'" data-row="'+ri+'" data-col="'+col+'" '+extraAttrs+' oninput="handleOrdCellInput(this)"/></td>';
     }).join('')+
@@ -3901,7 +3904,7 @@ async function addOrdRow(id){
   var f=orderForms.find(function(x){return x.id===id;});
   if(!f)return;
   var rows=[];try{rows=JSON.parse(f.rows||'[]');}catch(e){}
-  rows.push({material:'',description:'',supplier:'',price:'',qty:'',due_by:'',date_ordered:'',date_arrived:''});
+  rows.push({material:'',description:'',supplier:'',price:'',qty:'',due_by:'',order_by:'',date_ordered:'',date_arrived:'',notes:''});
   f.rows=JSON.stringify(rows);
   await saveOrdFormRows(id,rows);
   expandedFormId=id;
@@ -3921,7 +3924,7 @@ function openEditOrdRow(id, ri){
   if(!row) return;
   document.getElementById('eor-fid').value=id;
   document.getElementById('eor-ri').value=ri;
-  ['material','description','supplier','price','qty','due_by','date_ordered','date_arrived'].forEach(function(col){
+  ['material','description','supplier','price','qty','due_by','order_by','date_ordered','date_arrived','notes'].forEach(function(col){
     var el=document.getElementById('eor-'+col);
     if(el) el.value=row[col]||'';
   });
@@ -3935,7 +3938,7 @@ async function saveEditOrdRow(){
   if(!f) return;
   var rows=[];try{rows=JSON.parse(f.rows||'[]');}catch(e){}
   if(!rows[ri]) return;
-  ['material','description','supplier','price','qty','due_by','date_ordered','date_arrived'].forEach(function(col){
+  ['material','description','supplier','price','qty','due_by','order_by','date_ordered','date_arrived','notes'].forEach(function(col){
     var el=document.getElementById('eor-'+col);
     if(el) rows[ri][col]=el.value;
   });
@@ -3943,6 +3946,32 @@ async function saveEditOrdRow(){
   await saveOrdFormRows(id,rows);
   closeModals();
   expandedFormId=id;
+  renderOrdering();
+}
+
+function openOrdNotes(formId, ri){
+  var f=orderForms.find(function(x){return x.id===formId;});
+  if(!f) return;
+  var rows=[];try{rows=JSON.parse(f.rows||'[]');}catch(e){}
+  var row=rows[ri]||{};
+  document.getElementById('ord-notes-fid').value=formId;
+  document.getElementById('ord-notes-ri').value=ri;
+  document.getElementById('ord-notes-text').value=row.notes||'';
+  openModal('ord-notes-modal');
+}
+
+async function saveOrdNotes(){
+  var formId=document.getElementById('ord-notes-fid').value;
+  var ri=parseInt(document.getElementById('ord-notes-ri').value);
+  var notes=document.getElementById('ord-notes-text').value;
+  var f=orderForms.find(function(x){return x.id===formId;});
+  if(!f) return;
+  var rows=[];try{rows=JSON.parse(f.rows||'[]');}catch(e){}
+  if(rows[ri]) rows[ri].notes=notes;
+  f.rows=JSON.stringify(rows);
+  await saveOrdFormRows(formId,rows);
+  closeModals();
+  expandedFormId=formId;
   renderOrdering();
 }
 
@@ -6328,6 +6357,7 @@ async function deletePriceEntry(id){
     <div class="fg"><label>Price ($)</label><input id="eor-price" type="number" step="0.01"/></div>
     <div class="fg"><label>Qty</label><input id="eor-qty" type="number" step="0.01"/></div>
     <div class="fg"><label>Due by</label><input id="eor-due_by" type="date"/></div>
+    <div class="fg"><label>Order by</label><input id="eor-order_by" type="date"/></div>
     <div class="fg"><label>Date ordered</label><input id="eor-date_ordered" type="date"/></div>
     <div class="fg"><label>Date arrived</label><input id="eor-date_arrived" type="date"/></div>
   </div>
@@ -6489,6 +6519,14 @@ async function deletePriceEntry(id){
   <div class="fg"><label>Expected outcome</label><textarea id="dec-outcome" rows="2" style="resize:vertical;" placeholder="e.g. Expect to lose 15% of leads but increase average job margin from 28% to 35%..."></textarea></div>
   <div class="fg"><label>Result / follow-up <span style="color:var(--text3);font-weight:400;">(fill in later)</span></label><textarea id="dec-result" rows="2" style="resize:vertical;" placeholder="e.g. After 90 days — margin improved as expected. A few good clients pushed back but most accepted..."></textarea></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" id="dec-save-btn" onclick="saveDecision()">Save decision</button></div>
+</div></div>
+
+<!-- ORDER NOTES MODAL -->
+<div class="modal-overlay" id="ord-notes-modal"><div class="modal"><h3>Row notes</h3>
+  <input type="hidden" id="ord-notes-fid"/>
+  <input type="hidden" id="ord-notes-ri"/>
+  <div class="fg"><textarea id="ord-notes-text" rows="6" style="resize:vertical;" placeholder="Delivery instructions, special order details, contact, tracking numbers..."></textarea></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveOrdNotes()">Save notes</button></div>
 </div></div>
 </body>
 </html>
