@@ -1120,6 +1120,7 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
 </div></div>
 <div class="modal-overlay" id="proj-modal"><div class="modal"><h3>New project</h3>
   <div class="fg"><label>Project name</label><input id="p-name" placeholder="e.g. Johnson Master Bath Reno"/></div>
+  <div class="fg"><label>Job type</label><select id="p-job-type"><option value="">— Select type —</option><option>Kitchen</option><option>Bathroom</option><option>Basement</option><option>Deck</option><option>Whole house</option><option>Addition</option><option>Other</option></select></div>
   <div class="fg"><label>Customer name</label><input id="p-client" placeholder="e.g. Mike Johnson"/></div>
   <div class="fg"><label>Customer ID <span style="color:var(--text3);font-weight:400;">(optional)</span></label><input id="p-customer-id" placeholder="e.g. 01012"/></div>
   <div class="fg"><label>Contract value</label><input id="p-val" placeholder="e.g. $28,000"/></div>
@@ -1131,6 +1132,7 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
 <div class="modal-overlay" id="edit-proj-modal"><div class="modal"><h3>Edit project</h3>
   <input type="hidden" id="ep-id"/>
   <div class="fg"><label>Project name</label><input id="ep-name"/></div>
+  <div class="fg"><label>Job type</label><select id="ep-job-type"><option value="">— Select type —</option><option>Kitchen</option><option>Bathroom</option><option>Basement</option><option>Deck</option><option>Whole house</option><option>Addition</option><option>Other</option></select></div>
   <div class="fg"><label>Customer name</label><input id="ep-client"/></div>
   <div class="fg"><label>Customer ID</label><input id="ep-customer-id"/></div>
   <div class="fg"><label>Contract value</label><input id="ep-val"/></div>
@@ -1603,7 +1605,7 @@ function renderProj(){
   statCards('proj-stats',[{label:'Active jobs',value:active.length,sub:'In progress'},{label:'Active value',value:fmt(active.reduce((s,p)=>s+toNum(p.val),0)),sub:'Under contract'},{label:'Preconstruction',value:projects.filter(p=>p.status==='Preconstruction').length},{label:'Punchout',value:projects.filter(p=>p.status==='Punchout').length},{label:'Completed',value:projects.filter(p=>p.status==='Complete').length,sub:'All time'}]);
   document.getElementById('active-proj-count').textContent=active.length;
   document.getElementById('active-proj-tbl').innerHTML=active.map(p=>`<tr>
-    <td><span class="proj-link" onclick="openJobHub('${p.id}')">${p.name}</span></td>
+    <td><span class="proj-link" onclick="openJobHub('${p.id}')">${p.name}</span>${p.job_type?'<span class="badge b-gray" style="font-size:9px;margin-left:5px;">'+p.job_type+'</span>':''}</td>
     <td><span class="jid-badge">${p.job_id||'—'}</span></td>
     <td style="color:var(--text2);">${p.client||'—'}</td>
     <td>${p.customer_id?'<span class="cid-badge">'+p.customer_id+'</span>':'<span style="color:var(--text3);">—</span>'}</td>
@@ -1620,7 +1622,7 @@ function renderProj(){
 
   document.getElementById('complete-proj-count').textContent=complete.length;
   document.getElementById('complete-proj-tbl').innerHTML=complete.map(p=>`<tr>
-    <td><span class="proj-link" onclick="openJobHub('${p.id}')">${p.name}</span></td>
+    <td><span class="proj-link" onclick="openJobHub('${p.id}')">${p.name}</span>${p.job_type?'<span class="badge b-gray" style="font-size:9px;margin-left:5px;">'+p.job_type+'</span>':''}</td>
     <td><span class="jid-badge">${p.job_id||'—'}</span></td>
     <td style="color:var(--text2);">${p.client||'—'}</td>
     <td>${p.customer_id?'<span class="cid-badge">'+p.customer_id+'</span>':'<span style="color:var(--text3);">—</span>'}</td>
@@ -1638,8 +1640,8 @@ async function updateProjStatus(id,status){
   renderProj();renderDash();
 }
 async function updateProfitable(id,val){await sb.from('projects').update({profitable:val}).eq('id',id);const p=projects.find(x=>x.id===id);if(p)p.profitable=val;}
-function openEditProj(id){const p=projects.find(x=>x.id===id);if(!p)return;document.getElementById('ep-id').value=id;document.getElementById('ep-name').value=p.name||'';document.getElementById('ep-client').value=p.client||'';document.getElementById('ep-customer-id').value=p.customer_id||'';document.getElementById('ep-val').value=p.val||'';document.getElementById('ep-status').value=p.status||'Preconstruction';document.getElementById('ep-start').value=p.start_date||'';document.getElementById('ep-due').value=p.due_date||'';openModal('edit-proj-modal');}
-async function updateProj(){const id=document.getElementById('ep-id').value;const updates={name:document.getElementById('ep-name').value,client:document.getElementById('ep-client').value,customer_id:document.getElementById('ep-customer-id').value,val:document.getElementById('ep-val').value,status:document.getElementById('ep-status').value,start_date:document.getElementById('ep-start').value,due_date:document.getElementById('ep-due').value};await sb.from('projects').update(updates).eq('id',id);const p=projects.find(x=>x.id===id);if(p)Object.assign(p,updates);closeModals();renderProj();renderDash();}
+function openEditProj(id){const p=projects.find(x=>x.id===id);if(!p)return;document.getElementById('ep-id').value=id;document.getElementById('ep-name').value=p.name||'';document.getElementById('ep-client').value=p.client||'';document.getElementById('ep-customer-id').value=p.customer_id||'';document.getElementById('ep-val').value=p.val||'';document.getElementById('ep-status').value=p.status||'Preconstruction';document.getElementById('ep-start').value=p.start_date||'';document.getElementById('ep-due').value=p.due_date||'';document.getElementById('ep-job-type').value=p.job_type||'';openModal('edit-proj-modal');}
+async function updateProj(){const id=document.getElementById('ep-id').value;const updates={name:document.getElementById('ep-name').value,client:document.getElementById('ep-client').value,customer_id:document.getElementById('ep-customer-id').value,val:document.getElementById('ep-val').value,job_type:document.getElementById('ep-job-type').value||'',status:document.getElementById('ep-status').value,start_date:document.getElementById('ep-start').value,due_date:document.getElementById('ep-due').value};await sb.from('projects').update(updates).eq('id',id);const p=projects.find(x=>x.id===id);if(p)Object.assign(p,updates);closeModals();renderProj();renderDash();}
 
 function renderEst(){statCards('est-stats',[{label:'Total estimates',value:estimates.length},{label:'Pending value',value:fmt(estimates.filter(e=>e.status==='Sent'||e.status==='Draft').reduce((s,e)=>s+toNum(e.amt),0)),sub:'Awaiting'},{label:'Approved',value:estimates.filter(e=>e.status==='Approved').length,sub:'Won'}]);document.getElementById('est-tbl').innerHTML=estimates.map(e=>'<tr><td style="font-weight:600;">'+e.client+'</td><td style="color:var(--text2);">'+e.description+'</td><td style="color:var(--brand);font-weight:600;">'+e.amt+'</td><td>'+badge(e.status)+'</td><td style="color:var(--text2);">'+(e.sent||'—')+'</td><td style="color:var(--text2);">'+(e.follow_up||'—')+'</td></tr>').join('')||'<tr><td colspan="6" class="empty">No estimates yet</td></tr>';}
 function renderField(){
@@ -1704,7 +1706,7 @@ document.addEventListener("click",function(e){var dd=document.getElementById("l-
 
 async function saveLead(){const name=document.getElementById('l-name').value.trim();if(!name)return;const now=new Date().toISOString();const customer_id=await getNextId('last_customer_id',1012);const {data}=await sb.from('leads').insert({name,customer_id,phone:document.getElementById('l-phone').value||'',email:document.getElementById('l-email').value||'',address:document.getElementById('l-address').value||'',job:document.getElementById('l-job').value||'',val:document.getElementById('l-val').value||'TBD',source:document.getElementById('l-source').value,qualifier:document.getElementById('l-qualifier').value,stage:'New Lead',stage_updated_at:now}).select();if(data)leads.unshift(data[0]);closeModals();renderSalesPipeline();renderDash();['l-name','l-phone','l-email','l-address','l-job','l-val','l-cust-search'].forEach(id=>document.getElementById(id).value='');document.getElementById('l-cust-dropdown').style.display='none';}
 async function saveEst(){const client=document.getElementById('e-client').value.trim();if(!client)return;const today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});const {data}=await sb.from('estimates').insert({client,description:document.getElementById('e-desc').value||'',amt:document.getElementById('e-amt').value||'TBD',status:document.getElementById('e-status').value,sent:today,follow_up:document.getElementById('e-follow').value||''}).select();if(data)estimates.unshift(data[0]);closeModals();renderEst();renderDash();['e-client','e-desc','e-amt','e-follow'].forEach(id=>document.getElementById(id).value='');}
-async function saveProj(){const name=document.getElementById('p-name').value.trim();if(!name)return;const job_id=await getNextId('last_job_id',1045);const {data}=await sb.from('projects').insert({name,job_id,client:document.getElementById('p-client').value||'',customer_id:document.getElementById('p-customer-id').value||'',val:document.getElementById('p-val').value||'TBD',status:document.getElementById('p-status').value,progress:0,start_date:document.getElementById('p-start').value||'',due_date:document.getElementById('p-due').value||'',profitable:''}).select();if(data)projects.unshift(data[0]);closeModals();renderProj();renderDash();['p-name','p-client','p-customer-id','p-val','p-start','p-due'].forEach(id=>document.getElementById(id).value='');}
+async function saveProj(){const name=document.getElementById('p-name').value.trim();if(!name)return;const job_id=await getNextId('last_job_id',1045);const {data}=await sb.from('projects').insert({name,job_id,client:document.getElementById('p-client').value||'',customer_id:document.getElementById('p-customer-id').value||'',val:document.getElementById('p-val').value||'TBD',job_type:document.getElementById('p-job-type').value||'',status:document.getElementById('p-status').value,progress:0,start_date:document.getElementById('p-start').value||'',due_date:document.getElementById('p-due').value||'',profitable:''}).select();if(data)projects.unshift(data[0]);closeModals();renderProj();renderDash();['p-name','p-client','p-customer-id','p-val','p-start','p-due','p-job-type'].forEach(id=>document.getElementById(id).value='');}
 async function saveTask(){const text=document.getElementById('t-text').value.trim();if(!text)return;const {data}=await sb.from('tasks').insert({text,project:document.getElementById('t-proj').value||'General',assigned_to:document.getElementById('t-assign').value||'Yourself',priority:document.getElementById('t-pri').value,done:false}).select();if(data)tasks.unshift(data[0]);closeModals();renderField();renderDash();['t-text','t-proj','t-assign'].forEach(id=>document.getElementById(id).value='');}
 async function saveInvoice(){const client=document.getElementById('i-client').value.trim();if(!client)return;const {data}=await sb.from('invoices').insert({client,project:document.getElementById('i-proj').value||'',amt:document.getElementById('i-amt').value||'TBD',status:'Sent',due_date:document.getElementById('i-due').value||''}).select();if(data)invoices.unshift(data[0]);closeModals();renderOffice();['i-client','i-proj','i-amt','i-due'].forEach(id=>document.getElementById(id).value='');}
 async function saveGoal(){const goal={goal:parseInt(document.getElementById('goal-inp').value)||0,earned:parseInt(document.getElementById('earned-inp').value)||0};await sb.from('settings').upsert({key:'annual_goal',value:JSON.stringify(goal)},{onConflict:'key'});annualGoal=goal;closeModals();renderCeo();['goal-inp','earned-inp'].forEach(id=>document.getElementById(id).value='');}
@@ -2314,6 +2316,45 @@ function addLaborCrewRow(){
   container.appendChild(row);
 }
 
+// ── LABOR HOURS → TIME TRACKER SYNC ──────────────────────────────────────────
+var JOB_TYPE_TRACK=['Kitchen','Bathroom','Basement','Deck','Whole house','Addition'];
+
+// Virtual price IDs for job-type aggregate tracking in time tracker
+var JOB_TYPE_IDS={
+  'Kitchen':    'jt-kitchen-labor',
+  'Bathroom':   'jt-bathroom-labor',
+  'Basement':   'jt-basement-labor',
+  'Deck':       'jt-deck-labor',
+  'Whole house':'jt-wholehouse-labor',
+  'Addition':   'jt-addition-labor',
+};
+
+async function syncLaborToTimeTracker(laborEntry){
+  var proj=projects.find(function(x){return x.id===currentJobId;});
+  if(!proj||!proj.job_type) return;
+  var jobType=proj.job_type;
+  if(!JOB_TYPE_TRACK.includes(jobType)) return;
+
+  var virtualId=JOB_TYPE_IDS[jobType];
+  // Insert into time_logs as a job-type aggregate entry
+  var row={
+    price_item_id:virtualId,
+    item_name:jobType+' — Total Labor',
+    trade:'Job Type Tracking',
+    unit:'job',
+    job_name:proj.name,
+    phase:laborEntry.phase||'',
+    crew:laborEntry.name||'',
+    date:laborEntry.date||null,
+    qty:1,
+    hours:parseFloat(laborEntry.hours)||0,
+    hrs_per_unit:parseFloat(laborEntry.hours)||0,
+    notes:'Auto-synced from job hub labor hours',
+  };
+  var res=await sb.from('time_logs').insert(row).select();
+  if(res.data) ttEntries.unshift(res.data[0]);
+}
+
 async function saveLaborHours(){
   var date=document.getElementById('lh-date').value||new Date().toISOString().split('T')[0];
   var phase=document.getElementById('lh-phase').value||'';
@@ -2327,7 +2368,11 @@ async function saveLaborHours(){
   });
   if(!entries.length){alert('Add at least one crew member with hours.');return;}
   var res=await sb.from('job_labor_hours').insert(entries).select();
-  if(res.data) jhLaborHours=res.data.concat(jhLaborHours);
+  if(res.data){
+    jhLaborHours=res.data.concat(jhLaborHours);
+    // Sync to time tracker by job type
+    for(var i=0;i<res.data.length;i++) await syncLaborToTimeTracker(res.data[i]);
+  }
   closeModals();
   renderLaborHours();
   ['lh-phase','lh-notes'].forEach(function(id){document.getElementById(id).value='';});
