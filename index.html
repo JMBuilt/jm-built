@@ -571,6 +571,18 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
         <div class="cal-day-panel" id="cal-day-panel"></div>
         <div class="cal-legend"><div class="cal-legend-item"><div class="cal-legend-dot cal-ev-phase"></div>Phase</div><div class="cal-legend-item"><div class="cal-legend-dot cal-ev-delivery"></div>Delivery</div><div class="cal-legend-item"><div class="cal-legend-dot cal-ev-inspection"></div>Inspection</div><div class="cal-legend-item"><div class="cal-legend-dot cal-ev-event"></div>Event</div></div>
       </div>
+      <!-- LABOR HOURS TRACKER -->
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-header">
+          <span class="card-title">⏱ Labor Hours</span>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <div id="labor-summary" style="font-size:12px;color:var(--text2);"></div>
+            <button class="btn-primary" onclick="openModal('labor-hours-modal')">+ Log hours</button>
+          </div>
+        </div>
+        <div id="jh-labor-hours-list"></div>
+      </div>
+
       <!-- DELAY TRACKER -->
       <div class="card" style="margin-bottom:1rem;">
         <div class="card-header">
@@ -1644,7 +1656,11 @@ function renderCeo(){const paid=invoices.filter(i=>i.status==='Paid').reduce((s,
 async function toggleCeoPri(id,done){await sb.from('ceo_priorities').update({done}).eq('id',id);const p=ceoPriorities.find(x=>x.id===id);if(p)p.done=done;renderCeo();}
 async function deleteCeoPri(id){if(!confirm('Delete this priority?'))return;await sb.from('ceo_priorities').delete().eq('id',id);ceoPriorities=ceoPriorities.filter(p=>p.id!==id);renderCeo();}
 
-function openModal(id){document.getElementById(id).classList.add('open');}
+function openModal(id){
+  if(id==='labor-hours-modal'){
+    var d=document.getElementById('lh-date');
+    if(d&&!d.value) d.value=new Date().toISOString().split('T')[0];
+  }document.getElementById(id).classList.add('open');}
 function closeModals(){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));}
 
 function searchLeadCustomers(q){
@@ -2206,6 +2222,88 @@ async function ptDelete(id){
 }
 
 // ============================================================
+
+// ── LABOR HOURS (Management Tab) ─────────────────────────────────────────────
+var jhLaborHours=[];
+
+async function loadLaborHours(projId){
+  var res=await sb.from('job_labor_hours').select('*').eq('project_id',projId).order('date',{ascending:false});
+  jhLaborHours=res.data||[];
+}
+
+function renderLaborHours(){
+  var el=document.getElementById('jh-labor-hours-list');
+  if(!el) return;
+
+  // Summary stats
+  var totalHrs=jhLaborHours.reduce(function(s,l){return s+(parseFloat(l.hours)||0);},0);
+  var crew=new Set(jhLaborHours.map(function(l){return l.name;})).size;
+  var today=new Date().toISOString().split('T')[0];
+  var todayHrs=jhLaborHours.filter(function(l){return l.date===today;}).reduce(function(s,l){return s+(parseFloat(l.hours)||0);},0);
+  var sumEl=document.getElementById('labor-summary');
+  if(sumEl) sumEl.innerHTML='<span style="font-weight:600;color:var(--brand);">'+totalHrs.toFixed(1)+'h total</span> · '+crew+' crew · '+todayHrs.toFixed(1)+'h today';
+
+  if(!jhLaborHours.length){
+    el.innerHTML='<div class="empty" style="padding:1rem;">No hours logged yet. Track your crew time daily.</div>';
+    return;
+  }
+
+  // Group by date
+  var byDate={};
+  jhLaborHours.forEach(function(l){
+    var d=l.date||'No date';
+    if(!byDate[d]) byDate[d]=[];
+    byDate[d].push(l);
+  });
+
+  el.innerHTML='<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Date</th><th>Crew member</th><th>Phase / task</th><th>Hours</th><th>Notes</th><th></th></tr></thead><tbody>'
+    +jhLaborHours.map(function(l){
+      var d=l.date?new Date(l.date+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}):'—';
+      return '<tr>'
+        +'<td style="font-size:12px;color:var(--text2);white-space:nowrap;">'+d+'</td>'
+        +'<td style="font-weight:600;">'+l.name+'</td>'
+        +'<td><span class="badge b-gray" style="font-size:10px;">'+(l.phase||'General')+'</span></td>'
+        +'<td style="font-size:15px;font-weight:700;color:var(--brand);">'+parseFloat(l.hours).toFixed(1)+'h</td>'
+        +'<td style="font-size:12px;color:var(--text2);max-width:180px;">'+(l.notes||'—')+'</td>'
+        +'<td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+l.id+'" onclick="deleteLaborHours(this.dataset.id)">✕</button></td>'
+        +'</tr>';
+    }).join('')
+    +'</tbody></table></div>'
+    // Weekly summary footer
+    +'<div style="padding:.75rem 1rem;border-top:1px solid var(--border);display:flex;gap:1.5rem;flex-wrap:wrap;">'
+    +Object.entries(byDate).slice(0,7).map(function(e){
+      var dayHrs=e[1].reduce(function(s,l){return s+(parseFloat(l.hours)||0);},0);
+      var d=e[0]!=='No date'?new Date(e[0]+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):e[0];
+      return '<div style="text-align:center;"><div style="font-size:11px;color:var(--text3);">'+d+'</div><div style="font-size:14px;font-weight:700;color:var(--brand);">'+dayHrs.toFixed(1)+'h</div></div>';
+    }).join('')
+    +'</div>';
+}
+
+async function saveLaborHours(){
+  var name=document.getElementById('lh-name').value.trim();
+  var hours=parseFloat(document.getElementById('lh-hours').value)||0;
+  if(!name||!hours){alert('Enter crew member and hours.');return;}
+  var data={
+    project_id:currentJobId,
+    name,
+    date:document.getElementById('lh-date').value||new Date().toISOString().split('T')[0],
+    hours,
+    phase:document.getElementById('lh-phase').value||'',
+    notes:document.getElementById('lh-notes').value||'',
+  };
+  var res=await sb.from('job_labor_hours').insert(data).select();
+  if(res.data) jhLaborHours.unshift(res.data[0]);
+  closeModals();
+  renderLaborHours();
+  ['lh-name','lh-hours','lh-phase','lh-notes'].forEach(function(id){document.getElementById(id).value='';});
+}
+
+async function deleteLaborHours(id){
+  if(!confirm('Delete this labor entry?')) return;
+  await sb.from('job_labor_hours').delete().eq('id',id);
+  jhLaborHours=jhLaborHours.filter(function(x){return x.id!==id;});
+  renderLaborHours();
+}
 
 // ── PROJECT DELAYS ────────────────────────────────────────────────────────────
 var jhDelays=[];
@@ -3562,7 +3660,7 @@ function closeJobHub(){
 
 async function loadJobHubData(projId){
   try{
-    const [phases,tasks,notes,log,labor,materials,subcosts,cos,docs,people,calev,delays,findata,other]=await Promise.all([
+    const [phases,tasks,notes,log,labor,materials,subcosts,cos,docs,people,calev,laborhours,delays,findata,other]=await Promise.all([
       sb.from('job_phases').select('*').eq('project_id',projId).order('created_at',{ascending:true}),
       sb.from('job_tasks').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
       sb.from('job_notes').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
@@ -3574,6 +3672,7 @@ async function loadJobHubData(projId){
       sb.from('job_docs').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
       sb.from('job_people').select('*').eq('project_id',projId).order('created_at',{ascending:true}),
       sb.from('job_cal_events').select('*').eq('project_id',projId).order('date',{ascending:true}),
+      sb.from('job_labor_hours').select('*').eq('project_id',projId).order('date',{ascending:false}),
       sb.from('job_delays').select('*').eq('project_id',projId).order('date_start',{ascending:false}),
       sb.from('job_financials').select('*').eq('project_id',projId).single(),
       sb.from('job_other_expenses').select('*').eq('project_id',projId).order('created_at',{ascending:false}),
@@ -3589,6 +3688,7 @@ async function loadJobHubData(projId){
     jhDocs=docs.data||[];
     jhTeam=people.data||[];
     jhCalEvents=calev.data||[];
+    jhLaborHours=laborhours.data||[];
     jhDelays=delays.data||[];
     jhFinancials=findata.data||null;
     jhOther=other.data||[];
@@ -3598,6 +3698,7 @@ async function loadJobHubData(projId){
 
 // ---- MANAGEMENT ----
 function renderJhManagement(){
+  renderLaborHours();
   renderJhDelays();
   renderJhPhases();
   renderJhTasks();
@@ -5911,6 +6012,18 @@ async function deletePriceEntry(id){
   </div>
   <div class="fg"><label>Notes</label><input id="pay-notes" placeholder="e.g. Invoice #1042, net 30..."/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="savePayable()">Save</button></div>
+</div></div>
+
+<!-- LABOR HOURS MODAL -->
+<div class="modal-overlay" id="labor-hours-modal"><div class="modal"><h3>Log labor hours</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="fg"><label>Crew member</label><input id="lh-name" placeholder="e.g. Justin, Mike, Sub crew..."/></div>
+    <div class="fg"><label>Date</label><input id="lh-date" type="date"/></div>
+    <div class="fg"><label>Hours worked</label><input id="lh-hours" type="number" step="0.25" placeholder="e.g. 8"/></div>
+    <div class="fg"><label>Phase / task</label><input id="lh-phase" placeholder="e.g. Demo, Framing, Tile..."/></div>
+  </div>
+  <div class="fg"><label>Notes <span style="color:var(--text3);font-weight:400;">(optional)</span></label><input id="lh-notes" placeholder="e.g. Ran into old plumbing, worked through lunch..."/></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveLaborHours()">Log hours</button></div>
 </div></div>
 </body>
 </html>
