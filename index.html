@@ -1831,7 +1831,7 @@ function searchLeadCustomers(q){
   dropdown.style.display='block';
   dropdown.innerHTML=matches.map(function(l){
     return '<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);" '
-      +'data-name="'+(l.name||'')+'" data-phone="'+(l.phone||'')+'" data-email="'+(l.email||'')+'" data-address="'+(l.address||'')+'" '
+      +'data-name="'+(l.name||'')+'" data-phone="'+(l.phone||'')+'" data-email="'+(l.email||'')+'" data-address="'+(l.address||'')+'" data-cid="'+(l.customer_id||'')+'" '
       +'onmousedown="fillLeadFromCustomer(this)" '
       +'onmouseover="this.style.background=\'var(--bg2)\'" onmouseout="this.style.background=\'\'">'
       +'<div style="font-weight:600;">'+l.name+'</div>'
