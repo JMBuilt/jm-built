@@ -3072,6 +3072,87 @@ function varianceBadge(est,act){
   return '<span class="badge b-red">Over by '+fmtMoney(diff)+'</span>';
 }
 
+var PAYMENT_SCHEDULE = [
+  {label:'Deposit',        pct:20, milestone:'Before work begins',      icon:'🔑'},
+  {label:'Job start',      pct:40, milestone:'Day work begins on site',  icon:'🏗'},
+  {label:'Halfway point',  pct:30, milestone:'50% completion',           icon:'📐'},
+  {label:'Substantial completion', pct:10, milestone:'Final walkthrough / punch list complete', icon:'✅'},
+];
+
+function renderJhPaymentSchedule(contractVal, totalRevenue, fin){
+  var el=document.getElementById('jh-payment-schedule');
+  if(!el) return;
+  var base=totalRevenue||contractVal||0;
+  var payments=fin.payments?JSON.parse(fin.payments||'[]'):[];
+
+  if(base===0){
+    el.innerHTML='<div class="empty" style="padding:1.25rem;">Set a contract value above to generate a payment schedule.</div>';
+    return;
+  }
+
+  // Build schedule
+  var rows=PAYMENT_SCHEDULE.map(function(s,i){
+    var amt=base*(s.pct/100);
+    var pay=payments[i]||{received:false,date:''};
+    return '<tr style="'+(pay.received?'background:var(--bg2);':'')+'">'
+      +'<td style="padding:10px 13px;font-size:13px;font-weight:600;">'
+        +s.icon+' '+s.label
+        +'<div style="font-size:11px;color:var(--text3);font-weight:400;margin-top:2px;">'+s.milestone+'</div>'
+      +'</td>'
+      +'<td style="padding:10px 13px;font-size:13px;color:var(--text2);">'+s.pct+'%</td>'
+      +'<td style="padding:10px 13px;font-size:15px;font-weight:700;color:var(--brand);">$'+Math.round(amt).toLocaleString()+'</td>'
+      +'<td style="padding:8px 13px;">'
+        +'<input type="date" value="'+(pay.date||'')+'" data-pi="'+i+'" '
+        +'data-pif="date" onchange="updatePayment(parseInt(this.dataset.pi),this.dataset.pif,this.value)" '
+        +'style="font-size:12px;border:1px solid var(--border);border-radius:6px;padding:4px 7px;background:var(--bg2);font-family:inherit;color:'+(pay.date?'':'transparent')+';" '
+        +'oninput="this.style.color=this.value?\'var(--text)\':\'transparent\'" />'
+      +'</td>'
+      +'<td style="padding:8px 13px;">'
+        +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:600;color:'+(pay.received?'var(--green-txt)':'var(--text2)')+';">'
+          +'<input type="checkbox" '+(pay.received?'checked':'')+' data-pi="'+i+'" '
+          +'data-pif="received" onchange="updatePayment(parseInt(this.dataset.pi),this.dataset.pif,this.checked)" '
+          +'style="accent-color:var(--green-txt);width:15px;height:15px;"/>'
+          +(pay.received?'Received ✓':'Mark received')
+        +'</label>'
+      +'</td>'
+      +'</tr>';
+  });
+
+  var total=PAYMENT_SCHEDULE.reduce(function(s,x){return s+base*(x.pct/100);},0);
+  var received=PAYMENT_SCHEDULE.filter(function(s,i){return (payments[i]||{}).received;}).reduce(function(s,x){return s+base*(x.pct/100);},0);
+  var remaining=total-received;
+
+  el.innerHTML='<table class="tbl">'
+    +'<thead><tr><th>Milestone</th><th>%</th><th>Amount</th><th>Due date</th><th>Status</th></tr></thead>'
+    +'<tbody>'+rows.join('')+'</tbody>'
+    +'<tfoot>'
+      +'<tr style="background:var(--bg2);border-top:2px solid var(--border);">'
+        +'<td colspan="2" style="padding:10px 13px;font-weight:700;">Total contract</td>'
+        +'<td style="padding:10px 13px;font-size:15px;font-weight:700;color:var(--brand);">$'+Math.round(total).toLocaleString()+'</td>'
+        +'<td style="padding:10px 13px;font-size:12px;color:var(--green-txt);font-weight:600;">Received: $'+Math.round(received).toLocaleString()+'</td>'
+        +'<td style="padding:10px 13px;font-size:12px;color:'+(remaining>0?'var(--red-txt)':'var(--green-txt)')+';font-weight:600;">'+(remaining>0?'Outstanding: $'+Math.round(remaining).toLocaleString():'Fully collected ✓')+'</td>'
+      +'</tr>'
+    +'</tfoot>'
+    +'</table>';
+}
+
+async function updatePayment(i, field, val){
+  var fin=jhFinancials||{};
+  var payments=fin.payments?JSON.parse(fin.payments||'[]'):[];
+  while(payments.length<4) payments.push({received:false,date:''});
+  payments[i][field]=val;
+  fin.payments=JSON.stringify(payments);
+  jhFinancials=fin;
+  // Save to job_financials
+  var existing=await sb.from('job_financials').select('id').eq('project_id',currentJobId).single();
+  if(existing.data){
+    await sb.from('job_financials').update({payments:fin.payments}).eq('project_id',currentJobId);
+  } else {
+    await sb.from('job_financials').insert({project_id:currentJobId,payments:fin.payments});
+  }
+  renderJhFinancials();
+}
+
 function renderJhFinancials(){
   var p=projects.find(function(x){return x.id===currentJobId;});
   var fin=jhFinancials||{};
@@ -3091,6 +3172,9 @@ function renderJhFinancials(){
   var collected=parseFloat(fin.collected)||0;
   var totalRevenue=contractVal+coApproved;
   var outstanding=invoiced-collected;
+
+  // Payment schedule
+  renderJhPaymentSchedule(contractVal, totalRevenue, fin);
 
   // Revenue cards
   document.getElementById('jh-revenue-cards').innerHTML=[
