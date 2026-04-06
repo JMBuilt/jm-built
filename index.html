@@ -1849,7 +1849,9 @@ function fillLeadFromCustomer(el){
   document.getElementById('l-cust-dropdown').style.display='none';
   document.getElementById('l-source').value='Repeat client';
   // Store existing customer_id so we reuse it instead of creating a new one
-  document.getElementById('l-existing-cid').value=el.dataset.cid||'';
+  var cid=el.dataset.cid||'';
+  alert('Customer ID captured: "'+cid+'"');
+  document.getElementById('l-existing-cid').value=cid;
 }
 
 document.addEventListener("click",function(e){var dd=document.getElementById("l-cust-dropdown");if(dd&&!dd.contains(e.target)&&e.target.id!=="l-cust-search")dd.style.display="none";});
