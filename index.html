@@ -3123,7 +3123,27 @@ function renderJhPaymentSchedule(contractVal, totalRevenue, fin){
   var received=PAYMENT_SCHEDULE.filter(function(s,i){return (payments[i]||{}).received;}).reduce(function(s,x){return s+base*(x.pct/100);},0);
   var remaining=total-received;
 
-  el.innerHTML='<table class="tbl">'
+  // Build progress indicator
+  var PROG_PCTS=[10,40,70,100];
+  var highestPct=0;
+  payments.forEach(function(p,idx){if(p.received) highestPct=PROG_PCTS[idx];});
+  var progressBar='<div style="padding:12px 1rem;border-bottom:1px solid var(--border);">'
+    +'<div style="display:flex;justify-content:space-between;margin-bottom:6px;">'
+      +'<span style="font-size:12px;color:var(--text2);">Project progress from payments</span>'
+      +'<span style="font-size:13px;font-weight:700;color:var(--brand);">'+highestPct+'%</span>'
+    +'</div>'
+    +'<div style="height:8px;background:var(--bg2);border-radius:4px;overflow:hidden;">'
+      +'<div style="width:'+highestPct+'%;height:100%;background:var(--brand);border-radius:4px;transition:width 0.3s;"></div>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:space-between;margin-top:6px;">'
+      +PAYMENT_SCHEDULE.map(function(s,i){
+        var done=payments[i]&&payments[i].received;
+        return '<span style="font-size:10px;color:'+(done?'var(--green-txt)':'var(--text3)')+';">'+s.icon+' '+s.label+'</span>';
+      }).join('')
+    +'</div>'
+    +'</div>';
+
+  el.innerHTML=progressBar+'<table class="tbl">'
     +'<thead><tr><th>Milestone</th><th>%</th><th>Amount</th><th>Due date</th><th>Status</th></tr></thead>'
     +'<tbody>'+rows.join('')+'</tbody>'
     +'<tfoot>'
@@ -3136,6 +3156,9 @@ function renderJhPaymentSchedule(contractVal, totalRevenue, fin){
     +'</tfoot>'
     +'</table>';
 }
+
+// Payment milestone index → project progress %
+var PAYMENT_PROGRESS=[10,40,70,100];
 
 async function updatePayment(i, field, val){
   var fin=jhFinancials||{};
@@ -3150,6 +3173,24 @@ async function updatePayment(i, field, val){
     await sb.from('job_financials').update({payments:fin.payments}).eq('project_id',currentJobId);
   } else {
     await sb.from('job_financials').insert({project_id:currentJobId,payments:fin.payments});
+  }
+  // Auto-update progress bar based on highest received payment milestone
+  if(field==='received'){
+    var highestPct=0;
+    payments.forEach(function(p,idx){
+      if(p.received) highestPct=PAYMENT_PROGRESS[idx];
+    });
+    await sb.from('projects').update({progress:highestPct}).eq('id',currentJobId);
+    var proj=projects.find(function(x){return x.id===currentJobId;});
+    if(proj) proj.progress=highestPct;
+    // Update the slider in project list if visible
+    var sliders=document.querySelectorAll('input[type="range"]');
+    sliders.forEach(function(s){
+      if(s.onchange&&s.onchange.toString().includes(currentJobId)){
+        s.value=highestPct;
+        if(s.nextElementSibling) s.nextElementSibling.textContent=highestPct+'%';
+      }
+    });
   }
   renderJhFinancials();
 }
