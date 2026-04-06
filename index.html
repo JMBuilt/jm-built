@@ -1543,9 +1543,47 @@ function renderNotesList(){const notes=leadNotes[currentNotesLeadId]||[];documen
 async function saveNote(){const text=document.getElementById('notes-input').value.trim();if(!text||!currentNotesLeadId)return;const now=new Date().toISOString();const {data}=await sb.from('lead_notes').insert({lead_id:currentNotesLeadId,note_text:text,created_at:now}).select();if(data){if(!leadNotes[currentNotesLeadId])leadNotes[currentNotesLeadId]=[];leadNotes[currentNotesLeadId].push(data[0]);}document.getElementById('notes-input').value='';renderNotesList();renderSalesPipeline();}
 function renderDatabase(){
   const q=(document.getElementById('db-search')?.value||'').toLowerCase();
-  const filtered=leads.filter(l=>!q||[l.name,l.phone,l.email,l.address,l.job,l.customer_id].some(v=>(v||'').toLowerCase().includes(q)));
   const qc={'Good':'b-green','Neutral':'b-amber','Do Not Contact':'b-red'};
-  document.getElementById('db-tbl').innerHTML=filtered.map(l=>'<tr><td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td><td style="font-weight:600;">'+l.name+'</td><td style="color:var(--text2);">'+(l.phone||'—')+'</td><td style="color:var(--text2);">'+(l.email||'—')+'</td><td style="color:var(--text2);">'+(l.address||'—')+'</td><td style="color:var(--text2);font-size:12px;">'+fmtDate(l.stage_updated_at||l.created_at)+'</td><td>'+badge(l.stage)+'</td><td><span class="badge '+(qc[l.qualifier]||'b-gray')+'" style="cursor:pointer;" onclick="openQualifierModal(\''+l.id+'\',\''+(l.qualifier||'Good')+'\')">'+(l.qualifier||'Good')+'</span></td><td>'+notesBtn(l.id)+'</td><td><button class="btn-danger" onclick="promptDelete(\'lead\',\''+l.id+'\',\''+l.name.replace(/'/g,"\\'")+'\')">Delete</button></td></tr>').join('')||'<tr><td colspan="10" class="empty">No results found</td></tr>';
+
+  // Deduplicate by customer_id — one row per customer, show all their jobs
+  var byCustomer={};
+  leads.forEach(function(l){
+    var cid=l.customer_id||l.id;
+    if(!byCustomer[cid]){
+      byCustomer[cid]={lead:l,jobs:[]};
+    } else if(new Date(l.created_at)>new Date(byCustomer[cid].lead.created_at)){
+      // Keep most recent as primary record for contact info
+      byCustomer[cid].jobs.push(byCustomer[cid].lead.job||'—');
+      byCustomer[cid].lead=l;
+    } else {
+      byCustomer[cid].jobs.push(l.job||'—');
+    }
+  });
+
+  var customers=Object.values(byCustomer).filter(function(c){
+    var l=c.lead;
+    return !q||[l.name,l.phone,l.email,l.address,l.customer_id].some(function(v){return (v||'').toLowerCase().includes(q);});
+  });
+
+  document.getElementById('db-tbl').innerHTML=customers.length
+    ? customers.map(function(c){
+        var l=c.lead;
+        var jobCount=c.jobs.length+1;
+        var jobsBadge=jobCount>1?'<span class="badge b-blue" style="font-size:9px;margin-left:4px;">'+jobCount+' jobs</span>':'';
+        return '<tr>'
+          +'<td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td>'
+          +'<td style="font-weight:600;">'+l.name+jobsBadge+'</td>'
+          +'<td style="color:var(--text2);">'+(l.phone||'—')+'</td>'
+          +'<td style="color:var(--text2);">'+(l.email||'—')+'</td>'
+          +'<td style="color:var(--text2);">'+(l.address||'—')+'</td>'
+          +'<td style="color:var(--text2);font-size:12px;">'+fmtDate(l.stage_updated_at||l.created_at)+'</td>'
+          +'<td>'+badge(l.stage)+'</td>'
+          +'<td><span class="badge '+(qc[l.qualifier]||'b-gray')+'" style="cursor:pointer;" onclick="openQualifierModal(\''+l.id+'\',\''+(l.qualifier||'Good')+'\')">'+(l.qualifier||'Good')+'</span></td>'
+          +'<td>'+notesBtn(l.id)+'</td>'
+          +'<td><button class="btn-danger" onclick="promptDelete(\'lead\',\''+l.id+'\',\''+l.name.replace(/'/g,"\\\'")+'\')">Delete</button></td>'
+          +'</tr>';
+      }).join('')
+    : '<tr><td colspan="10" class="empty">No results found</td></tr>';
 }
 function openQualifierModal(id,current){document.getElementById('q-lead-id').value=id;document.getElementById('q-qualifier').value=current;openModal('qualifier-modal');}
 async function saveQualifier(){const id=document.getElementById('q-lead-id').value;const qualifier=document.getElementById('q-qualifier').value;await sb.from('leads').update({qualifier}).eq('id',id);const l=leads.find(x=>x.id===id);if(l)l.qualifier=qualifier;closeModals();renderSalesPipeline();renderDatabase();}
