@@ -2972,17 +2972,17 @@ function renderCampaigns(){
         return '<tr>'
           +'<td><span class="proj-link" style="font-weight:600;" data-id="'+c.id+'" onclick="openCampaignDetail(this.dataset.id)">'+c.name+'</span>'+(c.debrief?'<span class="badge b-green" style="font-size:9px;margin-left:4px;">Debriefed</span>':'')+'</td>'
           +'<td><span class="badge b-gray" style="font-size:10px;">'+c.channel+'</span></td>'
-          +'<td style="color:var(--text2);font-size:12px;">'+(c.goal||'—')+'</td>'
-          +'<td style="color:var(--brand);font-weight:600;">'+fmt$(c.budget)+'</td>'
           +'<td style="color:var(--text2);font-size:12px;">'+fmtD(c.start_date)+'</td>'
           +'<td style="color:var(--text2);font-size:12px;">'+fmtD(c.end_date)+'</td>'
           +'<td><span class="badge '+(statusColors[c.status]||'b-gray')+'">'+c.status+'</span></td>'
-          +'<td>'+c.leads_count+'</td>'
-          +'<td style="color:var(--text2);font-size:12px;max-width:150px;">'+(c.notes||'—')+'</td>'
-          +'<td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+c.id+'" onclick="deleteCampaign(this.dataset.id)">✕</button></td>'
+          +'<td style="font-weight:600;">'+c.leads_count+'</td>'
+          +'<td style="font-weight:600;color:var(--brand);">'+(c.cost_per_lead?'$'+parseFloat(c.cost_per_lead).toFixed(2):'—')+'</td>'
+          +'<td style="white-space:nowrap;">'
+          +'<button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+c.id+'" onclick="deleteCampaign(this.dataset.id)">✕</button>'
+          +'</td>'
           +'</tr>';
       }).join('')
-    : '<tr><td colspan="10" class="empty">No campaigns yet</td></tr>';
+    : '<tr><td colspan="8" class="empty">No campaigns yet</td></tr>';
 }
 function openCampaignDetail(id){
   var c=mktCampaigns.find(function(x){return x.id===id;});
