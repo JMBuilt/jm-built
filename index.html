@@ -1659,7 +1659,9 @@ async function deleteCeoPri(id){if(!confirm('Delete this priority?'))return;awai
 function openModal(id){
   if(id==='labor-hours-modal'){
     var d=document.getElementById('lh-date');
-    if(d&&!d.value) d.value=new Date().toISOString().split('T')[0];
+    if(d) d.value=new Date().toISOString().split('T')[0];
+    var cr=document.getElementById('lh-crew-rows');
+    if(cr&&!cr.children.length) addLaborCrewRow();
   }document.getElementById(id).classList.add('open');}
 function closeModals(){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));}
 
@@ -2279,23 +2281,37 @@ function renderLaborHours(){
     +'</div>';
 }
 
+function addLaborCrewRow(){
+  var container=document.getElementById('lh-crew-rows');
+  if(!container) return;
+  var row=document.createElement('div');
+  row.style.cssText='display:grid;grid-template-columns:1fr 80px 28px;gap:8px;margin-bottom:6px;align-items:center;';
+  row.innerHTML='<input placeholder="Crew member name..." style="font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 10px;background:var(--surface);color:var(--text);font-family:inherit;" class="lh-crew-name"/>'
+    +'<input type="number" step="0.25" placeholder="hrs" style="font-size:13px;border:1px solid var(--border);border-radius:8px;padding:7px 8px;background:var(--surface);color:var(--text);font-family:inherit;text-align:center;" class="lh-crew-hrs"/>'
+    +'<button onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:var(--red-txt);font-size:16px;padding:0;">✕</button>';
+  container.appendChild(row);
+}
+
 async function saveLaborHours(){
-  var name=document.getElementById('lh-name').value.trim();
-  var hours=parseFloat(document.getElementById('lh-hours').value)||0;
-  if(!name||!hours){alert('Enter crew member and hours.');return;}
-  var data={
-    project_id:currentJobId,
-    name,
-    date:document.getElementById('lh-date').value||new Date().toISOString().split('T')[0],
-    hours,
-    phase:document.getElementById('lh-phase').value||'',
-    notes:document.getElementById('lh-notes').value||'',
-  };
-  var res=await sb.from('job_labor_hours').insert(data).select();
-  if(res.data) jhLaborHours.unshift(res.data[0]);
+  var date=document.getElementById('lh-date').value||new Date().toISOString().split('T')[0];
+  var phase=document.getElementById('lh-phase').value||'';
+  var notes=document.getElementById('lh-notes').value||'';
+  var rows=document.querySelectorAll('#lh-crew-rows > div');
+  var entries=[];
+  rows.forEach(function(row){
+    var name=row.querySelector('.lh-crew-name')?.value.trim();
+    var hours=parseFloat(row.querySelector('.lh-crew-hrs')?.value)||0;
+    if(name&&hours) entries.push({project_id:currentJobId,name,date,hours,phase,notes});
+  });
+  if(!entries.length){alert('Add at least one crew member with hours.');return;}
+  var res=await sb.from('job_labor_hours').insert(entries).select();
+  if(res.data) jhLaborHours=res.data.concat(jhLaborHours);
   closeModals();
   renderLaborHours();
-  ['lh-name','lh-hours','lh-phase','lh-notes'].forEach(function(id){document.getElementById(id).value='';});
+  ['lh-phase','lh-notes'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('lh-crew-rows').innerHTML='';
+  // Re-add one blank row for next time
+  addLaborCrewRow();
 }
 
 async function deleteLaborHours(id){
@@ -6015,13 +6031,14 @@ async function deletePriceEntry(id){
 </div></div>
 
 <!-- LABOR HOURS MODAL -->
-<div class="modal-overlay" id="labor-hours-modal"><div class="modal"><h3>Log labor hours</h3>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-    <div class="fg"><label>Crew member</label><input id="lh-name" placeholder="e.g. Justin, Mike, Sub crew..."/></div>
+<div class="modal-overlay" id="labor-hours-modal"><div class="modal" style="width:600px;"><h3>Log labor hours</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
     <div class="fg"><label>Date</label><input id="lh-date" type="date"/></div>
-    <div class="fg"><label>Hours worked</label><input id="lh-hours" type="number" step="0.25" placeholder="e.g. 8"/></div>
     <div class="fg"><label>Phase / task</label><input id="lh-phase" placeholder="e.g. Demo, Framing, Tile..."/></div>
   </div>
+  <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;">Crew members</div>
+  <div id="lh-crew-rows"></div>
+  <button class="btn-sm" style="margin-bottom:12px;" onclick="addLaborCrewRow()">+ Add crew member</button>
   <div class="fg"><label>Notes <span style="color:var(--text3);font-weight:400;">(optional)</span></label><input id="lh-notes" placeholder="e.g. Ran into old plumbing, worked through lunch..."/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveLaborHours()">Log hours</button></div>
 </div></div>
