@@ -1062,6 +1062,15 @@ input[type="date"].ord-cell::-webkit-calendar-picker-indicator { opacity: 0.5; c
     <div class="card"><div class="card-header"><span class="card-title">CEO priorities</span><span class="badge b-brand" id="ceo-pri-count">0</span></div><div id="ceo-priorities"></div><div class="add-row"><input id="ceo-inp" placeholder="Add a priority or goal..." onkeydown="if(event.key==='Enter')addCeoPri()"/><button class="btn-primary" style="padding:7px 13px;" onclick="addCeoPri()">Add</button></div></div>
     <div class="card"><div class="card-header"><span class="card-title">Business health</span></div><div id="ceo-health"></div></div>
   </div>
+
+  <!-- DECISION LOG -->
+  <div class="card" style="margin-top:1.25rem;">
+    <div class="card-header">
+      <span class="card-title">📋 Decision Log</span>
+      <button class="btn-primary" onclick="openModal('decision-modal')">+ Log decision</button>
+    </div>
+    <div id="ceo-decisions-list"></div>
+  </div>
 </div>
 
 <!-- ADMIN -->
@@ -1659,8 +1668,98 @@ async function toggleTask(id,done){await sb.from('tasks').update({done}).eq('id'
 function renderOffice(){const paid=invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+toNum(i.amt),0);const owed=invoices.filter(i=>i.status!=='Paid').reduce((s,i)=>s+toNum(i.amt),0);statCards('office-stats',[{label:'Invoices',value:invoices.length},{label:'Collected',value:fmt(paid),sub:'Paid'},{label:'Outstanding',value:fmt(owed),sub:'Owed'},{label:'Overdue',value:invoices.filter(i=>i.status==='Overdue').length,sub:'Follow up'}]);document.getElementById('inv-tbl').innerHTML=invoices.map(i=>'<tr><td style="font-weight:600;">'+i.client+'</td><td style="color:var(--brand);font-weight:600;">'+i.amt+'</td><td>'+badge(i.status)+'</td><td style="color:var(--text2);font-size:12px;">'+(i.due_date||'—')+'</td></tr>').join('')||'<tr><td colspan="4" class="empty">No invoices yet</td></tr>';document.getElementById('exp-tbl').innerHTML=expenses.map(e=>'<tr><td style="font-weight:600;">'+e.description+'</td><td style="color:var(--text2);">'+e.project+'</td><td style="color:var(--brand);font-weight:600;">'+e.amt+'</td><td style="color:var(--text2);font-size:12px;">'+(e.expense_date||'—')+'</td></tr>').join('')||'<tr><td colspan="4" class="empty">No expenses yet</td></tr>';}
 function renderMkt(){const sources={};leads.forEach(l=>{if(l.source)sources[l.source]=(sources[l.source]||0)+1;});statCards('mkt-stats',[{label:'Total leads',value:leads.length},{label:'From referrals',value:leads.filter(l=>l.source==='Referral').length,sub:'Best source'},{label:'From Google',value:leads.filter(l=>l.source==='Google').length,sub:'Online'},{label:'Close rate',value:(function(){var d=leads.filter(l=>l.stage==='Won'||l.stage==='Lost').length;return d?Math.round(leads.filter(l=>l.stage==='Won').length/d*100)+'%':'0%';})(),sub:'Won vs Lost'}]);document.getElementById('mkt-sources').innerHTML=Object.entries(sources).sort((a,b)=>b[1]-a[1]).map(([src,cnt])=>'<div class="list-row"><div class="row-name">'+src+'</div><div style="display:flex;align-items:center;gap:8px;"><div style="width:80px;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;"><div style="width:'+Math.round(cnt/leads.length*100)+'%;height:100%;background:var(--brand);border-radius:3px;"></div></div><span style="font-size:13px;font-weight:600;">'+cnt+'</span></div></div>').join('')||'<div class="empty">Add leads to see sources</div>';document.getElementById('mkt-todos').innerHTML=mktTasks.map(t=>'<div class="todo-item"><div class="chk'+(t.done?' done':'')+'" onclick="toggleMktTask(\''+t.id+'\','+!t.done+')"></div><div class="todo-label'+(t.done?' striked':'')+'">'+t.text+'</div></div>').join('')||'<div class="empty">No marketing tasks yet</div>';}
 async function toggleMktTask(id,done){await sb.from('mkt_tasks').update({done}).eq('id',id);const t=mktTasks.find(x=>x.id===id);if(t)t.done=done;renderMkt();}
-function renderCeo(){const paid=invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+toNum(i.amt),0);document.getElementById('ceo-rev').textContent=fmt(paid);document.getElementById('ceo-pipe').textContent=fmt(leads.filter(l=>ACTIVE_LEAD_STAGES.includes(l.stage)).reduce((s,l)=>s+toNum(l.val),0));document.getElementById('ceo-jobs').textContent=projects.filter(p=>ACTIVE_PROJ.includes(p.status)).length;const g=annualGoal,pct=g.goal>0?Math.min(100,Math.round(g.earned/g.goal*100)):0;document.getElementById('ceo-goal-area').innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:7px;"><span style="font-size:13px;color:var(--text2);">Target: <strong>$'+g.goal.toLocaleString()+'</strong></span><span style="font-size:13px;font-weight:600;color:var(--brand);">'+pct+'% there</span></div><div class="goal-bar-track"><div class="goal-bar-fill" style="width:'+pct+'%"></div></div><div style="display:flex;justify-content:space-between;margin-top:9px;font-size:12px;color:var(--text3);"><span>Earned: <strong style="color:var(--text);">$'+g.earned.toLocaleString()+'</strong></span><span>Remaining: <strong style="color:var(--text);">$'+(g.goal-g.earned).toLocaleString()+'</strong></span></div>';const attn=[];if(invoices.some(i=>i.status==='Overdue'))attn.push({text:'Overdue invoices',sub:'Collect payment ASAP',sev:'b-red'});if(estimates.some(e=>e.status==='Sent'))attn.push({text:'Estimates awaiting decisions',sub:'Follow up to close faster',sev:'b-amber'});if(leads.filter(l=>l.stage==='New Lead').length>2)attn.push({text:'New leads need contact',sub:"Don't let them go cold",sev:'b-amber'});if(tasks.filter(t=>!t.done&&t.priority==='High').length>0)attn.push({text:'High-priority tasks pending',sub:'Check field management',sev:'b-brand'});if(!attn.length)attn.push({text:'All clear',sub:'No urgent items right now',sev:'b-green'});document.getElementById('ceo-attention').innerHTML=attn.map(a=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+a.text+'</div><div class="row-sub">'+a.sub+'</div></div><span class="badge '+a.sev+'">!</span></div>').join('');document.getElementById('ceo-pri-count').textContent=ceoPriorities.filter(p=>!p.done).length;document.getElementById('ceo-priorities').innerHTML=ceoPriorities.map(function(p){return '<div class="todo-item"><div class="chk'+(p.done?' done':'')+'" onclick="toggleCeoPri(\''+p.id+'\','+(!p.done)+')" ></div><div style="flex:1" class="todo-label'+(p.done?' striked':'')+'">'+ p.text+'</div><button class="btn-danger" style="padding:3px 8px;font-size:10px;margin-left:8px;" onclick="deleteCeoPri(\''+p.id+'\')" >Delete</button></div>';}).join('')||'<div class="empty">Add your big-picture priorities</div>';document.getElementById('ceo-health').innerHTML=[{label:'Active leads',value:leads.filter(l=>ACTIVE_LEAD_STAGES.includes(l.stage)).length},{label:'Close rate',value:(function(){var d=leads.filter(l=>l.stage==='Won'||l.stage==='Lost').length;return d?Math.round(leads.filter(l=>l.stage==='Won').length/d*100)+'%':'0%';})()},
+function renderCeo(){const paid=invoices.filter(i=>i.status==='Paid').reduce((s,i)=>s+toNum(i.amt),0);document.getElementById('ceo-rev').textContent=fmt(paid);document.getElementById('ceo-pipe').textContent=fmt(leads.filter(l=>ACTIVE_LEAD_STAGES.includes(l.stage)).reduce((s,l)=>s+toNum(l.val),0));document.getElementById('ceo-jobs').textContent=projects.filter(p=>ACTIVE_PROJ.includes(p.status)).length;const g=annualGoal,pct=g.goal>0?Math.min(100,Math.round(g.earned/g.goal*100)):0;document.getElementById('ceo-goal-area').innerHTML='<div style="display:flex;justify-content:space-between;margin-bottom:7px;"><span style="font-size:13px;color:var(--text2);">Target: <strong>$'+g.goal.toLocaleString()+'</strong></span><span style="font-size:13px;font-weight:600;color:var(--brand);">'+pct+'% there</span></div><div class="goal-bar-track"><div class="goal-bar-fill" style="width:'+pct+'%"></div></div><div style="display:flex;justify-content:space-between;margin-top:9px;font-size:12px;color:var(--text3);"><span>Earned: <strong style="color:var(--text);">$'+g.earned.toLocaleString()+'</strong></span><span>Remaining: <strong style="color:var(--text);">$'+(g.goal-g.earned).toLocaleString()+'</strong></span></div>';const attn=[];if(invoices.some(i=>i.status==='Overdue'))attn.push({text:'Overdue invoices',sub:'Collect payment ASAP',sev:'b-red'});if(estimates.some(e=>e.status==='Sent'))attn.push({text:'Estimates awaiting decisions',sub:'Follow up to close faster',sev:'b-amber'});if(leads.filter(l=>l.stage==='New Lead').length>2)attn.push({text:'New leads need contact',sub:"Don't let them go cold",sev:'b-amber'});if(tasks.filter(t=>!t.done&&t.priority==='High').length>0)attn.push({text:'High-priority tasks pending',sub:'Check field management',sev:'b-brand'});if(!attn.length)attn.push({text:'All clear',sub:'No urgent items right now',sev:'b-green'});document.getElementById('ceo-attention').innerHTML=attn.map(a=>'<div class="list-row"><div style="flex:1"><div class="row-name">'+a.text+'</div><div class="row-sub">'+a.sub+'</div></div><span class="badge '+a.sev+'">!</span></div>').join('');document.getElementById('ceo-pri-count').textContent=ceoPriorities.filter(p=>!p.done).length;document.getElementById('ceo-priorities').innerHTML=ceoPriorities.map(function(p){return '<div class="todo-item"><div class="chk'+(p.done?' done':'')+'" onclick="toggleCeoPri(\''+p.id+'\','+(!p.done)+')" ></div><div style="flex:1" class="todo-label'+(p.done?' striked':'')+'">'+ p.text+'</div><button class="btn-danger" style="padding:3px 8px;font-size:10px;margin-left:8px;" onclick="deleteCeoPri(\''+p.id+'\')" >Delete</button></div>';}).join('')||'<div class="empty">Add your big-picture priorities</div>';renderDecisions();document.getElementById('ceo-health').innerHTML=[{label:'Active leads',value:leads.filter(l=>ACTIVE_LEAD_STAGES.includes(l.stage)).length},{label:'Close rate',value:(function(){var d=leads.filter(l=>l.stage==='Won'||l.stage==='Lost').length;return d?Math.round(leads.filter(l=>l.stage==='Won').length/d*100)+'%':'0%';})()},
 {label:'Active projects',value:projects.filter(p=>ACTIVE_PROJ.includes(p.status)).length},{label:'Overdue invoices',value:invoices.filter(i=>i.status==='Overdue').length},{label:'Pending estimates',value:estimates.filter(e=>e.status==='Sent').length},{label:'Suppliers',value:suppliers.length},{label:'Subcontractors',value:subs.length}].map(h=>'<div class="list-row"><div class="row-name" style="font-weight:400;">'+h.label+'</div><span style="font-size:13px;font-weight:600;">'+h.value+'</span></div>').join('');}
+// ── CEO DECISION LOG ─────────────────────────────────────────────────────────
+var ceoDecisions=[];
+
+async function loadDecisions(){
+  var res=await sb.from('ceo_decisions').select('*').order('date',{ascending:false});
+  ceoDecisions=res.data||[];
+}
+
+function renderDecisions(){
+  var el=document.getElementById('ceo-decisions-list');
+  if(!el) return;
+  if(!ceoDecisions.length){
+    el.innerHTML='<div class="empty" style="padding:1.25rem;">No decisions logged yet. Start documenting your major business decisions — hiring, pricing, strategy, operations.</div>';
+    return;
+  }
+  var catColors={
+    'Hiring / Team':'b-blue','Pricing':'b-green','Marketing':'b-brand',
+    'Operations':'b-amber','Finance':'b-red','Growth / Strategy':'b-purple',
+    'Vendor / Supplier':'b-gray','Technology':'b-blue','Other':'b-gray'
+  };
+  el.innerHTML=ceoDecisions.map(function(d){
+    var dt=d.date?new Date(d.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
+    return '<div style="padding:1rem;border-bottom:1px solid var(--border);">'
+      +'<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">'
+        +'<div style="flex:1;">'
+          +'<div style="font-size:14px;font-weight:700;margin-bottom:3px;">'+d.title+'</div>'
+          +'<div style="display:flex;gap:8px;align-items:center;">'
+            +'<span class="badge '+(catColors[d.category]||'b-gray')+'" style="font-size:10px;">'+d.category+'</span>'
+            +'<span style="font-size:11px;color:var(--text3);">'+dt+'</span>'
+          +'</div>'
+        +'</div>'
+        +'<div style="display:flex;gap:4px;">'
+          +'<button class="btn-sm" style="padding:2px 8px;font-size:10px;" data-id="'+d.id+'" onclick="openEditDecision(this.dataset.id)">Edit</button>'
+          +'<button class="btn-danger" style="padding:2px 8px;font-size:10px;" data-id="'+d.id+'" onclick="deleteDecision(this.dataset.id)">✕</button>'
+        +'</div>'
+      +'</div>'
+      +(d.why?'<div style="margin-bottom:6px;"><span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Why</span><div style="font-size:13px;color:var(--text2);margin-top:3px;line-height:1.6;">'+d.why+'</div></div>':'')
+      +(d.expected_outcome?'<div style="margin-bottom:6px;"><span style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Expected outcome</span><div style="font-size:13px;color:var(--text2);margin-top:3px;line-height:1.6;">'+d.expected_outcome+'</div></div>':'')
+      +(d.result?'<div style="background:var(--bg2);border-radius:8px;padding:8px 12px;margin-top:6px;"><span style="font-size:11px;font-weight:600;color:var(--green-txt);text-transform:uppercase;letter-spacing:.5px;">Result</span><div style="font-size:13px;color:var(--text2);margin-top:3px;line-height:1.6;">'+d.result+'</div></div>':'<div style="font-size:11px;color:var(--text3);margin-top:4px;font-style:italic;">No result logged yet</div>')
+      +'</div>';
+  }).join('');
+}
+
+async function saveDecision(){
+  var title=document.getElementById('dec-title').value.trim();
+  if(!title){alert('Enter a decision title.');return;}
+  var editId=document.getElementById('dec-edit-id').value;
+  var data={
+    title,
+    category:document.getElementById('dec-category').value,
+    date:document.getElementById('dec-date').value||new Date().toISOString().split('T')[0],
+    why:document.getElementById('dec-why').value||'',
+    expected_outcome:document.getElementById('dec-outcome').value||'',
+    result:document.getElementById('dec-result').value||'',
+  };
+  if(editId){
+    await sb.from('ceo_decisions').update(data).eq('id',editId);
+    var d=ceoDecisions.find(function(x){return x.id===editId;});
+    if(d) Object.assign(d,data);
+  } else {
+    var res=await sb.from('ceo_decisions').insert(data).select();
+    if(res.data) ceoDecisions.unshift(res.data[0]);
+  }
+  closeModals(); renderDecisions();
+  ['dec-title','dec-why','dec-outcome','dec-result'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('dec-edit-id').value='';
+  document.getElementById('decision-modal-title').textContent='Log a decision';
+}
+
+function openEditDecision(id){
+  var d=ceoDecisions.find(function(x){return x.id===id;});
+  if(!d) return;
+  document.getElementById('dec-edit-id').value=id;
+  document.getElementById('decision-modal-title').textContent='Edit decision';
+  document.getElementById('dec-title').value=d.title||'';
+  document.getElementById('dec-category').value=d.category||'Other';
+  document.getElementById('dec-date').value=d.date||'';
+  document.getElementById('dec-why').value=d.why||'';
+  document.getElementById('dec-outcome').value=d.expected_outcome||'';
+  document.getElementById('dec-result').value=d.result||'';
+  openModal('decision-modal');
+}
+
+async function deleteDecision(id){
+  if(!confirm('Delete this decision?')) return;
+  await sb.from('ceo_decisions').delete().eq('id',id);
+  ceoDecisions=ceoDecisions.filter(function(x){return x.id!==id;});
+  renderDecisions();
+}
+
 async function toggleCeoPri(id,done){await sb.from('ceo_priorities').update({done}).eq('id',id);const p=ceoPriorities.find(x=>x.id===id);if(p)p.done=done;renderCeo();}
 async function deleteCeoPri(id){if(!confirm('Delete this priority?'))return;await sb.from('ceo_priorities').delete().eq('id',id);ceoPriorities=ceoPriorities.filter(p=>p.id!==id);renderCeo();}
 
@@ -1668,6 +1767,10 @@ function openModal(id){
   if(id==='labor-hours-modal'){
     var d=document.getElementById('lh-date');
     if(d) d.value=new Date().toISOString().split('T')[0];
+  }
+  if(id==='decision-modal'){
+    var dd=document.getElementById('dec-date');
+    if(dd&&!document.getElementById('dec-edit-id').value) dd.value=new Date().toISOString().split('T')[0];
     var cr=document.getElementById('lh-crew-rows');
     if(cr&&!cr.children.length) addLaborCrewRow();
   }document.getElementById(id).classList.add('open');}
@@ -6360,6 +6463,32 @@ async function deletePriceEntry(id){
   <button class="btn-sm" style="margin-bottom:12px;" onclick="addLaborCrewRow()">+ Add crew member</button>
   <div class="fg"><label>Notes <span style="color:var(--text3);font-weight:400;">(optional)</span></label><input id="lh-notes" placeholder="e.g. Ran into old plumbing, worked through lunch..."/></div>
   <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveLaborHours()">Log hours</button></div>
+</div></div>
+
+<!-- DECISION MODAL -->
+<div class="modal-overlay" id="decision-modal"><div class="modal" style="width:600px;"><h3 id="decision-modal-title">Log a decision</h3>
+  <input type="hidden" id="dec-edit-id"/>
+  <div class="fg"><label>Decision title</label><input id="dec-title" placeholder="e.g. Hired new lead carpenter, Raised minimum project size to $10k, Dropped Angi Leads..."/></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="fg"><label>Category</label>
+      <select id="dec-category">
+        <option>Hiring / Team</option>
+        <option>Pricing</option>
+        <option>Marketing</option>
+        <option>Operations</option>
+        <option>Finance</option>
+        <option>Growth / Strategy</option>
+        <option>Vendor / Supplier</option>
+        <option>Technology</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="fg"><label>Date</label><input id="dec-date" type="date"/></div>
+  </div>
+  <div class="fg"><label>Why this decision? <span style="color:var(--text3);font-weight:400;">— context and reasoning</span></label><textarea id="dec-why" rows="3" style="resize:vertical;" placeholder="e.g. We were losing money on small jobs under $8k after materials and labor. Decided to raise minimum to protect margins..."></textarea></div>
+  <div class="fg"><label>Expected outcome</label><textarea id="dec-outcome" rows="2" style="resize:vertical;" placeholder="e.g. Expect to lose 15% of leads but increase average job margin from 28% to 35%..."></textarea></div>
+  <div class="fg"><label>Result / follow-up <span style="color:var(--text3);font-weight:400;">(fill in later)</span></label><textarea id="dec-result" rows="2" style="resize:vertical;" placeholder="e.g. After 90 days — margin improved as expected. A few good clients pushed back but most accepted..."></textarea></div>
+  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" id="dec-save-btn" onclick="saveDecision()">Save decision</button></div>
 </div></div>
 </body>
 </html>
