@@ -1545,22 +1545,23 @@ function renderDatabase(){
   const q=(document.getElementById('db-search')?.value||'').toLowerCase();
   const qc={'Good':'b-green','Neutral':'b-amber','Do Not Contact':'b-red'};
 
-  // Deduplicate by customer_id — one row per customer, show all their jobs
-  var byCustomer={};
+  // Deduplicate: one row per unique customer_id, keeping most recent lead's info
+  // and counting total jobs
+  var seen={};
   leads.forEach(function(l){
-    var cid=l.customer_id||l.id;
-    if(!byCustomer[cid]){
-      byCustomer[cid]={lead:l,jobs:[]};
-    } else if(new Date(l.created_at)>new Date(byCustomer[cid].lead.created_at)){
-      // Keep most recent as primary record for contact info
-      byCustomer[cid].jobs.push(byCustomer[cid].lead.job||'—');
-      byCustomer[cid].lead=l;
+    var key=l.customer_id||l.id;
+    if(!seen[key]){
+      seen[key]={lead:l, count:1};
     } else {
-      byCustomer[cid].jobs.push(l.job||'—');
+      seen[key].count++;
+      // Keep most recent
+      if(new Date(l.created_at)>new Date(seen[key].lead.created_at)){
+        seen[key].lead=l;
+      }
     }
   });
 
-  var customers=Object.values(byCustomer).filter(function(c){
+  var customers=Object.values(seen).filter(function(c){
     var l=c.lead;
     return !q||[l.name,l.phone,l.email,l.address,l.customer_id].some(function(v){return (v||'').toLowerCase().includes(q);});
   });
@@ -1568,8 +1569,7 @@ function renderDatabase(){
   document.getElementById('db-tbl').innerHTML=customers.length
     ? customers.map(function(c){
         var l=c.lead;
-        var jobCount=c.jobs.length+1;
-        var jobsBadge=jobCount>1?'<span class="badge b-blue" style="font-size:9px;margin-left:4px;">'+jobCount+' jobs</span>':'';
+        var jobsBadge=c.count>1?'<span class="badge b-blue" style="font-size:9px;margin-left:4px;">'+c.count+' jobs</span>':'';
         return '<tr>'
           +'<td><span class="cid-badge">'+(l.customer_id||'—')+'</span></td>'
           +'<td style="font-weight:600;">'+l.name+jobsBadge+'</td>'
@@ -1578,9 +1578,9 @@ function renderDatabase(){
           +'<td style="color:var(--text2);">'+(l.address||'—')+'</td>'
           +'<td style="color:var(--text2);font-size:12px;">'+fmtDate(l.stage_updated_at||l.created_at)+'</td>'
           +'<td>'+badge(l.stage)+'</td>'
-          +'<td><span class="badge '+(qc[l.qualifier]||'b-gray')+'" style="cursor:pointer;" onclick="openQualifierModal(\''+l.id+'\',\''+(l.qualifier||'Good')+'\')">'+(l.qualifier||'Good')+'</span></td>'
+          +'<td>'+qualBadge(l)+'</td>'
           +'<td>'+notesBtn(l.id)+'</td>'
-          +'<td><button class="btn-danger" onclick="promptDelete(\'lead\',\''+l.id+'\',\''+l.name.replace(/'/g,"\\\'")+'\')">Delete</button></td>'
+          +'<td><button class="btn-danger" data-lid="'+l.id+'" onclick="promptDelete(\'lead\',this.dataset.lid,this.parentElement.parentElement.cells[1].textContent.trim())">Delete</button></td>'
           +'</tr>';
       }).join('')
     : '<tr><td colspan="10" class="empty">No results found</td></tr>';
@@ -1849,9 +1849,7 @@ function fillLeadFromCustomer(el){
   document.getElementById('l-cust-dropdown').style.display='none';
   document.getElementById('l-source').value='Repeat client';
   // Store existing customer_id so we reuse it instead of creating a new one
-  var cid=el.dataset.cid||'';
-  alert('Customer ID captured: "'+cid+'"');
-  document.getElementById('l-existing-cid').value=cid;
+  document.getElementById('l-existing-cid').value=el.dataset.cid||'';
 }
 
 document.addEventListener("click",function(e){var dd=document.getElementById("l-cust-dropdown");if(dd&&!dd.contains(e.target)&&e.target.id!=="l-cust-search")dd.style.display="none";});
