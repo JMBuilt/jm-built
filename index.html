@@ -1816,6 +1816,8 @@ function openModal(id){
   }document.getElementById(id).classList.add('open');}
 function closeModals(){document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));}
 
+var pendingLeadCid=null;
+
 function searchLeadCustomers(q){
   var dropdown=document.getElementById('l-cust-dropdown');
   if(!dropdown) return;
@@ -1841,6 +1843,7 @@ function searchLeadCustomers(q){
 }
 
 function fillLeadFromCustomer(el){
+  pendingLeadCid=el.dataset.cid||null;
   document.getElementById('l-name').value=el.dataset.name||'';
   document.getElementById('l-phone').value=el.dataset.phone||'';
   document.getElementById('l-email').value=el.dataset.email||'';
@@ -1855,9 +1858,8 @@ function fillLeadFromCustomer(el){
 document.addEventListener("click",function(e){var dd=document.getElementById("l-cust-dropdown");if(dd&&!dd.contains(e.target)&&e.target.id!=="l-cust-search")dd.style.display="none";});
 
 async function saveLead(){const name=document.getElementById('l-name').value.trim();if(!name)return;const now=new Date().toISOString();
-  var existingCid=document.getElementById('l-existing-cid')?.value||'';
-  alert('existingCid='+existingCid);
-  const customer_id=existingCid||await getNextId('last_customer_id',1012);const {data}=await sb.from('leads').insert({name,customer_id,phone:document.getElementById('l-phone').value||'',email:document.getElementById('l-email').value||'',address:document.getElementById('l-address').value||'',job:document.getElementById('l-job').value||'',val:document.getElementById('l-val').value||'TBD',source:document.getElementById('l-source').value,qualifier:document.getElementById('l-qualifier').value,stage:'New Lead',stage_updated_at:now}).select();if(data)leads.unshift(data[0]);closeModals();renderSalesPipeline();renderDash();['l-name','l-phone','l-email','l-address','l-job','l-val','l-cust-search','l-existing-cid'].forEach(id=>document.getElementById(id).value='');document.getElementById('l-cust-dropdown').style.display='none';}
+  const customer_id=pendingLeadCid||await getNextId('last_customer_id',1012);
+  pendingLeadCid=null;const {data}=await sb.from('leads').insert({name,customer_id,phone:document.getElementById('l-phone').value||'',email:document.getElementById('l-email').value||'',address:document.getElementById('l-address').value||'',job:document.getElementById('l-job').value||'',val:document.getElementById('l-val').value||'TBD',source:document.getElementById('l-source').value,qualifier:document.getElementById('l-qualifier').value,stage:'New Lead',stage_updated_at:now}).select();if(data)leads.unshift(data[0]);closeModals();renderSalesPipeline();renderDash();['l-name','l-phone','l-email','l-address','l-job','l-val','l-cust-search'].forEach(id=>document.getElementById(id).value='');document.getElementById('l-cust-dropdown').style.display='none';pendingLeadCid=null;}
 async function saveEst(){const client=document.getElementById('e-client').value.trim();if(!client)return;const today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});const {data}=await sb.from('estimates').insert({client,description:document.getElementById('e-desc').value||'',amt:document.getElementById('e-amt').value||'TBD',status:document.getElementById('e-status').value,sent:today,follow_up:document.getElementById('e-follow').value||''}).select();if(data)estimates.unshift(data[0]);closeModals();renderEst();renderDash();['e-client','e-desc','e-amt','e-follow'].forEach(id=>document.getElementById(id).value='');}
 async function saveProj(){const name=document.getElementById('p-name').value.trim();if(!name)return;const job_id=await getNextId('last_job_id',1045);const {data}=await sb.from('projects').insert({name,job_id,client:document.getElementById('p-client').value||'',customer_id:document.getElementById('p-customer-id').value||'',val:document.getElementById('p-val').value||'TBD',job_type:document.getElementById('p-job-type').value||'',status:document.getElementById('p-status').value,progress:0,start_date:document.getElementById('p-start').value||'',due_date:document.getElementById('p-due').value||'',profitable:''}).select();if(data)projects.unshift(data[0]);closeModals();renderProj();renderDash();['p-name','p-client','p-customer-id','p-val','p-start','p-due','p-job-type'].forEach(id=>document.getElementById(id).value='');}
 async function saveTask(){const text=document.getElementById('t-text').value.trim();if(!text)return;const {data}=await sb.from('tasks').insert({text,project:document.getElementById('t-proj').value||'General',assigned_to:document.getElementById('t-assign').value||'Yourself',priority:document.getElementById('t-pri').value,done:false}).select();if(data)tasks.unshift(data[0]);closeModals();renderField();renderDash();['t-text','t-proj','t-assign'].forEach(id=>document.getElementById(id).value='');}
