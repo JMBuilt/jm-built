@@ -1841,6 +1841,7 @@ function searchLeadCustomers(q){
 }
 
 function fillLeadFromCustomer(el){
+  alert('ALL DATA: '+JSON.stringify(el.dataset));
   document.getElementById('l-name').value=el.dataset.name||'';
   document.getElementById('l-phone').value=el.dataset.phone||'';
   document.getElementById('l-email').value=el.dataset.email||'';
