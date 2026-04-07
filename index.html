@@ -1453,7 +1453,8 @@ async function moveLeadStage(id,stage){
 
 async function createProjectFromLead(l){
   // Check if a project for this lead already exists (avoid duplicates)
-  const existing=projects.find(function(p){return p.customer_id===l.customer_id&&p.name===(l.job||l.name+' Job');});
+  // Only block if exact same project already exists (same customer, same job name, same value)
+  const existing=projects.find(function(p){return p.customer_id===l.customer_id&&p.name===(l.job||l.name+' Job')&&p.val===l.val;});
   if(existing){return;}
   const job_id=await getNextId('last_job_id',1045);
   const res=await sb.from('projects').insert({
