@@ -3485,10 +3485,51 @@ function renderOverhead(){
           +'<td style="color:var(--text2);font-size:12px;">'+x.frequency+'</td>'
           +'<td style="color:var(--text2);font-size:12px;">'+d+'</td>'
           +'<td style="color:var(--text2);font-size:12px;max-width:160px;">'+(x.notes||'—')+'</td>'
-          +'<td><button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+x.id+'" onclick="deleteOverhead(this.dataset.id)">✕</button></td>'
+          +'<td style="white-space:nowrap;"><button class="btn-sm" style="padding:2px 7px;font-size:10px;margin-right:3px;" data-id="'+x.id+'" onclick="openEditOverhead(this.dataset.id)">Edit</button><button class="btn-danger" style="padding:2px 7px;font-size:10px;" data-id="'+x.id+'" onclick="deleteOverhead(this.dataset.id)">✕</button></td>'
           +'</tr>';
       }).join('')
     : '<tr><td colspan="7" class="empty">No overhead expenses yet — log your fixed costs to track your monthly burn rate</td></tr>';
+}
+
+function resetOverheadModal(){
+  var btn=document.querySelector('#overhead-modal .btn-primary');
+  if(btn){btn.textContent='Save';btn.onclick=saveOverhead;}
+  document.querySelector('#overhead-modal h3').textContent='Log overhead expense';
+}
+
+function openEditOverhead(id){
+  var x=ohExpenses.find(function(e){return e.id===id;});
+  if(!x) return;
+  document.getElementById('oh-cat').value=x.category||'Rent / Mortgage';
+  document.getElementById('oh-desc').value=x.description||'';
+  document.getElementById('oh-amount').value=x.amount||'';
+  document.getElementById('oh-freq').value=x.frequency||'Monthly';
+  document.getElementById('oh-date').value=x.date||'';
+  document.getElementById('oh-notes').value=x.notes||'';
+  // Switch save button to update mode
+  var btn=document.querySelector('#overhead-modal .btn-primary');
+  if(btn){btn.textContent='Save changes';btn.setAttribute('data-edit-id',id);btn.onclick=function(){saveEditOverhead(this.getAttribute('data-edit-id'));};}
+  document.querySelector('#overhead-modal h3').textContent='Edit expense';
+  openModal('overhead-modal');
+}
+
+async function saveEditOverhead(id){
+  var data={
+    category:document.getElementById('oh-cat').value,
+    description:document.getElementById('oh-desc').value||'',
+    amount:parseFloat(document.getElementById('oh-amount').value)||0,
+    frequency:document.getElementById('oh-freq').value,
+    date:document.getElementById('oh-date').value||null,
+    notes:document.getElementById('oh-notes').value||'',
+  };
+  await sb.from('oh_expenses').update(data).eq('id',id);
+  var x=ohExpenses.find(function(e){return e.id===id;});
+  if(x) Object.assign(x,data);
+  // Reset modal back to add mode
+  var btn=document.querySelector('#overhead-modal .btn-primary');
+  if(btn){btn.textContent='Save';btn.onclick=saveOverhead;}
+  document.querySelector('#overhead-modal h3').textContent='Log overhead expense';
+  closeModals(); renderOverhead();
 }
 
 async function saveOverhead(){
@@ -6513,7 +6554,7 @@ async function deletePriceEntry(id){
     <div class="fg"><label>Date</label><input id="oh-date" type="date"/></div>
   </div>
   <div class="fg"><label>Notes</label><input id="oh-notes" placeholder="e.g. Renews Jan 1, includes liability + workers comp..."/></div>
-  <div class="mfoot"><button class="btn-sm" onclick="closeModals()">Cancel</button><button class="btn-primary" onclick="saveOverhead()">Save</button></div>
+  <div class="mfoot"><button class="btn-sm" onclick="resetOverheadModal();closeModals()">Cancel</button><button class="btn-primary" onclick="saveOverhead()">Save</button></div>
 </div></div>
 
 <!-- HR PERSON MODAL -->
